@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
     if (parameters.m_algorithm < 0)
     {
         startAlgorithm = 0;
-        endAlgorithm = 2;
+        endAlgorithm = 3;
         if (bInteractive)
         {
             bInteractive = false;
@@ -246,6 +246,7 @@ int main(int argc, char** argv) {
     for (int algorithm = startAlgorithm; algorithm < endAlgorithm; algorithm++)
     {
         subAlg = 0;
+        parameters.m_algorithm = algorithm;
         do
         {
             pTimingStats->Reset();
@@ -263,21 +264,21 @@ int main(int argc, char** argv) {
                     break;
                 case 2:
                     // TODO: Implement
-                    pAlg = new SerialRemapping(parameters, E_STORE_SOA);
+                    pAlg = new DpcppRemapping(parameters);
                     break;
                 case 3:
                     // TODO: Implement
-                    pAlg = new ParallelRemapping(parameters);
+                    //pAlg = new ParallelRemapping(parameters);
                     break;
                 case 4:
                     // TODO: Implement
+                    //pAlg = new SerialRemapping(parameters, E_STORE_SOA);
                     break;
                 case 5:
                     // TODO: Implement
                     break;
                 case 6:
                     // TODO: Implement
-                    pAlg = new DpcppRemapping(parameters);
                     break;
                 }
                 pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, std::chrono::system_clock::now());
@@ -455,6 +456,12 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
+                else
+                {
+                    bActiveSubAlg = pAlg->StartSubAlgorithm(subAlg++);
+                    pTimingStats->Reset();
+                    iteration = 0;
+                }
             }
         } while (bInteractive && bRunning);	// Stop looping when they hit Esc or q
 
@@ -462,6 +469,12 @@ int main(int argc, char** argv) {
         pAlg = NULL;
     }
 
+    // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
+    printf("\033[32m");
+    printf("All done!\n");
+    printf("It is possible that the exit will hang due to a driver not unloading properly.\n");
+    printf("It is safe to force the program to stop since no more computing is being done.\n");
+    printf("\033[0m");
     if (!bInteractive)
     {
         key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
