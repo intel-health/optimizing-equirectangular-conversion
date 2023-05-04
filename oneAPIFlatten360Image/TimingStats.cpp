@@ -20,6 +20,7 @@ void TimingStats::Reset()
 	{
 		m_iterations[i] = 0;
 		m_durationsSum[i] = std::chrono::duration<double>::zero();
+		m_durationWarmup[i] = std::chrono::duration<double>::zero();
 	}
 }
 
@@ -36,20 +37,66 @@ void TimingStats::AddIterationResults(ETimingType timingType, std::chrono::syste
 {
 	std::chrono::duration<double> duration = std::chrono::duration<double>(endTime - startTime);
 
-	m_iterations[timingType]++;
-	m_durationsSum[timingType] += duration;
+	if (m_durationWarmup[timingType] == std::chrono::duration<double>::zero())
+	{
+		m_durationWarmup[timingType] = duration;
+	}
+	else
+	{
+		m_iterations[timingType]++;
+		m_durationsSum[timingType] += duration;
+	}
 	m_lapIterations[timingType]++;
 	m_lapDurationsSum[timingType] += duration;
 }
 
-void TimingStats::ReportTime(ETimingType timingType, bool bIncludeLap)
+std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType)
+{
+	char line1[1024];
+	char line2[1024];
+	std::string retVal = "";
+
+#define CSV_OUTPUT
+#ifdef CSV_OUTPUT
+	char *pFmt = "%15s,%3d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
+	char *pFmt2 = "FPS, %12.8f\n";
+#else
+	char *pFmt = "%15s %3d %23s %12.8fs %12.5fms %12.3fus ";
+	char *pFmt2 = "FPS = %12.8f\n";
+#endif
+	std::chrono::duration<double> aveDuration = durationSum / numIterations;
+	sprintf(line1, pFmt, strDesc.c_str(), numIterations, typeString.c_str(), aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);
+	if (timingType == TIMING_FRAME)
+	{
+		sprintf(line2, pFmt2, 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
+	}
+	else
+	{
+		sprintf(line2, "\n");
+	}
+
+	retVal = line1;
+	retVal += line2;
+
+	return retVal;
+}
+
+void TimingStats::ReportTime(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType)
+{
+	printf("%s", GetSummaryLine(strDesc, typeString, durationSum, numIterations, timingType).c_str());
+}
+
+std::string TimingStats::GetTypeString(ETimingType timingType)
 {
 	std::string strDesc;
 
 	switch (timingType)
 	{
 	case TIMING_INITIALIZATION:
-		strDesc = "Initialization";
+		strDesc = "Class initialization";
+		break;
+	case VARIANT_INITIALIZATION:
+		strDesc = "Variant initialization";
 		break;
 	case TIMING_CREATE_XYZ_COORDS:
 		strDesc = "Create XYZ Coords";
@@ -75,35 +122,70 @@ void TimingStats::ReportTime(ETimingType timingType, bool bIncludeLap)
 	case TIMING_FRAME:
 		strDesc = "Frame";
 		break;
+	case VARIANT_TERMINATION:
+		strDesc = "Variant cleanup";
+		break;
 	case TIMING_TOTAL:
 		strDesc = "Total";
 		break;
 	}
-	std::chrono::duration<double> aveDuration = m_durationsSum[timingType] / m_iterations[timingType];
-	printf("%23s %3d times averaging %12.8fs %12.5fms %12.3fus ", strDesc.c_str(), m_iterations[timingType], aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);
-	if (timingType == TIMING_FRAME)
-	{
-		printf("FPS = %12.8f ", 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
-	}
-	if (bIncludeLap && m_lapIterations[timingType] > 0)
-	{
-		aveDuration = m_lapDurationsSum[timingType] / m_lapIterations[timingType]; 
-		printf("%3d lap averaging %12.8fs %12.5fms %12.3fus", m_lapIterations[timingType], aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);
-		if (timingType == TIMING_FRAME)
-		{
-			printf(" FPS = %12.8f", 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
-		}
-	}
-	printf("\n");
+
+	return strDesc;
 }
 
 void TimingStats::ReportTimes(bool bIncludeLap)
 {
+	std::string desc;
+
+	desc = "warmup";
+	for (int i = 0; i < ETimingType::TIMING_MAX; i++)
+	{
+		if (m_durationWarmup[i] != std::chrono::duration<double>::zero())
+		{
+			std::string typeString = GetTypeString((ETimingType)i);
+			ReportTime(desc, typeString, m_durationWarmup[i], 1, (ETimingType)i);
+		}
+	}
+	desc = "times averaging";
 	for (int i = 0; i < ETimingType::TIMING_MAX; i++)
 	{
 		if (m_iterations[i] != 0)
 		{
-			ReportTime((ETimingType)i, bIncludeLap);
+			std::string typeString = GetTypeString((ETimingType)i);
+			ReportTime(desc, typeString, m_durationsSum[i], m_iterations[i], (ETimingType)i);
+		}
+	}
+	if (bIncludeLap)
+	{
+		desc = "lap averaging";
+		for (int i = 0; i < ETimingType::TIMING_MAX; i++)
+		{
+			if (m_lapIterations[i] != 0)
+			{
+				std::string typeString = GetTypeString((ETimingType)i);
+				ReportTime(desc, typeString, m_lapDurationsSum[i], m_lapIterations[i], (ETimingType)i);
+			}
 		}
 	}
 }
+
+std::string TimingStats::SummaryStats()
+{
+	std::string retVal = "";
+
+	if (m_durationWarmup[ETimingType::TIMING_FRAME] != std::chrono::duration<double>::zero())
+	{
+		retVal += GetSummaryLine("warmup", GetTypeString(ETimingType::TIMING_FRAME), m_durationWarmup[ETimingType::TIMING_FRAME], 1, ETimingType::TIMING_FRAME);
+	}
+	if (m_iterations[ETimingType::TIMING_FRAME] != 0)
+	{
+		retVal += GetSummaryLine("times averaging", GetTypeString(ETimingType::TIMING_FRAME), m_durationsSum[ETimingType::TIMING_FRAME], m_iterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
+	}
+	if (m_lapIterations[ETimingType::TIMING_FRAME] != 0)
+	{
+		retVal += GetSummaryLine("lap averaging", GetTypeString(ETimingType::TIMING_FRAME), m_lapDurationsSum[ETimingType::TIMING_FRAME], m_lapIterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
+	}
+
+	return retVal;
+}
+

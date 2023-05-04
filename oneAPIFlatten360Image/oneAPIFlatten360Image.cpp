@@ -12,14 +12,17 @@
 
 #include "ParseArgs.hpp"
 #include "SerialRemapping.hpp"
+#include "SerialRemappingV2.hpp"
 #include "ParallelRemapping.hpp"
 #include "DpcppRemapping.hpp"
+#include "DpcppRemappingV2.hpp"
 #include "oneAPIFlatten360Image.h"
 #include "TimingStats.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 
 using namespace cl::sycl;
 
+#if 0
 // Convience data access definitions
 constexpr access::mode dp_read = access::mode::read;
 constexpr access::mode dp_write = access::mode::write;
@@ -27,6 +30,18 @@ constexpr access::mode dp_write = access::mode::write;
 // ARRAY type & data size for use in this example
 constexpr size_t array_size = 10000;
 typedef std::array<int, array_size> IntArray;
+#endif
+
+#ifdef VTUNE_API
+// Assuming you have 2023 of VTune installed, you will need to add
+// $(VTUNE_PROFILER_2023_DIR)\sdk\include
+// to the include directories for any configurations that will be profiled.  Also add
+// $(VTUNE_PROFILER_2023_DIR)\sdk\lib64
+// to the linker additional directories area
+#include "ittnotify.h"
+#pragma comment(lib, "libittnotify.lib")
+__itt_domain* pittTests_domain = __itt_domain_createA("localDomain");
+#endif
 
 // output message for runtime exceptions
 #define EXCEPTION_MSG \
@@ -34,6 +49,7 @@ typedef std::array<int, array_size> IntArray;
         set up correctly and compile with -DFPGA  \n\
     If you are targeting the FPGA emulator, compile with -DFPGA_EMULATOR.\n"
 
+#if 0
 //************************************
 // Function description: initialize the array from 0 to array_size-1
 //************************************
@@ -143,6 +159,7 @@ void VectorAddInDPCPP(const IntArray &addend_1, const IntArray &addend_2,
   // kernel asynchronously. at the end of the DPC++ scope the buffer's data is
   // copied back to the host.
 }
+#endif
 
 //************************************
 // Demonstrate summation of arrays both in scalar on CPU and parallel on device
@@ -157,21 +174,18 @@ int main(int argc, char** argv) {
         PrintUsage(argv[0], errorMessage);
         exit(1);
     }
-    const int width = parameters.m_widthOutput;
-    const int height = parameters.m_heightOutput;
-    const int indexes = 3;
 
     std::string description;
     BaseAlgorithm* pAlg = NULL;
-    int prevAlg = -1;
     std::chrono::system_clock::time_point initStartTime;
     std::chrono::system_clock::time_point initEndTime;
+    std::chrono::system_clock::time_point variantInitStartTime;
+    std::chrono::system_clock::time_point variantInitStopTime;
     std::chrono::system_clock::time_point frameStartTime;
     std::chrono::system_clock::time_point frameEndTime;
     std::chrono::system_clock::time_point totalTimeStart;
     std::chrono::system_clock::time_point totalTimeEnd;
     std::chrono::system_clock::time_point extractionStartTime;
-    std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
     TimingStats *pTimingStats = TimingStats::GetTimingStats();
     bool bInteractive = parameters.m_iterations <= 1;
     int iteration = 0;
@@ -180,19 +194,19 @@ int main(int argc, char** argv) {
     int endAlgorithm;
     int key;
     bool bDebug = false;
-    bool bRunning = true;
     bool bEnteringData = false;
     cv::Mat debugImg;
     cv::Mat flatImg;
     int delta = 10;
-    uint subAlg;
-    bool bActiveSubAlg;
+    bool bRunningVariant;
+    bool bVariantValid;
+    std::vector<std::string> summaryStats;
 
 
     if (parameters.m_algorithm < 0)
     {
         startAlgorithm = 0;
-        endAlgorithm = 3;
+        endAlgorithm = 4;
         if (bInteractive)
         {
             bInteractive = false;
@@ -245,6 +259,222 @@ int main(int argc, char** argv) {
     }
     for (int algorithm = startAlgorithm; algorithm < endAlgorithm; algorithm++)
     {
+        initStartTime = std::chrono::system_clock::now();
+        switch (algorithm)
+        {
+        case 0:
+            pAlg = new SerialRemapping(parameters);
+            break;
+        case 1:
+            pAlg = new SerialRemappingV2(parameters);
+            break;
+        case 2:
+            pAlg = new DpcppRemapping(parameters);
+            break;
+        case 3:
+            pAlg = new DpcppRemappingV2(parameters);
+            break;
+        }
+        initEndTime = std::chrono::system_clock::now();
+
+        bVariantValid = true;
+        while (bVariantValid)
+        {
+            variantInitStartTime = std::chrono::system_clock::now();
+            bVariantValid = pAlg->StartVariant();
+
+            if (bVariantValid)
+            {
+                pTimingStats->Reset();
+                iteration = 0;
+
+                pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
+                pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::system_clock::now());
+                bRunningVariant = true;
+                totalTimeStart = std::chrono::system_clock::now();
+                while (bRunningVariant)
+                {
+                    pTimingStats->ResetLap();
+#ifdef VTUNE_API
+                    // We only care about profiling the specific calculations so resume VTune data collection
+                    // here and then pause after our iterations.  The user should start VTune paused to ignore
+                    // tracing the above code as well.
+                    __itt_resume();
+#endif
+                    do
+                    {
+                        if (parameters.m_pitch > 90)
+                        {
+                            parameters.m_pitch = 90;
+                        }
+                        else if (parameters.m_pitch < -90)
+                        {
+                            parameters.m_pitch = -90;
+                        }
+                        if (parameters.m_fov < 10)
+                        {
+                            parameters.m_fov = 10;
+                        }
+                        else if (parameters.m_fov > 120)
+                        {
+                            parameters.m_fov = 120;
+                        }
+                        if (parameters.m_yaw > 180)
+                        {
+                            // Wrap around to the other side of the 360 view
+                            parameters.m_yaw = -180 + parameters.m_yaw - 180;
+                        }
+                        else if (parameters.m_yaw < -180)
+                        {
+                            parameters.m_yaw = 180 + parameters.m_yaw + 180;
+                        }
+                        if (parameters.m_roll < 0)
+                        {
+                            parameters.m_roll = 360 + parameters.m_roll;
+                        }
+                        else if (parameters.m_roll >= 360)
+                        {
+                            parameters.m_roll -= 360;
+                        }
+
+                        frameStartTime = std::chrono::system_clock::now();
+                        pAlg->FrameCalculations(prevParameters != parameters);
+                        pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::system_clock::now());
+                        prevParameters = parameters;
+                        extractionStartTime = std::chrono::system_clock::now();
+                        flatImg = pAlg->ExtractFrameImage();
+                        frameEndTime = std::chrono::system_clock::now();
+                        pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, extractionStartTime, frameEndTime);
+                        pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, frameStartTime, frameEndTime, bInteractive);
+                        iteration++;
+                        parameters.m_yaw += parameters.m_deltaYaw;
+                        parameters.m_pitch += parameters.m_deltaPitch;
+                        parameters.m_roll += parameters.m_deltaRoll;
+                    } while (iteration < parameters.m_iterations);
+#ifdef VTUNE_API
+                    __itt_pause();
+#endif
+                    totalTimeEnd = std::chrono::system_clock::now();
+
+                    description = pAlg->GetDescription();
+                    if (bInteractive)
+                    {
+                        char windowText[1024];
+
+                        sprintf(windowText, "Algorithm %d Flat View %s", parameters.m_algorithm, description.c_str());
+
+                        cv::imshow(windowText, flatImg);
+                    }
+                    else
+                    {
+                        pTimingStats->AddIterationResults(ETimingType::TIMING_TOTAL, totalTimeStart, totalTimeEnd);
+                    }
+
+                    printf("Algorithm description: %s\n", description.c_str());
+                    pTimingStats->ReportTimes(true);
+
+                    if (bDebug)
+                    {
+                        // When debugging, we want to show the original image with an outline of the Region of Interest
+                        // The color is BGR format
+                        debugImg = pAlg->GetDebugImage();
+
+                        cv::namedWindow("Debug View", cv::WINDOW_NORMAL);
+                        cv::imshow("Debug View", debugImg);
+
+                    }
+                    if (bInteractive)
+                    {
+                        key = cv::waitKeyEx(0);
+
+                        if (key >= 48 && key <= 57)
+                        {
+                            if (bEnteringData)
+                            {
+                                delta = delta * 10 + (key - 48);
+                            }
+                            else
+                            {
+                                bEnteringData = true;
+                                delta = key - 48;
+                            }
+                        }
+                        else
+                        {
+                            bEnteringData = false;
+                            if (key == 2555904)         // Right arrow key
+                            {
+                                parameters.m_yaw += delta;
+                            }
+                            else if (key == 2424832)    // Left arrow key
+                            {
+                                parameters.m_yaw -= delta;
+                            }
+                            else if (key == 2621440)    // Down arrow key
+                            {
+                                parameters.m_pitch -= delta;
+                            }
+                            else if (key == 2490368)    // Up arrow key
+                            {
+                                parameters.m_pitch += delta;
+                            }
+                            else if (key == 2162688)    // Page Up key (roll right upwards)
+                            {
+                                parameters.m_roll -= delta;
+                            }
+                            else if (key == 2228224)    // Page Down key (roll right downwards)
+                            {
+                                parameters.m_roll += delta;
+                            }
+                            else if (key == 2359296)    // Home key (roll left upwards)
+                            {
+                                parameters.m_roll += delta;
+                            }
+                            else if (key == 2293760)    // End key (roll left downwards)
+                            {
+                                parameters.m_roll -= delta;
+                            }
+                            else if (key == 43)         // + key
+                            {
+                                parameters.m_fov -= delta;
+                            }
+                            else if (key == 45)         // - key
+                            {
+                                parameters.m_fov += delta;
+                            }
+                            else if (key == 100)        // d key (toggle debug mode)
+                            {
+                                bDebug = !bDebug;
+                            }
+                            else if (key == 102)        // f key(change frame)
+                            {
+                                parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
+                            }
+                            else if (key == 27 || key == 113)   // Esc or q key to quit
+                            {
+                                // Stop running the variant and move on
+                                bRunningVariant = false;
+                            }
+                            else
+                            {
+                                printf("Unassigned keystroke = %d\n", key);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        bRunningVariant = false;
+                    }
+                }
+
+                variantInitStopTime = std::chrono::system_clock::now();
+                pAlg->StopVariant();
+                pTimingStats->AddIterationResults(ETimingType::VARIANT_TERMINATION, variantInitStopTime, std::chrono::system_clock::now());
+                summaryStats.push_back(description + "\n" + pTimingStats->SummaryStats());
+            }
+        }
+#if 0
+
         subAlg = 0;
         parameters.m_algorithm = algorithm;
         do
@@ -464,6 +694,7 @@ int main(int argc, char** argv) {
                 }
             }
         } while (bInteractive && bRunning);	// Stop looping when they hit Esc or q
+#endif
 
         delete pAlg;
         pAlg = NULL;
@@ -471,7 +702,13 @@ int main(int argc, char** argv) {
 
     // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
     printf("\033[32m");
-    printf("All done!\n");
+    printf("All done!  Summary of all runs:\n");
+    printf("\033[0m");
+    for (auto &element : summaryStats)
+    {
+        printf("%s\n", element.c_str());
+    }
+    printf("\033[32m");
     printf("It is possible that the exit will hang due to a driver not unloading properly.\n");
     printf("It is safe to force the program to stop since no more computing is being done.\n");
     printf("\033[0m");

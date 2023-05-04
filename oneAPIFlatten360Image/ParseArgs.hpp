@@ -32,6 +32,11 @@ typedef struct _SParameters {
 	// is level).  90 degrees lifts the right side of the "camera" to be on top.  180 will flip the "camera"
 	// upside down.  270 will place the left side of the camera on top.
 	int			m_roll;
+	// The m_delta* variables hold the amount to add to the current setting during each iteration.  This can be used
+	// to force recalculations for algorithms that cache information related to the yaw, pitch, and roll settings.
+	int			m_deltaYaw;
+	int			m_deltaPitch;
+	int			m_deltaRoll;
 	// m_fov holds the field of view in degrees from 10 to 120.
 	int			m_fov;
 	// m_imgFilename holds the path to the images to load.  This should be an equirectangular (360) image.

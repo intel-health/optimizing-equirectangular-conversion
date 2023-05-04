@@ -4,6 +4,7 @@
 DpcppBaseAlgorithm::DpcppBaseAlgorithm(SParameters& parameters) : BaseAlgorithm(parameters)
 {
     m_pQ = NULL;
+    m_bInitRequired = true;
 }
 
 DpcppBaseAlgorithm::~DpcppBaseAlgorithm()
@@ -90,10 +91,23 @@ sycl::queue* DpcppBaseAlgorithm::GetNextDeviceQ()
     return m_pQ;
 }
 
-bool DpcppBaseAlgorithm::StartSubAlgorithm(uint algNum)
+std::string DpcppBaseAlgorithm::GetDeviceDescription()
 {
-    if (algNum == 0)
+    std::string retVal = "";
+
+    if (m_pQ != NULL)
     {
+        retVal = ConfigurableDeviceSelector::get_device_description(m_pQ->get_device());
+    }
+
+    return retVal;
+}
+
+bool DpcppBaseAlgorithm::StartVariant()
+{
+    if (m_bInitRequired)
+    {
+        m_bInitRequired = false;
         // First time, so we need to figure out if this is a one-shot run (i.e.,
         // neither the m_platformName nor m_deviceName == all or if we will be looping
         // due to either being all.
@@ -138,19 +152,53 @@ bool DpcppBaseAlgorithm::StartSubAlgorithm(uint algNum)
             m_pQ = NULL;
         }
     }
+    m_bFrameCalcRequired = true;
 
     return m_pQ != NULL;
 }
 
-std::string DpcppBaseAlgorithm::GetDeviceDescription()
+void DpcppBaseAlgorithm::StopVariant()
 {
-    std::string retVal = "";
+    delete m_pQ;
+    m_pQ = NULL;
+}
 
-    if (m_pQ != NULL)
+cv::Mat DpcppBaseAlgorithm::GetDebugImage()
+{
+    cv::Mat retVal;
+    Point2D* pXYElement = &m_pXYPoints[0];
+
+    m_parameters->m_image[m_parameters->m_imageIndex].copyTo(retVal);
+
+    // Draw the points across the top of the viewing region using blue
+    for (int x = 0; x < m_parameters->m_widthOutput; x++)
     {
-        retVal = ConfigurableDeviceSelector::get_device_description(m_pQ->get_device());
+        cv::Point pt = cv::Point(pXYElement->m_x, pXYElement->m_y);
+        cv::line(retVal, pt, pt, cv::Scalar(255, 0, 0), 10);
+
+        pXYElement++;
+    }
+    // Draw the left (red) and right (green) sides of the viewing region
+    for (int y = 1; y < m_parameters->m_heightOutput - 2; y++)
+    {
+        cv::Point ptLeft = cv::Point(pXYElement->m_x, pXYElement->m_y);
+        cv::line(retVal, ptLeft, ptLeft, cv::Scalar(0, 0, 255), 10);
+
+        pXYElement += m_parameters->m_widthOutput - 1;
+        cv::Point ptRight = cv::Point(pXYElement->m_x, pXYElement->m_y);
+        cv::line(retVal, ptRight, ptRight, cv::Scalar(0, 255, 0), 10);
+
+        pXYElement++;
+    }
+
+    // Draw the points across the bottom of the viewing region in tan
+    for (int x = 0; x < m_parameters->m_widthOutput; x++)
+    {
+        cv::Point pt = cv::Point(pXYElement->m_x, pXYElement->m_y);
+        cv::line(retVal, pt, pt, cv::Scalar(74, 136, 175), 10);
+
+        pXYElement++;
     }
 
     return retVal;
 }
-

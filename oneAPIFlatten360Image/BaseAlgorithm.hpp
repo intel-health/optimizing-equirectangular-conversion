@@ -7,15 +7,18 @@
 class BaseAlgorithm {
 protected:
 	SParameters* m_parameters;
+	bool m_bFrameCalcRequired;
 
 public:
 	BaseAlgorithm(SParameters& parameters);
+	virtual ~BaseAlgorithm();
 
-	virtual void FrameCalculations() = 0;
+	virtual void FrameCalculations(bool bParametersChanged);
 	virtual cv::Mat ExtractFrameImage() = 0;
 	virtual cv::Mat GetDebugImage() = 0;
 
 	virtual std::string GetDescription() = 0;
 
-	virtual bool StartSubAlgorithm(uint algNum);
+	virtual bool StartVariant() = 0;
+	virtual void StopVariant() = 0;
 };

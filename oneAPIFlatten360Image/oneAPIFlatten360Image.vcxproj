@@ -27,7 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -49,6 +49,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\OpenCV-4.6\opencv\build\include;$(oneTBBProductDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -57,12 +58,14 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <SYCLWarningLevel>Level3</SYCLWarningLevel>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VTUNE_API;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib;C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -79,22 +82,26 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigurableDeviceSelector.cpp" />
     <ClCompile Include="DpcppBaseAlgorithm.cpp" />
+    <ClCompile Include="DpcppRemappingV2.cpp" />
     <ClCompile Include="SerialRemapping.cpp" />
     <ClCompile Include="ParallelRemapping.cpp" />
     <ClCompile Include="DpcppRemapping.cpp" />
     <ClCompile Include="BaseAlgorithm.cpp" />
     <ClCompile Include="oneAPIFlatten360Image.cpp" />
     <ClCompile Include="ParseArgs.cpp" />
+    <ClCompile Include="SerialRemappingV2.cpp" />
     <ClCompile Include="TimingStats.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigurableDeviceSelector.hpp" />
     <ClInclude Include="DpcppBaseAlgorithm.hpp" />
+    <ClInclude Include="DpcppRemappingV2.hpp" />
     <ClInclude Include="oneAPIFlatten360Image.h" />
     <ClInclude Include="Point2D.hpp" />
     <ClInclude Include="SerialRemapping.hpp" />
@@ -102,6 +109,7 @@
     <ClInclude Include="DpcppRemapping.hpp" />
     <ClInclude Include="BaseAlgorithm.hpp" />
     <ClInclude Include="Point3D.hpp" />
+    <ClInclude Include="SerialRemappingV2.hpp" />
     <ClInclude Include="SoAPoints3D.hpp" />
     <ClInclude Include="ParseArgs.hpp" />
     <ClInclude Include="TimingStats.hpp" />

@@ -1,39 +1,22 @@
+// The code here takes inspiration from the python code at 
+// https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py but in addition to
+// converting to C++, many additional features and optimizations have been implemented too by
+// Doug Bogia
+
 #include "SerialRemapping.hpp"
 #include <chrono>
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
 
-SerialRemapping::SerialRemapping(SParameters& parameters, StorageOrder storageOrder /* = E_STORE_ROW_COL */) : BaseAlgorithm(parameters)
+SerialRemapping::SerialRemapping(SParameters& parameters) : BaseAlgorithm(parameters)
 {
-	int size = parameters.m_widthOutput * parameters.m_heightOutput;
-
-	// Reserve the space for the 3D points
-	if (storageOrder == E_STORE_SOA)
-	{
-		m_pXYZPoints = NULL;
-		m_SoAXYZPoints.m_pX = new float[size];
-		m_SoAXYZPoints.m_pY = new float[size];
-		m_SoAXYZPoints.m_pZ = new float[size];
-	}
-	else
-	{
-		m_pXYZPoints = new Point3D[size];
-		m_pXYPoints = new Point2D[size];
-		m_pLonLatPoints = new Point2D[size];
-	}
-	m_storageOrder = storageOrder;
+	m_storageOrder = STORE_INIT;
 }
 
 SerialRemapping::~SerialRemapping()
 {
 	delete m_pXYZPoints;
 	m_pXYZPoints = NULL;
-	delete m_SoAXYZPoints.m_pX;
-	m_SoAXYZPoints.m_pX = NULL;
-	delete m_SoAXYZPoints.m_pY;
-	m_SoAXYZPoints.m_pY = NULL;
-	delete m_SoAXYZPoints.m_pZ;
-	m_SoAXYZPoints.m_pZ = NULL;
 	delete m_pXYPoints;
 	m_pXYPoints = NULL;
 	delete m_pLonLatPoints;
@@ -44,16 +27,18 @@ std::string SerialRemapping::GetDescription()
 {
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 		return "Serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.";
 		break;
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 		return "Serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.";
 		break;
-	case E_STORE_SOA:
-		return "Serial point by point conversion from equirectangular to flat.  Memory structure of arrays layout.";
-		break;
+	//case STORE_SOA:
+	//	return "Serial point by point conversion from equirectangular to flat.  Memory structure of arrays layout.";
+	//	break;
 	}
+
+	return "Unknown";
 }
 
 void SerialRemapping::ComputeXYZCoords()
@@ -84,7 +69,7 @@ void SerialRemapping::ComputeXYZCoords()
 
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 	{
 		Point3D* pElement = &m_pXYZPoints[0];
 
@@ -109,7 +94,7 @@ void SerialRemapping::ComputeXYZCoords()
 #endif
 		break;
 	}
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 	{
 #if 1
 		Point3D* pElement = &m_pXYZPoints[0];
@@ -147,36 +132,36 @@ void SerialRemapping::ComputeXYZCoords()
 #endif
 		break;
 	}
-	case E_STORE_SOA:
-	{
-		float* pX = &m_SoAXYZPoints.m_pX[0];
-		float* pY = &m_SoAXYZPoints.m_pY[0];
-		float* pZ = &m_SoAXYZPoints.m_pZ[0];
-
-		for (int y = 0; y < m_parameters->m_heightOutput; y++)
-		{
-			for (int x = 0; x < m_parameters->m_widthOutput; x++)
-			{
-				*pX = x * invf + translatecx;
-				*pY = y * invf + translatecy;
-				*pZ = 1.0f;
-				pX++;
-				pY++;
-				pZ++;
-			}
-		}
-
-#ifdef CONFIRMATION_PRINTS
-		int index = 0;
-
-		printf("Row, Col Point[0, 0] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
-		index = 1;
-		printf("Point[1, 0] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
-		index = m_parameters->m_widthOutput;
-		printf("Point[0, 1] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
-#endif
-		break;
-	}
+//	case STORE_SOA:
+//	{
+//		float* pX = &m_SoAXYZPoints.m_pX[0];
+//		float* pY = &m_SoAXYZPoints.m_pY[0];
+//		float* pZ = &m_SoAXYZPoints.m_pZ[0];
+//
+//		for (int y = 0; y < m_parameters->m_heightOutput; y++)
+//		{
+//			for (int x = 0; x < m_parameters->m_widthOutput; x++)
+//			{
+//				*pX = x * invf + translatecx;
+//				*pY = y * invf + translatecy;
+//				*pZ = 1.0f;
+//				pX++;
+//				pY++;
+//				pZ++;
+//			}
+//		}
+//
+//#ifdef CONFIRMATION_PRINTS
+//		int index = 0;
+//
+//		printf("Row, Col Point[0, 0] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
+//		index = 1;
+//		printf("Point[1, 0] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
+//		index = m_parameters->m_widthOutput;
+//		printf("Point[0, 1] = [%f, %f, %f]\n", m_SoAXYZPoints.m_pX[index], m_SoAXYZPoints.m_pY[index], m_SoAXYZPoints.m_pZ[index]);
+//#endif
+//		break;
+//	}
 	}
 }
 
@@ -242,7 +227,7 @@ void SerialRemapping::ConvertXYZToLonLat()
 	Point2D* pLonLatElement = &m_pLonLatPoints[0];
 	float norm;
 	// Optimization, pull the values out of the rotational matrix if CACHE_ROTATION_ELEMENTS is defined.  This can
-	// bring a 10x speed improvement for this function.
+	// bring a ~3x speed improvement for this function.
 #define	CACHE_ROTATION_ELEMENTS
 #ifdef CACHE_ROTATION_ELEMENTS
 	float m00 = m_rotationMatrix.at<float>(0, 0);
@@ -258,7 +243,7 @@ void SerialRemapping::ConvertXYZToLonLat()
 
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 	{
 
 		for (int y = 0; y < m_parameters->m_heightOutput; y++)
@@ -288,9 +273,9 @@ void SerialRemapping::ConvertXYZToLonLat()
 				float eY = pXYZElement->m_y;
 				float eZ = pXYZElement->m_z;
 
-				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(1, 0) + eZ * m_rotationMatrix.at<float>(2, 0);
-				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(0, 1) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(2, 1);
-				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(0, 2) + eY * m_rotationMatrix.at<float>(1, 2) + eZ * m_rotationMatrix.at<float>(2, 2);
+				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(0, 1) + eZ * m_rotationMatrix.at<float>(0, 2);
+				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(1, 0) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(1, 2);
+				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(2, 0) + eY * m_rotationMatrix.at<float>(2, 1) + eZ * m_rotationMatrix.at<float>(2, 2);
 
 				norm = sqrt(pXYZElement->m_x * pXYZElement->m_x + pXYZElement->m_y * pXYZElement->m_y + pXYZElement->m_z * pXYZElement->m_z);
 
@@ -322,7 +307,7 @@ void SerialRemapping::ConvertXYZToLonLat()
 #endif
 		break;
 	}
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 	{
 		for (int x = 0; x < m_parameters->m_widthOutput; x++)
 		{
@@ -409,7 +394,7 @@ void SerialRemapping::ComputeXYCoords()
 
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 	{
 		for (int y = 0; y < m_parameters->m_heightOutput; y++)
 		{
@@ -435,7 +420,7 @@ void SerialRemapping::ComputeXYCoords()
 #endif
 		break;
 	}
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 	{
 		for (int x = 0; x < m_parameters->m_widthOutput; x++)
 		{
@@ -464,70 +449,58 @@ void SerialRemapping::ComputeXYCoords()
 
 }
 
-void SerialRemapping::FrameCalculations()
+void SerialRemapping::FrameCalculations(bool bParametersChanged)
 {
-	std::chrono::system_clock::time_point startTime;
+	if (bParametersChanged || m_bFrameCalcRequired)
+	{
+		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
-	startTime = std::chrono::system_clock::now();
-	ComputeXYZCoords();
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::system_clock::now());
+		std::chrono::system_clock::time_point startTime;
 
-	startTime = std::chrono::system_clock::now();
-	ComputeLonLatCoords();
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::system_clock::now());
+		startTime = std::chrono::system_clock::now();
+		ComputeXYZCoords();
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::system_clock::now());
 
-	startTime = std::chrono::system_clock::now();
-	ComputeXYCoords();
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
+		startTime = std::chrono::system_clock::now();
+		ComputeLonLatCoords();
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::system_clock::now());
+
+		startTime = std::chrono::system_clock::now();
+		ComputeXYCoords();
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
+		m_bFrameCalcRequired = false;
+	}
 }
 
 cv::Mat SerialRemapping::ExtractFrameImage()
 {
+	cv::Mat retVal;
 	std::chrono::system_clock::time_point startTime;
 
 	startTime = std::chrono::system_clock::now();
-#if 0
-	cv::Mat retVal;
-	cv::Mat map = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC2, m_pXYPoints);
-	cv::UMat uMap = map.getUMat(cv::ACCESS_READ);
-	cv::UMat uImg = m_parameters->m_image[m_parameters->m_imageIndex].getUMat(cv::ACCESS_READ);
-
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::system_clock::now());
-
-	startTime = std::chrono::system_clock::now();
-	cv::remap(uImg, retVal, uMap, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
-#endif
-#if 1
-	cv::Mat retVal;
-	Point2D* pXYElement = &m_pXYPoints[0];
-	float* m_pX = new float[m_parameters->m_widthOutput * m_parameters->m_heightOutput];
-	float* m_pY = new float[m_parameters->m_widthOutput * m_parameters->m_heightOutput];
-	float* pXElement = &m_pX[0];
-	float* pYElement = &m_pY[0];
 
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 	{
-		for (int y = 0; y < m_parameters->m_heightOutput; y++)
-		{
-			for (int x = 0; x < m_parameters->m_widthOutput; x++)
-			{
+		cv::Mat map = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC2, m_pXYPoints);
 
-				*pXElement = pXYElement->m_x;
-				*pYElement = pXYElement->m_y;
+		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-				pXYElement++;
-				pYElement++;
-				pXElement++;
-			}
-		}
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+
 		break;
 	}
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 	{
-		// The image is in row/col format so need to be careful here and
+		// The image is in row/col format, but we have stored data in col/row format, so need to be careful here and
 		// transpose the data
+		Point2D* pXYElement = &m_pXYPoints[0];
+		float* m_pX = new float[m_parameters->m_widthOutput * m_parameters->m_heightOutput];
+		float* m_pY = new float[m_parameters->m_widthOutput * m_parameters->m_heightOutput];
+		float* pXElement = &m_pX[0];
+		float* pYElement = &m_pY[0];
+
 		for (int y = 0; y < m_parameters->m_heightOutput; y++)
 		{
 			pXYElement = &m_pXYPoints[y];
@@ -541,55 +514,19 @@ cv::Mat SerialRemapping::ExtractFrameImage()
 				pXElement++;
 			}
 		}
+		cv::Mat mapX = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pX);
+		cv::Mat mapY = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pY);
+
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::system_clock::now());
+
+		startTime = std::chrono::system_clock::now();
+		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, mapX, mapY, cv::INTER_CUBIC, cv::BORDER_WRAP);
+		delete[] m_pX;
+		delete[] m_pY;
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
 		break;
 	}
 	}
-
-	cv::Mat mapX = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pX);
-	cv::Mat mapY = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pY);
-
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::system_clock::now());
-
-	startTime = std::chrono::system_clock::now();
-	cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, mapX, mapY, cv::INTER_CUBIC, cv::BORDER_WRAP);
-#endif
-#ifdef BEST_ONE
-	cv::Mat retVal;
-	cv::Mat map = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC2, m_pXYPoints);
-
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::system_clock::now());
-
-	startTime = std::chrono::system_clock::now();
-	cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
-#endif
-#if 0
-	Point2D* pXYElement = &m_pXYPoints[0];
-
-	switch (m_storageOrder)
-	{
-	case E_STORE_ROW_COL:
-	{
-		for (int y = 0; y < m_parameters->m_heightOutput; y++)
-		{
-			for (int x = 0; x < m_parameters->m_widthOutput; x++)
-			{
-
-				pXYElement->m_x = (pLonLatElement->m_x / xDiv + 0.5) * width;
-				pXYElement->m_y = (pLonLatElement->m_y / M_PI + 0.5) * height;
-
-				pXYElement++;
-			}
-		}
-		break;
-	}
-	case E_STORE_COL_ROW:
-	{
-		break;
-	}
-	}
-
-#endif
-	TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
 
 	return retVal;
 }
@@ -603,7 +540,7 @@ cv::Mat SerialRemapping::GetDebugImage()
 
 	switch (m_storageOrder)
 	{
-	case E_STORE_ROW_COL:
+	case STORE_ROW_COL:
 	{
 		// Draw the points across the top of the viewing region using blue
 		for (int x = 0; x < m_parameters->m_widthOutput; x++)
@@ -636,7 +573,7 @@ cv::Mat SerialRemapping::GetDebugImage()
 		}
 		break;
 	}
-	case E_STORE_COL_ROW:
+	case STORE_COL_ROW:
 	{
 		// Draw the points on the left of the viewing area in red
 		for (int y = 0; y < m_parameters->m_heightOutput; y++)
@@ -698,4 +635,40 @@ cv::Mat SerialRemapping::GetDebugImage()
 	return retVal;
 }
 
+bool SerialRemapping::StartVariant()
+{
+	bool bRetVal = false;
+
+	m_storageOrder++;
+
+	if (m_storageOrder < STORE_MAX)
+	{
+		int size = m_parameters->m_widthOutput * m_parameters->m_heightOutput;
+
+		// Reserve the space for the 3D points
+		if (m_storageOrder == STORE_ROW_COL || m_storageOrder == STORE_COL_ROW)
+		{
+			m_pXYZPoints = new Point3D[size];
+			m_pXYPoints = new Point2D[size];
+			m_pLonLatPoints = new Point2D[size];
+		}
+		//else if (m_storageOrder == STORE_SOA)
+		//{
+		//	m_pXYZPoints = NULL;
+		//	m_SoAXYZPoints.m_pX = new float[size];
+		//	m_SoAXYZPoints.m_pY = new float[size];
+		//	m_SoAXYZPoints.m_pZ = new float[size];
+		//}
+		bRetVal = true;
+		m_bFrameCalcRequired = true;
+	}
+
+	return bRetVal;
+}
+
+void SerialRemapping::StopVariant()
+{
+	delete m_pXYPoints;
+	m_pXYPoints = NULL;
+}
 

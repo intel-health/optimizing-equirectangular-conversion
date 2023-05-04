@@ -10,7 +10,7 @@ std::string ParallelRemapping::GetDescription()
 	return "Computes using a Remapping algorithm using SIMD.";
 }
 
-void ParallelRemapping::FrameCalculations()
+void ParallelRemapping::FrameCalculations(bool bParametersChanged)
 {
 }
 

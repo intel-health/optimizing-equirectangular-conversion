@@ -6,36 +6,28 @@
 #include "SoAPoints3D.hpp"
 #include <opencv2/core/mat.hpp>
 
-const int STORE_INIT = -1;
+const int SRV2_INIT = -1;
 // Array of structures row then column
-const int STORE_ROW_COL = 0;
-// Array of structures column then row
-const int STORE_COL_ROW = 1;
-//// Structure of arrays
-//const int E_STORE_SOA = 2;
-const int STORE_MAX = 2;
+const int SRV2_AOS = 0;
+// Separate arrays for X and Y values
+const int SRV2_SOA = 1;
+const int SRV2_MAX = 2;
 
-class SerialRemapping : public BaseAlgorithm {
+class SerialRemappingV2 : public BaseAlgorithm {
 
 private:
-	Point3D *m_pXYZPoints = NULL;
-	Point2D *m_pLonLatPoints = NULL;
 	Point2D *m_pXYPoints = NULL;
-	SoAPoints3D m_SoAXYZPoints;
-	int m_storageOrder;
+	float *m_pXPoints = NULL;
+	float *m_pYPoints = NULL;
+	int m_storageType;
 	cv::Mat m_rotationMatrix;
 
 	// Pass in theta, phi, and psi in radians, not degrees
 	void ComputeRotationMatrix(float radTheta, float radPhi, float radPsi);
-	void ComputeXYZCoords();
-	void ComputeLonLatCoords();
-	void ConvertXYZToLonLat();
-	void ComputeXYCoords();
-
 
 public:
-	SerialRemapping(SParameters &parameters);
-	~SerialRemapping();
+	SerialRemappingV2(SParameters &parameters);
+	~SerialRemappingV2();
 
 	virtual void FrameCalculations(bool bParametersChanged);
 	virtual cv::Mat ExtractFrameImage();

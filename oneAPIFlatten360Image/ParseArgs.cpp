@@ -16,6 +16,9 @@ void InitializeParameters(SParameters * parameters)
     parameters->m_yaw = 0;
     parameters->m_pitch = 0;
     parameters->m_roll = 0;                     // Sometimes referred to as psi.  Should be -180 to 180 degrees
+    parameters->m_deltaYaw = 0;
+    parameters->m_deltaPitch = 0;
+    parameters->m_deltaRoll = 0;
     parameters->m_fov = 60;
     parameters->m_widthOutput = 1080;
     parameters->m_heightOutput = 540;
@@ -143,6 +146,36 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
+                    else if (strnicmp("deltaYaw", flagStart, flagLength) == 0)
+                    {
+                        parameters->m_deltaYaw = atoi(valueStart);
+                        if (parameters->m_deltaYaw < -360 || parameters->m_deltaYaw > 360)
+                        {
+                            sprintf(errorMessage, "Error: Illegal value for delta yaw (%s)", valueStart);
+                            bRetVal = false;
+                            break;
+                        }
+                    }
+                    else if (strnicmp("deltaPitch", flagStart, flagLength) == 0)
+                    {
+                        parameters->m_deltaPitch = atoi(valueStart);
+                        if (parameters->m_deltaPitch < -90 || parameters->m_deltaPitch > 90)
+                        {
+                            sprintf(errorMessage, "Error: Illegal value for delta pitch (%s)", valueStart);
+                            bRetVal = false;
+                            break;
+                        }
+                    }
+                    else if (strnicmp("deltaRoll", flagStart, flagLength) == 0)
+                    {
+                        parameters->m_deltaRoll = atoi(valueStart);
+                        if (parameters->m_deltaRoll < -360 || parameters->m_deltaRoll > 360)
+                        {
+                            sprintf(errorMessage, "Error: Illegal value for delta roll (%s)", valueStart);
+                            bRetVal = false;
+                            break;
+                        }
+                    }
                     else if (strnicmp("fov", flagStart, flagLength) == 0)
                     {
                         parameters->m_fov = atoi(valueStart);
@@ -240,6 +273,12 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("    4 = parallel conversion from equirectangular to flat.  Memory array of structure column/row layout.\n");
     printf("    5 = parallel conversion from equirectangular to flat.  Memory structure of arrays layout.\n");
     printf("    6 = DPC++ conversion from equirectangular to flat.\n");
+    printf("--deltaPitch=N where N is the amount of pitch to add each iteration (up or down).  This can run from\n");
+    printf("    -90 to 90 integer degrees.  The negative values are down and positive are up.  Default is 0\n");
+    printf("--deltaRoll=N where N is the amount of roll to add each iteration.  This can run from -360 to 360 degrees.\n");
+    printf("    Default is 0\n");
+    printf("--deltaYaw=N where N is the amount of yaw to add each iteration.  This can run from -360 to 360 degrees.\n");
+    printf("    Default is 0.\n");
     printf("--deviceName=value where value is a string to match against device names to");
     printf("   select the best device to run the code on.  Other options include all to\n");
     printf("   run on all devices or list to list device options.  Only used for DPC++ algorithms.\n");

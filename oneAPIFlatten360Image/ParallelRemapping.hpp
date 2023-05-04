@@ -7,7 +7,7 @@ public:
 
 	ParallelRemapping(SParameters &parameters);
 
-	virtual void FrameCalculations();
+	virtual void FrameCalculations(bool bParametersChanged);
 	virtual cv::Mat ExtractFrameImage();
 
 	virtual std::string GetDescription();

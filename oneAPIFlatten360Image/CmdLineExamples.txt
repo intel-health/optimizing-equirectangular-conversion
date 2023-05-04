@@ -1,0 +1,12 @@
+# Select a specific algorithm, run interactive, and use the GPU
+--algorithm=3 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=GPU
+# Select a specific algorithm, run interactive, and use the CPU
+--algorithm=3 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=CPU
+
+# Run through all algorithms with 10 iterations of each and use all pieces of HW that are found
+# This does not add any deltas so any algorithms that cache should be more efficient
+--algorithm=-1 --iterations=10 --yaw=10 --pitch=20 --roll=30
+
+# Run through all algorithms with 10 iterations of each and use all pieces of HW that are found
+# This does add a 10 degree yaw delta which should force all algorithms to do full compute
+--algorithm=-1 --iterations=10 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10
