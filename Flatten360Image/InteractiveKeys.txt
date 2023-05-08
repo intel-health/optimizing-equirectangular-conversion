@@ -1,0 +1,23 @@
+Number keys & Minus key - adjust the "delta" value.  The delta value is used by many of the other keystrokes to indicate an offset.
+  For instance, if the delta is 10 and the right arrow is pressed, the yaw is increased by 10 degrees.  If the number keys
+  2 and 0 are pressed, then the delta is changed to 20 and then if the right arrow is pressed, the yaw is increased
+  by 20 degrees.  Some of the keystrokes use a "temporary delta".  Assume the delta is 10 and then 3 and 0 are
+  pressed, then the "y" key is pressed to indicate yaw, then yaw will be set to 30 degrees and the original delta
+  (10 in this example) is restored so any right arrow key presses would increase the yaw by 10 degrees.
+Right arrow - increase the yaw by "delta" degrees.
+Left arrow - decrease the yaw by "delta" degrees.
+Up arrow - increase the pitch by "delta" degrees.
+Down arrow - decrease the pitch by "delta" degrees.
+PgUp or End - adjust the roll in the counter clockwise direction by "delta" degrees.
+PgDn or Home - adjust the roll in the clockwise direction by "delta" degrees.
+a - use the "temporary delta" value and set the algorithm to that value.
+y - use the "temporary delta" value and set the yaw to that value.
+p - use the "temporary delta" value and set the pitch to that value.
+r - use the "temporary delta" value and set the roll to that value.
+d - toggle debug mode on/off.  When in debug mode is on an additional window is displayed that has the original equirectangular image with
+  a box showing where the flattened view is being extracted
+f - change frame to show image1 or image2.  This can be used to simulate new inbound frames in a video while the field of view
+  does not change to see how effective the algorithm is at extracting the flattened image when the frames are changing.
+Esc or q - quit from the current algorithm / variant and move on to the next one or end the program if all have been run.
++ - decrease the field of view by "delta" degrees (i.e., zoom in).
+- - increase the field of view by "delta" degrees (i.e., zoom out).

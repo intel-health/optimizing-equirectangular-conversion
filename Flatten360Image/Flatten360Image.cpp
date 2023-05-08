@@ -16,7 +16,8 @@
 #include "ParallelRemapping.hpp"
 #include "DpcppRemapping.hpp"
 #include "DpcppRemappingV2.hpp"
-#include "oneAPIFlatten360Image.h"
+#include "DpcppRemappingV3.hpp"
+#include "Flatten360Image.h"
 #include "TimingStats.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 
@@ -198,6 +199,7 @@ int main(int argc, char** argv) {
     cv::Mat debugImg;
     cv::Mat flatImg;
     int delta = 10;
+    int prevDelta = 10;
     bool bRunningVariant;
     bool bVariantValid;
     std::vector<std::string> summaryStats;
@@ -206,7 +208,7 @@ int main(int argc, char** argv) {
     if (parameters.m_algorithm < 0)
     {
         startAlgorithm = 0;
-        endAlgorithm = 4;
+        endAlgorithm = 5;
         if (bInteractive)
         {
             bInteractive = false;
@@ -257,7 +259,8 @@ int main(int argc, char** argv) {
         printf("Error: Could not load image 2 from %s\n", parameters.m_imgFilename[1]);
         throw std::invalid_argument("Error: Could not load image 2.");
     }
-    for (int algorithm = startAlgorithm; algorithm < endAlgorithm; algorithm++)
+    int algorithm = startAlgorithm;
+    while (algorithm < endAlgorithm)
     {
         initStartTime = std::chrono::system_clock::now();
         switch (algorithm)
@@ -273,6 +276,9 @@ int main(int argc, char** argv) {
             break;
         case 3:
             pAlg = new DpcppRemappingV2(parameters);
+            break;
+        case 4:
+            pAlg = new DpcppRemappingV3(parameters);
             break;
         }
         initEndTime = std::chrono::system_clock::now();
@@ -396,7 +402,21 @@ int main(int argc, char** argv) {
                             else
                             {
                                 bEnteringData = true;
+                                prevDelta = delta;
                                 delta = key - 48;
+                            }
+                        }
+                        else if (key == 70)             // Minus key (-)
+                        {
+                            if (bEnteringData)
+                            {
+                                delta = delta * -1;
+                            }
+                            else
+                            {
+                                bEnteringData = true;
+                                prevDelta = delta;
+                                delta = -1;
                             }
                         }
                         else
@@ -445,10 +465,43 @@ int main(int argc, char** argv) {
                             else if (key == 100)        // d key (toggle debug mode)
                             {
                                 bDebug = !bDebug;
+                                if (!bDebug)
+                                {
+                                    cv::destroyWindow("Debug View");
+                                }
                             }
-                            else if (key == 102)        // f key(change frame)
+                            else if (key == 102)        // f key (change frame)
                             {
                                 parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
+                            }
+                            else if (key == 97)         // a key (algorithm selection)
+                            {
+                                // Adjust the variables so we drop out of both while loops and
+                                // come back into the for loop with the correct algorithm
+                                algorithm = delta - 1;
+                                endAlgorithm = algorithm + 2;
+                                bVariantValid = false;
+                                bRunningVariant = false;
+                                // Treat delta as temporary and restore the previous delta value
+                                delta = prevDelta;
+                            }
+                            else if (key == 112)        // p key (set pitch to temporary delta)
+                            {
+                                parameters.m_pitch = delta;
+                                // Treat delta as temporary and restore the previous delta value
+                                delta = prevDelta;
+                            }
+                            else if (key == 114)        // r key (set roll to temporary delta)
+                            {
+                                parameters.m_roll = delta;
+                                // Treat delta as temporary and restore the previous delta value
+                                delta = prevDelta;
+                            }
+                            else if (key == 121)        // y key (set yaw to temporary delta)
+                            {
+                                parameters.m_yaw = delta;
+                                // Treat delta as temporary and restore the previous delta value
+                                delta = prevDelta;
                             }
                             else if (key == 27 || key == 113)   // Esc or q key to quit
                             {
@@ -459,6 +512,7 @@ int main(int argc, char** argv) {
                             {
                                 printf("Unassigned keystroke = %d\n", key);
                             }
+                            prevDelta = delta;
                         }
                     }
                     else
@@ -473,231 +527,10 @@ int main(int argc, char** argv) {
                 summaryStats.push_back(description + "\n" + pTimingStats->SummaryStats());
             }
         }
-#if 0
-
-        subAlg = 0;
-        parameters.m_algorithm = algorithm;
-        do
-        {
-            pTimingStats->Reset();
-            iteration = 0;
-            if (prevAlg != algorithm)
-            {
-                initStartTime = std::chrono::system_clock::now();
-                switch (algorithm)
-                {
-                case 0:
-                    pAlg = new SerialRemapping(parameters, E_STORE_ROW_COL);
-                    break;
-                case 1:
-                    pAlg = new SerialRemapping(parameters, E_STORE_COL_ROW);
-                    break;
-                case 2:
-                    // TODO: Implement
-                    pAlg = new DpcppRemapping(parameters);
-                    break;
-                case 3:
-                    // TODO: Implement
-                    //pAlg = new ParallelRemapping(parameters);
-                    break;
-                case 4:
-                    // TODO: Implement
-                    //pAlg = new SerialRemapping(parameters, E_STORE_SOA);
-                    break;
-                case 5:
-                    // TODO: Implement
-                    break;
-                case 6:
-                    // TODO: Implement
-                    break;
-                }
-                pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, std::chrono::system_clock::now());
-                prevAlg = algorithm;
-            }
-
-            if (prevParameters.m_imageIndex != parameters.m_imageIndex)
-            {
-                cv::namedWindow("Equirectangular original", cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
-                cv::imshow("Equirectangular original", parameters.m_image[parameters.m_imageIndex]);
-                prevParameters.m_imageIndex = parameters.m_imageIndex;
-            }
-
-            bActiveSubAlg = pAlg->StartSubAlgorithm(subAlg++);
-            while (bActiveSubAlg)
-            {
-                pTimingStats->ResetLap();
-                totalTimeStart = std::chrono::system_clock::now();
-                do
-                {
-                    frameStartTime = std::chrono::system_clock::now();
-                    if (prevParameters != parameters)
-                    {
-                        prevParameters = parameters;
-                        PrintParameters(&parameters);
-                        pAlg->FrameCalculations();
-                        pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::system_clock::now());
-                    }
-                    extractionStartTime = std::chrono::system_clock::now();
-                    flatImg = pAlg->ExtractFrameImage();
-                    frameEndTime = std::chrono::system_clock::now();
-                    pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, extractionStartTime, frameEndTime);
-                    pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, frameStartTime, frameEndTime, bInteractive);
-                    iteration++;
-                } while (iteration < parameters.m_iterations);
-                totalTimeEnd = std::chrono::system_clock::now();
-
-                description = pAlg->GetDescription();
-                if (bInteractive)
-                {
-                    char windowText[80];
-
-                    sprintf(windowText, "Algorithm %d Flat View %s", parameters.m_algorithm, description.c_str());
-
-                    cv::imshow(windowText, flatImg);
-                }
-                else
-                {
-                    pTimingStats->AddIterationResults(ETimingType::TIMING_TOTAL, totalTimeStart, totalTimeEnd);
-                }
-
-                description = pAlg->GetDescription();
-                printf("Algorithm description: %s\n", description.c_str());
-                pTimingStats->ReportTimes(true);
-
-                if (bDebug)
-                {
-                    // When debugging, we want to show the original image with an outline of the Region of Interest
-                    // The color is BGR
-                    debugImg = pAlg->GetDebugImage();
-
-                    cv::namedWindow("Debug View", cv::WINDOW_NORMAL);
-                    cv::imshow("Debug View", debugImg);
-
-                }
-                if (bInteractive)
-                {
-                    key = cv::waitKeyEx(0);
-
-                    if (key >= 48 && key <= 57)
-                    {
-                        if (bEnteringData)
-                        {
-                            delta = delta * 10 + (key - 48);
-                        }
-                        else
-                        {
-                            bEnteringData = true;
-                            delta = key - 48;
-                        }
-                    }
-                    else
-                    {
-                        bEnteringData = false;
-                        if (key == 2555904)         // Right arrow key
-                        {
-                            parameters.m_yaw += delta;
-                        }
-                        else if (key == 2424832)    // Left arrow key
-                        {
-                            parameters.m_yaw -= delta;
-                        }
-                        else if (key == 2621440)    // Down arrow key
-                        {
-                            parameters.m_pitch -= delta;
-                        }
-                        else if (key == 2490368)    // Up arrow key
-                        {
-                            parameters.m_pitch += delta;
-                        }
-                        else if (key == 2162688)    // Page Up key (roll right upwards)
-                        {
-                            parameters.m_roll -= delta;
-                        }
-                        else if (key == 2228224)    // Page Down key (roll right downwards)
-                        {
-                            parameters.m_roll += delta;
-                        }
-                        else if (key == 2359296)    // Home key (roll left upwards)
-                        {
-                            parameters.m_roll += delta;
-                        }
-                        else if (key == 2293760)    // End key (roll left downwards)
-                        {
-                            parameters.m_roll -= delta;
-                        }
-                        else if (key == 43)         // + key
-                        {
-                            parameters.m_fov -= delta;
-                        }
-                        else if (key == 45)         // - key
-                        {
-                            parameters.m_fov += delta;
-                        }
-                        else if (key == 100)        // d key (toggle debug mode)
-                        {
-                            bDebug = !bDebug;
-                        }
-                        else if (key == 102)        // f key(change frame)
-                        {
-                            parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
-                        }
-                        else if (key == 27 || key == 113)   // Esc or q key to quit
-                        {
-                            bActiveSubAlg = pAlg->StartSubAlgorithm(subAlg++);
-                            bRunning = bActiveSubAlg;
-                        }
-                        else
-                        {
-                            printf("Unassigned keystroke = %d\n", key);
-                        }
-
-                        if (parameters.m_pitch > 90)
-                        {
-                            parameters.m_pitch = 90;
-                        }
-                        else if (parameters.m_pitch < -90)
-                        {
-                            parameters.m_pitch = -90;
-                        }
-                        if (parameters.m_fov < 10)
-                        {
-                            parameters.m_fov = 10;
-                        }
-                        else if (parameters.m_fov > 120)
-                        {
-                            parameters.m_fov = 120;
-                        }
-                        if (parameters.m_yaw > 180)
-                        {
-                            // Wrap around to the other side of the 360 view
-                            parameters.m_yaw = -180 + parameters.m_yaw - 180;
-                        }
-                        else if (parameters.m_yaw < -180)
-                        {
-                            parameters.m_yaw = 180 + parameters.m_yaw + 180;
-                        }
-                        if (parameters.m_roll < 0)
-                        {
-                            parameters.m_roll = 360 + parameters.m_roll;
-                        }
-                        else if (parameters.m_roll >= 360)
-                        {
-                            parameters.m_roll -= 360;
-                        }
-                    }
-                }
-                else
-                {
-                    bActiveSubAlg = pAlg->StartSubAlgorithm(subAlg++);
-                    pTimingStats->Reset();
-                    iteration = 0;
-                }
-            }
-        } while (bInteractive && bRunning);	// Stop looping when they hit Esc or q
-#endif
 
         delete pAlg;
         pAlg = NULL;
+        algorithm++;
     }
 
     // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)

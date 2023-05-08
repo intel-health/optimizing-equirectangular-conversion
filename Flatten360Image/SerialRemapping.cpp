@@ -28,10 +28,10 @@ std::string SerialRemapping::GetDescription()
 	switch (m_storageOrder)
 	{
 	case STORE_ROW_COL:
-		return "Serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.";
+		return "V1 Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.";
 		break;
 	case STORE_COL_ROW:
-		return "Serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.";
+		return "V1 Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.";
 		break;
 	//case STORE_SOA:
 	//	return "Serial point by point conversion from equirectangular to flat.  Memory structure of arrays layout.";

@@ -13,9 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{7f0c5c75-4820-4a70-a6cc-c806b6163cc2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="oneAPIFlatten360Image.cpp">
+    <ClCompile Include="Flatten360Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ParseArgs.cpp">
@@ -48,6 +51,9 @@
     <ClCompile Include="SerialRemappingV2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DpcppRemappingV3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ParseArgs.hpp">
@@ -65,7 +71,7 @@
     <ClInclude Include="SerialRemapping.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="oneAPIFlatten360Image.h">
+    <ClInclude Include="Flatten360Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TimingStats.hpp">
@@ -92,5 +98,16 @@
     <ClInclude Include="SerialRemappingV2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DpcppRemappingV3.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\oneAPIFlatten360Image\oneAPIFlatten360Image\CmdLineExamples.txt">
+      <Filter>Docs</Filter>
+    </Text>
+    <Text Include="InteractiveKeys.txt">
+      <Filter>Docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

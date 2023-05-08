@@ -1,7 +1,7 @@
 // The code here a version two of DpcppRemapping with a key difference being that the number of
 // kernels used has been collapsed to 1 to see how that impacts efficiency.
 
-#include "DpcppRemappingV2.hpp"
+#include "DpcppRemappingV3.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
@@ -11,38 +11,38 @@
 #pragma comment(lib, "libittnotify.lib")
 extern __itt_domain* pittTests_domain;
 // Create string handle for denoting when the kernel is running
-wchar_t* pName = _T("DpcppRemappingV2 Kernel");
-__itt_string_handle* handle_DpcppRemappingV2_kernel = __itt_string_handle_create(pName);
+wchar_t* pDpcppRemappingV3Name = _T("DpcppRemappingV3 Kernel");
+__itt_string_handle* handle_DpcppRemappingV3_kernel = __itt_string_handle_create(pDpcppRemappingV3Name);
 #endif
 
-DpcppRemappingV2::DpcppRemappingV2(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
+DpcppRemappingV3::DpcppRemappingV3(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
 {
 	m_storageType = STORAGE_TYPE_INIT;
 }
 
-std::string DpcppRemappingV2::GetDescription()
+std::string DpcppRemappingV3::GetDescription()
 {
     std::string strDesc = GetDeviceDescription();
 
 	switch (m_storageType)
 	{
 	case STORAGE_TYPE_USM:
-		return "DpcppRemappingV2: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on " + strDesc;
+		return "DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on " + strDesc;
 		break;
 	case STORAGE_TYPE_DEVICE:
-		return "DpcppRemappingV2: Computes a Remapping algorithm using oneAPI's DPC++ Device Memory on " + strDesc;
+		return "DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ Device Memory on " + strDesc;
 		break;
 	}
 
 	return "Unknown";
 }
 
-void DpcppRemappingV2::FrameCalculations(bool bParametersChanged)
+void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
 #ifdef VTUNE_API
-		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV2_kernel);
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV3_kernel);
 #endif
 
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
@@ -99,7 +99,7 @@ void DpcppRemappingV2::FrameCalculations(bool bParametersChanged)
 		{
 
 			m_pQ->submit([&](sycl::handler& cgh) {
-				cgh.parallel_for(sycl::range<2>(height, width),
+				cgh.parallel_for<class DrV3USM>(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
 					Point2D* pElement = &pPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
@@ -132,7 +132,7 @@ void DpcppRemappingV2::FrameCalculations(bool bParametersChanged)
 		case STORAGE_TYPE_DEVICE:
 		{
 			m_pQ->submit([&](sycl::handler& cgh) {
-				cgh.parallel_for(sycl::range<2>(height, width),
+				cgh.parallel_for<class DrV3Device>(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
 					Point2D* pElement = &pDevPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
@@ -179,7 +179,7 @@ void DpcppRemappingV2::FrameCalculations(bool bParametersChanged)
 
 }
 
-cv::Mat DpcppRemappingV2::ExtractFrameImage()
+cv::Mat DpcppRemappingV3::ExtractFrameImage()
 {
 	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
 	cv::Mat retVal;
@@ -210,7 +210,7 @@ cv::Mat DpcppRemappingV2::ExtractFrameImage()
 }
 
 // Pass in theta, phi, and psi in radians, not degrees
-void DpcppRemappingV2::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
+void DpcppRemappingV3::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
 {
 	// Python code snippet that this is attempting to match
 	//# Compute a matrix representing the three rotations THETA, PHI, and PSI
@@ -249,7 +249,7 @@ void DpcppRemappingV2::ComputeRotationMatrix(float radTheta, float radPhi, float
 #endif
 }
 
-bool DpcppRemappingV2::StartVariant()
+bool DpcppRemappingV3::StartVariant()
 {
 	bool bRetVal = false;
 
@@ -287,7 +287,7 @@ bool DpcppRemappingV2::StartVariant()
 	return bRetVal;
 }
 
-void DpcppRemappingV2::StopVariant()
+void DpcppRemappingV3::StopVariant()
 {
 	switch (m_storageType)
 	{

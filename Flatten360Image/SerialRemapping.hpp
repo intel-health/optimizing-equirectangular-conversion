@@ -21,7 +21,6 @@ private:
 	Point3D *m_pXYZPoints = NULL;
 	Point2D *m_pLonLatPoints = NULL;
 	Point2D *m_pXYPoints = NULL;
-	SoAPoints3D m_SoAXYZPoints;
 	int m_storageOrder;
 	cv::Mat m_rotationMatrix;
 

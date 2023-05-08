@@ -6,10 +6,6 @@
 //#include <math.h>
 #include <stdlib.h>
 
-const int INDEX_YAW = 0;
-const int INDEX_PITCH = 1;
-const int INDEX_ROLL = 2;
-
 void InitializeParameters(SParameters * parameters)
 {
     parameters->m_algorithm = 0;
@@ -26,7 +22,6 @@ void InitializeParameters(SParameters * parameters)
     strcpy(parameters->m_imgFilename[1], "image2.jpg");
     // m_iterations = 0 means interactive
     parameters->m_iterations = 0;
-    // TODO: Add ability to enter yaw,pitch,roll on command line and then have these be added to parameters over each iteration
     for (int i = 0; i < 3; i++)
     {
         parameters->m_offsets[i] = 0;
@@ -45,7 +40,6 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
     char* equalSign;
     int argLength;
     int flagLength;
-    int valueLength;
     bool bRetVal = true;
 
     for (int i = 1; i < argc; i++)

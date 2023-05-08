@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oneAPIFlatten360Image", "oneAPIFlatten360Image\oneAPIFlatten360Image.vcxproj", "{5E043E92-A66C-4DD9-B7C8-749621CAE338}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Flatten360Image", "Flatten360Image\Flatten360Image.vcxproj", "{5E043E92-A66C-4DD9-B7C8-749621CAE338}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
