@@ -7,6 +7,18 @@
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
 
+#ifdef VTUNE_API
+#include "ittnotify.h"
+#pragma comment(lib, "libittnotify.lib")
+extern __itt_domain *pittTests_domain;
+// Create string handle for denoting when the kernel is running
+wchar_t const *pDpcppRemappingExtract = _T("DpcppRemappingV1 Extract Kernel");
+__itt_string_handle *handle_DpcppRemapping_extract_kernel = __itt_string_handle_create(pDpcppRemappingExtract);
+wchar_t const *pDpcppRemappingCalc = _T("DpcppRemappingV1 Calc Kernel");
+__itt_string_handle *handle_DpcppRemapping_calc_kernel = __itt_string_handle_create(pDpcppRemappingCalc);
+#endif
+
+
 // output message for runtime exceptions
 #define EXCEPTION_MSG \
   "    If you are targeting an FPGA hardware, please ensure that an FPGA board is plugged to the system, \n\
@@ -36,6 +48,9 @@ void DpcppRemapping::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
+#ifdef VTUNE_API
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemapping_calc_kernel);
+#endif
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
 		std::chrono::system_clock::time_point startTime;
@@ -52,12 +67,17 @@ void DpcppRemapping::FrameCalculations(bool bParametersChanged)
 		ComputeXYCoords();
 		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
 		m_bFrameCalcRequired = false;
+#ifdef VTUNE_API
+		__itt_task_end(pittTests_domain);
+#endif
 	}
-
 }
 
 cv::Mat DpcppRemapping::ExtractFrameImage()
 {
+#ifdef VTUNE_API
+	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemapping_extract_kernel);
+#endif
 	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
 	cv::Mat retVal;
 
@@ -73,6 +93,10 @@ cv::Mat DpcppRemapping::ExtractFrameImage()
 		break;
 	}
 	}
+
+#ifdef VTUNE_API
+	__itt_task_end(pittTests_domain);
+#endif
 
 	return retVal;
 }
@@ -112,14 +136,25 @@ void DpcppRemapping::ComputeXYZCoords()
 	{
 
 		m_pQ->submit([&](sycl::handler& cgh) {
-			cgh.parallel_for(sycl::range<2>(height, width),
-			[=](sycl::id<2> item) {
-				Point3D *pElement = &pPoints[item[0] * width + item[1]];
+			//cgh.parallel_for(sycl::range<2>(height, width),
+			//[=](sycl::id<2> item) {
+			//	Point3D *pElement = &pPoints[item[0] * width + item[1]];
 
-				pElement->m_x = item[1] * invf + translatecx;
-				pElement->m_y = item[0] * invf + translatecy;
-				pElement->m_z = 1.0f;
-			});
+			//	pElement->m_x = item[1] * invf + translatecx;
+			//	pElement->m_y = item[0] * invf + translatecy;
+			//	pElement->m_z = 1.0f;
+			//});
+			Point3D *pElement = &pPoints[0];
+			for (int y = 0; y < height; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					pElement->m_x = x * invf + translatecx;
+					pElement->m_y = y * invf + translatecy;
+					pElement->m_z = 1.0f;
+					pElement++;
+				}
+			}
 		});
 		m_pQ->wait();
 
@@ -185,6 +220,7 @@ void DpcppRemapping::ComputeRotationMatrix(float radTheta, float radPhi, float r
 		printf("\n");
 	}
 #endif
+
 }
 
 void DpcppRemapping::ConvertXYZToLonLat()

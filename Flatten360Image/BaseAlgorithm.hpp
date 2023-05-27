@@ -8,6 +8,7 @@ class BaseAlgorithm {
 protected:
 	SParameters* m_parameters;
 	bool m_bFrameCalcRequired;
+	bool m_bVariantRun;
 
 public:
 	BaseAlgorithm(SParameters& parameters);
@@ -19,6 +20,6 @@ public:
 
 	virtual std::string GetDescription() = 0;
 
-	virtual bool StartVariant() = 0;
+	virtual bool StartVariant();
 	virtual void StopVariant() = 0;
 };

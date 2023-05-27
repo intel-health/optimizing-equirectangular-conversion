@@ -1,8 +1,10 @@
 #include "BaseAlgorithm.hpp"
+#include <iostream>
 
 BaseAlgorithm::BaseAlgorithm(SParameters& parameters)
 {
 	m_parameters = &parameters;
+	m_bVariantRun = false;
 }
 
 BaseAlgorithm::~BaseAlgorithm()
@@ -12,9 +14,22 @@ BaseAlgorithm::~BaseAlgorithm()
 
 void BaseAlgorithm::FrameCalculations(bool bParametersChanged)
 {
-	if (bParametersChanged)
-	{
-		PrintParameters(m_parameters);
-	}
+	m_bFrameCalcRequired = false;
+}
+
+bool BaseAlgorithm::StartVariant()
+{
+	bool bRetVal = true;
+
 	m_bFrameCalcRequired = true;
+	if (m_bVariantRun)
+	{
+		bRetVal = false;
+	}
+	else
+	{
+		m_bVariantRun = true;
+	}
+
+	return bRetVal;
 }

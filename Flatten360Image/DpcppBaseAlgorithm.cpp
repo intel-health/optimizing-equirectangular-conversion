@@ -19,6 +19,7 @@ sycl::queue* DpcppBaseAlgorithm::GetDeviceQ()
     auto ehandler = [](cl::sycl::exception_list exceptionList) {
         for (std::exception_ptr const& e : exceptionList) {
             try {
+                std::cout << "Exception caught in ehandler, rethrowing " << std::endl;
                 std::rethrow_exception(e);
             }
             catch (cl::sycl::exception const& e) {
@@ -34,17 +35,22 @@ sycl::queue* DpcppBaseAlgorithm::GetDeviceQ()
         if (m_pQ != NULL)
         {
             delete m_pQ;
+            m_pQ = NULL;
         }
         ConfigurableDeviceSelector::set_search(m_typePreference, m_platformName, m_deviceName, m_driverVersion);
         m_pQ = new sycl::queue(ConfigurableDeviceSelector::device_selector, ehandler);
 #define SHOW_RESULTS
 #ifdef SHOW_RESULTS
-        sycl::device device = m_pQ->get_device();
-        ConfigurableDeviceSelector::print_platform_info(device);
-        ConfigurableDeviceSelector::print_device_info(device);
+        if (m_pQ)
+        {
+            sycl::device device = m_pQ->get_device();
+            ConfigurableDeviceSelector::print_platform_info(device);
+            ConfigurableDeviceSelector::print_device_info(device);
+        }
 #endif
     }
     catch (cl::sycl::exception const& e) {
+        std::cout << "Exception caught " << e.what() << std::endl;
         m_pQ = NULL;
     }
 
@@ -105,6 +111,9 @@ std::string DpcppBaseAlgorithm::GetDeviceDescription()
 
 bool DpcppBaseAlgorithm::StartVariant()
 {
+    printf("DpcppBaseAlgorithm::StartVariant start\n");
+    BaseAlgorithm::StartVariant();
+
     if (m_bInitRequired)
     {
         m_bInitRequired = false;
@@ -153,6 +162,7 @@ bool DpcppBaseAlgorithm::StartVariant()
         }
     }
     m_bFrameCalcRequired = true;
+    printf("DpcppBaseAlgorithm::StartVariant end\n");
 
     return m_pQ != NULL;
 }

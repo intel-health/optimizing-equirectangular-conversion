@@ -1,5 +1,6 @@
 # Select a specific algorithm, run interactive, and use the GPU
 --algorithm=3 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=GPU
+
 # Select a specific algorithm, run interactive, and use the CPU
 --algorithm=3 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=CPU
 
@@ -10,3 +11,25 @@
 # Run through all algorithms with 10 iterations of each and use all pieces of HW that are found
 # This does add a 10 degree yaw delta which should force all algorithms to do full compute
 --algorithm=-1 --iterations=10 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10
+
+# Run through a set of algorithms from 2 to 9 inclusive (skip 1 since it is really slow) and move the yaw using the CPU
+--startAlgorithm=1 --endAlgorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=CPU --platform=OpenCL
+
+# Run through a set of algorithms from 2 to 9 inclusive (skip 1 since it is really slow) and move the yaw using the GPU
+--startAlgorithm=1 --endAlgorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=GPU --platform=OpenCL
+
+
+
+# Run through algorithm 0 separately since it is really slow and move the yaw using the GPU and CPU all driver variants
+--startAlgorithm=0 --endAlgorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10
+
+# Run algorithm 0 separately since it is really slow changing the image with each iteration to simulate video using the GPU and CPU all driver variants
+--startAlgorithm=0 --endAlgorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage
+
+
+
+# Run through a set of algorithms from 1 to 9 inclusive (skip 0 since it is really slow) and move the yaw using the GPU and CPU all driver variants
+--startAlgorithm=1 --endAlgorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=GPU;CPU --platform=all
+
+# Run through a set of algorithms from 1 to 9 inclusive (skip 0 since it is really slow) changing the image with each iteration to simulate video using the GPU and CPU all driver variants
+--startAlgorithm=1 --endAlgorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=GPU;CPU --platform=all

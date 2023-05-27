@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--algorithm=3 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=GPU</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--startAlgorithm=7 --endAlgorithm=8 --iterations=1 --yaw=10 --pitch=20 --roll=30 --typePreference=GPU;CPU --deltaYaw=10  --platform=all</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=%PATH%;C:\OpenCV-4.6\opencv\build\x64\vc15\bin
 OPENCV_OPENCL_DEVICE=:GPU:
@@ -12,6 +12,6 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerEnvironment>PATH=%PATH%;C:\OpenCV-4.6\opencv\build\x64\vc15\bin</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--algorithm=3 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --typePreference=CPU --deltaYaw=10</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--startAlgorithm=1 --endAlgorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=GPU;CPU --platform=all</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

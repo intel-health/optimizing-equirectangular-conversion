@@ -51,5 +51,5 @@ public:
 	void ReportTime(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType);
 	void ReportTimes(bool bIncludeLap);
 	std::string GetSummaryLine(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType);
-	std::string SummaryStats();
+	std::string SummaryStats(bool bIncludeLap = true);
 };

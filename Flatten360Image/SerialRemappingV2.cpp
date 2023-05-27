@@ -8,6 +8,17 @@
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
 
+#ifdef VTUNE_API
+#include "ittnotify.h"
+#pragma comment(lib, "libittnotify.lib")
+extern __itt_domain *pittTests_domain;
+// Create string handle for denoting when the kernel is running
+wchar_t const *pSerialRemappingV2Extract = _T("SerialRemapping Extract Kernel");
+__itt_string_handle *handle_SerialRemappingV2_extract_kernel = __itt_string_handle_create(pSerialRemappingV2Extract);
+wchar_t const *pSerialRemappingV2Calc = _T("SerialRemapping Calc Kernel");
+__itt_string_handle *handle_SerialRemappingV2_calc_kernel = __itt_string_handle_create(pSerialRemappingV2Calc);
+#endif
+
 SerialRemappingV2::SerialRemappingV2(SParameters& parameters) : BaseAlgorithm(parameters)
 {
 	m_storageType = SRV2_INIT;
@@ -28,10 +39,10 @@ std::string SerialRemappingV2::GetDescription()
 	switch (m_storageType)
 	{
 	case SRV2_AOS:
-		return "Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.";
+		return "V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.";
 		break;
 	case SRV2_SOA:
-		return "Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.";
+		return "V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.";
 		break;
 	}
 
@@ -82,6 +93,9 @@ void SerialRemappingV2::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
+#ifdef VTUNE_API
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV2_calc_kernel);
+#endif
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
 		ComputeRotationMatrix((float)m_parameters->m_yaw * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_pitch * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_roll * DEGREE_CONVERSION_FACTOR);
@@ -204,11 +218,19 @@ void SerialRemappingV2::FrameCalculations(bool bParametersChanged)
 		}
 		}
 		m_bFrameCalcRequired = false;
+#ifdef VTUNE_API
+		__itt_task_end(pittTests_domain);
+#endif
+
 	}
 }
 
 cv::Mat SerialRemappingV2::ExtractFrameImage()
 {
+#ifdef VTUNE_API
+	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV2_extract_kernel);
+#endif
+
 	cv::Mat retVal;
 	std::chrono::system_clock::time_point startTime;
 
@@ -237,6 +259,10 @@ cv::Mat SerialRemappingV2::ExtractFrameImage()
 		break;
 	}
 	}
+
+#ifdef VTUNE_API
+	__itt_task_end(pittTests_domain);
+#endif
 
 	return retVal;
 }
@@ -332,6 +358,8 @@ cv::Mat SerialRemappingV2::GetDebugImage()
 
 bool SerialRemappingV2::StartVariant()
 {
+	BaseAlgorithm::StartVariant();
+
 	bool bRetVal = false;
 
 	m_storageType++;

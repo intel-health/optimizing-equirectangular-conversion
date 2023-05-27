@@ -19,5 +19,5 @@ d - toggle debug mode on/off.  When in debug mode is on an additional window is 
 f - change frame to show image1 or image2.  This can be used to simulate new inbound frames in a video while the field of view
   does not change to see how effective the algorithm is at extracting the flattened image when the frames are changing.
 Esc or q - quit from the current algorithm / variant and move on to the next one or end the program if all have been run.
-+ - decrease the field of view by "delta" degrees (i.e., zoom in).
-- - increase the field of view by "delta" degrees (i.e., zoom out).
+* - decrease the field of view by "delta" degrees (i.e., zoom in).
+/ - increase the field of view by "delta" degrees (i.e., zoom out).

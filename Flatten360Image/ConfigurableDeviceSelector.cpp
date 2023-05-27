@@ -11,6 +11,7 @@ std::vector<SDeviceInfo> ConfigurableDeviceSelector::c_prev_devices = std::vecto
 void ConfigurableDeviceSelector::set_search(std::string type_preference, std::string platform, std::string device_name, std::string driver_version)
 {
 	int value = 90000;
+	char *context;
 
 	c_type_preference.clear();
 	c_prev_devices.clear();
@@ -18,17 +19,18 @@ void ConfigurableDeviceSelector::set_search(std::string type_preference, std::st
 	{
 		std::string strSearch = str_toupper(type_preference);
 		const char* search = strSearch.c_str();
-		char* pType = strtok((char *)search, ";");
+		char* pType = strtok_s((char *)search, ";", &context);
 		while (pType != NULL) 
 		{
 			c_type_preference.insert_or_assign(pType, value);
 			value -= 10000;
-			pType = strtok(NULL, ";");
+			pType = strtok_s(NULL, ";", &context);
 		}
 	}
 	c_platform = platform;
 	c_device_name = device_name;
 	c_driver_version = driver_version;
+	std::cout << "Device search set to platform = " << c_platform << " device name = " << c_device_name << " driver_version = " << c_driver_version << std::endl;
 }
 
 // Pass the following function to the sycl::queue to use the criteria that were

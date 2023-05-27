@@ -8,6 +8,17 @@
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
 
+#ifdef VTUNE_API
+#include "ittnotify.h"
+#pragma comment(lib, "libittnotify.lib")
+extern __itt_domain *pittTests_domain;
+// Create string handle for denoting when the kernel is running
+wchar_t const *pSerialRemappingExtract = _T("SerialRemapping Extract Kernel");
+__itt_string_handle *handle_SerialRemapping_extract_kernel = __itt_string_handle_create(pSerialRemappingExtract);
+wchar_t const *pSerialRemappingCalc = _T("SerialRemapping Calc Kernel");
+__itt_string_handle *handle_SerialRemapping_calc_kernel = __itt_string_handle_create(pSerialRemappingCalc);
+#endif
+
 SerialRemapping::SerialRemapping(SParameters& parameters) : BaseAlgorithm(parameters)
 {
 	m_storageOrder = STORE_INIT;
@@ -453,6 +464,10 @@ void SerialRemapping::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
+#ifdef VTUNE_API
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemapping_calc_kernel);
+#endif
+
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
 		std::chrono::system_clock::time_point startTime;
@@ -469,11 +484,19 @@ void SerialRemapping::FrameCalculations(bool bParametersChanged)
 		ComputeXYCoords();
 		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
 		m_bFrameCalcRequired = false;
+#ifdef VTUNE_API
+		__itt_task_end(pittTests_domain);
+#endif
+
 	}
 }
 
 cv::Mat SerialRemapping::ExtractFrameImage()
 {
+#ifdef VTUNE_API
+	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemapping_extract_kernel);
+#endif
+
 	cv::Mat retVal;
 	std::chrono::system_clock::time_point startTime;
 
@@ -527,6 +550,10 @@ cv::Mat SerialRemapping::ExtractFrameImage()
 		break;
 	}
 	}
+
+#ifdef VTUNE_API
+	__itt_task_end(pittTests_domain);
+#endif
 
 	return retVal;
 }
@@ -637,6 +664,8 @@ cv::Mat SerialRemapping::GetDebugImage()
 
 bool SerialRemapping::StartVariant()
 {
+	BaseAlgorithm::StartVariant();
+
 	bool bRetVal = false;
 
 	m_storageOrder++;

@@ -54,6 +54,21 @@
     <ClCompile Include="DpcppRemappingV3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Equi2Rect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DpcppRemappingV4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DpcppRemappingV5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DpcppRemappingV6.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DpcppRemappingV7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ParseArgs.hpp">
@@ -101,9 +116,24 @@
     <ClInclude Include="DpcppRemappingV3.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Equi2Rect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DpcppRemappingV4.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DpcppRemappingV5.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DpcppRemappingV6.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DpcppRemappingV7.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\oneAPIFlatten360Image\oneAPIFlatten360Image\CmdLineExamples.txt">
+    <Text Include="CmdLineExamples.txt">
       <Filter>Docs</Filter>
     </Text>
     <Text Include="InteractiveKeys.txt">

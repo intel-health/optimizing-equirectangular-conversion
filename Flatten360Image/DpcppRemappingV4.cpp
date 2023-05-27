@@ -1,9 +1,9 @@
-// The code here is focused on optimizing the FrameCalculation area.  This is done with the parallel_for_work_group
-// call.  This seems to be worse that V2 perhaps due to the barriers that are imposed by the parallel_for_work_group call.
-// According to VTune the thread occupancy was better and the FPU utilization was better, but the overall time taken
-// was worse for the FrameCalculations.
+// This code investigates the impact of changing V2 to use the sub-groups to access the data so they are not
+// scattered when writing.  This is not significantly better than the V2 and might be slightly worse.  It does
+// seem to have the lowest stall amount of the V2, V3, or V4 variations but still > 30%.  On the other hand,
+// the overall elapsed time and the GPU time are the highest for this version.
 
-#include "DpcppRemappingV3.hpp"
+#include "DpcppRemappingV4.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
@@ -13,71 +13,76 @@
 #pragma comment(lib, "libittnotify.lib")
 extern __itt_domain* pittTests_domain;
 // Create string handle for denoting when the kernel is running
-wchar_t const *pDpcppRemappingV3Extract = _T("DpcppRemappingV2 Extract Kernel");
-__itt_string_handle *handle_DpcppRemappingV3_extract_kernel = __itt_string_handle_create(pDpcppRemappingV3Extract);
-wchar_t const *pDpcppRemappingV3Calc = _T("DpcppRemappingV3 Calc Kernel");
-__itt_string_handle *handle_DpcppRemappingV3_calc_kernel = __itt_string_handle_create(pDpcppRemappingV3Calc);
+wchar_t const *pDpcppRemappingV4Extract = _T("DpcppRemappingV4 Extract Kernel");
+__itt_string_handle *handle_DpcppRemappingV4_extract_kernel = __itt_string_handle_create(pDpcppRemappingV4Extract);
+wchar_t const *pDpcppRemappingV4Calc = _T("DpcppRemappingV4 Calc Kernel");
+__itt_string_handle *handle_DpcppRemappingV4_calc_kernel = __itt_string_handle_create(pDpcppRemappingV4Calc);
 #endif
 
-DpcppRemappingV3::DpcppRemappingV3(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
+DpcppRemappingV4::DpcppRemappingV4(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
 {
 	m_storageType = STORAGE_TYPE_INIT;
 }
 
-std::string DpcppRemappingV3::GetDescription()
+std::string DpcppRemappingV4::GetDescription()
 {
     std::string strDesc = GetDeviceDescription();
 
 	switch (m_storageType)
 	{
 	case STORAGE_TYPE_USM:
-		return "DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on " + strDesc;
+		return "DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on " + strDesc;
 		break;
 	case STORAGE_TYPE_DEVICE:
-		return "DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on " + strDesc;
+		return "DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on " + strDesc;
 		break;
 	}
 
 	return "Unknown";
 }
 
-void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
+void DpcppRemappingV4::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
 #ifdef VTUNE_API
-		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV3_calc_kernel);
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV4_calc_kernel);
 #endif
 
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
 		ComputeRotationMatrix((float)m_parameters->m_yaw * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_pitch * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_roll * DEGREE_CONVERSION_FACTOR);
 
-		const int height = m_parameters->m_heightOutput;
-		const int width = m_parameters->m_widthOutput;
-		Point2D* pPoints = m_pXYPoints;
-		Point2D* pDevPoints = m_pDevXYPoints;
-		const float m00 = m_rotationMatrix.at<float>(0, 0);
-		const float m01 = m_rotationMatrix.at<float>(0, 1);
-		const float m02 = m_rotationMatrix.at<float>(0, 2);
-		const float m10 = m_rotationMatrix.at<float>(1, 0);
-		const float m11 = m_rotationMatrix.at<float>(1, 1);
-		const float m12 = m_rotationMatrix.at<float>(1, 2);
-		const float m20 = m_rotationMatrix.at<float>(2, 0);
-		const float m21 = m_rotationMatrix.at<float>(2, 1);
-		const float m22 = m_rotationMatrix.at<float>(2, 2);
-		const float imageWidth = m_parameters->m_image[m_parameters->m_imageIndex].cols - 1;
-		const float imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows - 1;;
-		const float xDiv = 2 * M_PI;
-		const int numWorkItems = 16;
+		float f;
+		float cx;
+		float cy;
+		float invf;
+		float translatecx;
+		float translatecy;
+		int height = m_parameters->m_heightOutput;
+		int width = m_parameters->m_widthOutput;
+		float m00 = m_rotationMatrix.at<float>(0, 0);
+		float m01 = m_rotationMatrix.at<float>(0, 1);
+		float m02 = m_rotationMatrix.at<float>(0, 2);
+		float m10 = m_rotationMatrix.at<float>(1, 0);
+		float m11 = m_rotationMatrix.at<float>(1, 1);
+		float m12 = m_rotationMatrix.at<float>(1, 2);
+		float m20 = m_rotationMatrix.at<float>(2, 0);
+		float m21 = m_rotationMatrix.at<float>(2, 1);
+		float m22 = m_rotationMatrix.at<float>(2, 2);
+		float imageWidth = m_parameters->m_image[m_parameters->m_imageIndex].cols - 1;
+		float imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows - 1;;
+		float xDiv = 2 * M_PI;
+		// Width must be a multiple of numPerLoop or things don't work well.
+		const int numPerLoop = 16;
 
 		std::chrono::system_clock::time_point startTime;
 
 		startTime = std::chrono::system_clock::now();
 
-		const float f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
-		const float cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
-		const float cy = ((float)m_parameters->m_heightOutput - 1.0f) / 2.0f;
+		f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
+		cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
+		cy = ((float)m_parameters->m_heightOutput - 1.0f) / 2.0f;
 
 		// In concept, the intent of this section of the code is to create an inverse of the intrinsic matrix K
 		// (see https://ksimek.github.io/2013/08/13/intrinsic for explanation).  However, in this case we will
@@ -88,65 +93,28 @@ void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
 		//	1 / f, 0, -cx / f,
 		//	0, 1 / f, -cy / f,
 		//	0, 0, 1);
-		const float invf = 1.0f / f;
-		const float translatecx = -cx * invf;
-		const float translatecy = -cy * invf;
+		invf = 1.0f / f;
+		translatecx = -cx * invf;
+		translatecy = -cy * invf;
 
 		switch (m_storageType)
 		{
 		case STORAGE_TYPE_USM:
 		{
+			Point2D *pPoints = m_pXYPoints;
+
 			m_pQ->submit([&](sycl::handler &cgh) {
-				cgh.parallel_for_work_group(sycl::range<2>(height, width / numWorkItems), sycl::range<2>(1, numWorkItems), [=](sycl::group<2> g) {
-					float wgm00 = m00;
-					float wgm01 = m01;
-					float wgm02 = m02;
-					float wgm10 = m10;
-					float wgm11 = m11;
-					float wgm12 = m12;
-					float wgm20 = m20;
-					float wgm21 = m21;
-					float wgm22 = m22;
-
-					g.parallel_for_work_item([&](sycl::h_item<2> item) {
-						int iX = item.get_global_id(1);
-						int iY = item.get_global_id(0);
-						Point2D *pElement = &pPoints[iY * width + iX];
-						float x = iX * invf + translatecx;
-						float y = iY * invf + translatecy;
-						float z = 1.0f;
-						float norm;
-
-						// Calculate xyz * R, save the initial x, y, and z values for the computation
-						float eX = x;
-						float eY = y;
-						float eZ = z;
-
-						x = eX * wgm00 + eY * wgm01 + eZ * wgm02;
-						y = eX * wgm10 + eY * wgm11 + eZ * wgm12;
-						z = eX * wgm20 + eY * wgm21 + eZ * wgm22;
-
-						norm = sqrt(x * x + y * y + z * z);
-
-						x = atan2(x / norm, z / norm);
-						y = asin(y / norm);
-
-						pElement->m_x = (x / xDiv + 0.5) * imageWidth;
-						pElement->m_y = (y / M_PI + 0.5) * imageHeight;
-
-					});
-				});
-			}).wait();
-			break;
-		}
-		case STORAGE_TYPE_DEVICE:
-		{
-			m_pQ->submit([&](sycl::handler &cgh) {
-				cgh.parallel_for_work_group(sycl::range<2>(height, width / numWorkItems), sycl::range<2>(1, numWorkItems), [=](sycl::group<2> g) {
-					g.parallel_for_work_item([&](sycl::h_item<2> item) {
-						int iX = item.get_global_id(1);
-						int iY = item.get_global_id(0);
-						Point2D* pElement = &pDevPoints[iY * width + iX];
+				cgh.parallel_for(sycl::nd_range<1>(sycl::range<1>{height * width / numPerLoop}, sycl::range<1>{ 1 }),
+				[=](sycl::nd_item<1> item) {
+					int i = item.get_global_linear_id();
+					auto sg = item.get_sub_group();
+					int sgSize = sg.get_local_range()[0];
+					i = (i / sgSize) * sgSize * numPerLoop + (i % sgSize);
+					int iY = i / width;
+					int baseX = i - iY * width;
+					for (int j = 0; j < sgSize * numPerLoop; j += sgSize) {
+						int iX = baseX + j;
+						Point2D *pElement = &pPoints[i + j];
 						float x = iX * invf + translatecx;
 						float y = iY * invf + translatecy;
 						float z = 1.0f;
@@ -168,16 +136,62 @@ void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
 
 						pElement->m_x = (x / xDiv + 0.5) * imageWidth;
 						pElement->m_y = (y / M_PI + 0.5) * imageHeight;
-					});
+					}
 				});
-			}).wait();
+			});
+			m_pQ->wait();
+
+			break;
+		}
+		case STORAGE_TYPE_DEVICE:
+		{
+			Point2D *pDevPoints = m_pDevXYPoints;
+
+			m_pQ->submit([&](sycl::handler &cgh) {
+				cgh.parallel_for(sycl::nd_range<1>(sycl::range<1>{height *width / numPerLoop}, sycl::range<1>{ 1 }),
+				[=](sycl::nd_item<1> item) {
+					int i = item.get_global_linear_id();
+					auto sg = item.get_sub_group();
+					int sgSize = sg.get_local_range()[0];
+					i = (i / sgSize) * sgSize * numPerLoop + (i % sgSize);
+					int iY = i / width;
+					int baseX = i - iY * width;
+					for (int j = 0; j < sgSize * numPerLoop; j += sgSize) {
+						int iX = baseX + j;
+						Point2D *pElement = &pDevPoints[i + j];
+
+						float x = iX * invf + translatecx;
+						float y = iY * invf + translatecy;
+						float z = 1.0f;
+						float norm;
+
+						// Calculate xyz * R, save the initial x, y, and z values for the computation
+						float eX = x;
+						float eY = y;
+						float eZ = z;
+
+						x = eX * m00 + eY * m01 + eZ * m02;
+						y = eX * m10 + eY * m11 + eZ * m12;
+						z = eX * m20 + eY * m21 + eZ * m22;
+
+						norm = sqrt(x * x + y * y + z * z);
+
+						x = atan2(x / norm, z / norm);
+						y = asin(y / norm);
+
+						pElement->m_x = (x / xDiv + 0.5) * imageWidth;
+						pElement->m_y = (y / M_PI + 0.5) * imageHeight;
+					}
+				});
+			});
+			m_pQ->wait();
 
 			// Now copy the data back to the host
-			m_pQ->submit([&](sycl::handler& cgh) {
+			m_pQ->submit([&](sycl::handler &cgh) {
 				// copy deviceArray back to hostArray
 				cgh.memcpy(&m_pXYPoints[0], pDevPoints, height * width * sizeof(Point2D));
-			});
-			m_pQ->wait();             
+				});
+			m_pQ->wait();
 
 			break;
 		}
@@ -191,10 +205,10 @@ void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
 
 }
 
-cv::Mat DpcppRemappingV3::ExtractFrameImage()
+cv::Mat DpcppRemappingV4::ExtractFrameImage()
 {
 #ifdef VTUNE_API
-	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV3_extract_kernel);
+	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV4_extract_kernel);
 #endif
 
 	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
@@ -229,7 +243,7 @@ cv::Mat DpcppRemappingV3::ExtractFrameImage()
 }
 
 // Pass in theta, phi, and psi in radians, not degrees
-void DpcppRemappingV3::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
+void DpcppRemappingV4::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
 {
 	// Python code snippet that this is attempting to match
 	//# Compute a matrix representing the three rotations THETA, PHI, and PSI
@@ -268,7 +282,7 @@ void DpcppRemappingV3::ComputeRotationMatrix(float radTheta, float radPhi, float
 #endif
 }
 
-bool DpcppRemappingV3::StartVariant()
+bool DpcppRemappingV4::StartVariant()
 {
 	bool bRetVal = false;
 
@@ -306,7 +320,7 @@ bool DpcppRemappingV3::StartVariant()
 	return bRetVal;
 }
 
-void DpcppRemappingV3::StopVariant()
+void DpcppRemappingV4::StopVariant()
 {
 	switch (m_storageType)
 	{

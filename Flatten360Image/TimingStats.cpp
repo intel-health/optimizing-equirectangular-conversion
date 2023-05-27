@@ -1,5 +1,6 @@
 #include "TimingStats.hpp"
 #include <string>
+#include <iostream>
 
 TimingStats* TimingStats::c_timingStats = new TimingStats();
 
@@ -58,11 +59,11 @@ std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeStr
 
 #define CSV_OUTPUT
 #ifdef CSV_OUTPUT
-	char *pFmt = "%15s,%3d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
-	char *pFmt2 = "FPS, %12.8f\n";
+	char const *pFmt = "%15s,%3d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
+	char const *pFmt2 = "FPS, %12.8f\n";
 #else
-	char *pFmt = "%15s %3d %23s %12.8fs %12.5fms %12.3fus ";
-	char *pFmt2 = "FPS = %12.8f\n";
+	char const *pFmt = "%15s %3d %23s %12.8fs %12.5fms %12.3fus ";
+	char const *pFmt2 = "FPS = %12.8f\n";
 #endif
 	std::chrono::duration<double> aveDuration = durationSum / numIterations;
 	sprintf(line1, pFmt, strDesc.c_str(), numIterations, typeString.c_str(), aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);
@@ -128,6 +129,9 @@ std::string TimingStats::GetTypeString(ETimingType timingType)
 	case TIMING_TOTAL:
 		strDesc = "Total";
 		break;
+	default:
+		strDesc = "Unknown";
+		break;
 	}
 
 	return strDesc;
@@ -169,7 +173,7 @@ void TimingStats::ReportTimes(bool bIncludeLap)
 	}
 }
 
-std::string TimingStats::SummaryStats()
+std::string TimingStats::SummaryStats(bool bIncludeLap /* = true */)
 {
 	std::string retVal = "";
 
@@ -181,7 +185,7 @@ std::string TimingStats::SummaryStats()
 	{
 		retVal += GetSummaryLine("times averaging", GetTypeString(ETimingType::TIMING_FRAME), m_durationsSum[ETimingType::TIMING_FRAME], m_iterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
 	}
-	if (m_lapIterations[ETimingType::TIMING_FRAME] != 0)
+	if (bIncludeLap && m_lapIterations[ETimingType::TIMING_FRAME] != 0)
 	{
 		retVal += GetSummaryLine("lap averaging", GetTypeString(ETimingType::TIMING_FRAME), m_lapDurationsSum[ETimingType::TIMING_FRAME], m_lapIterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
 	}

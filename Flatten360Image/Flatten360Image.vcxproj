@@ -21,7 +21,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -75,7 +75,8 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <SYCLWarningLevel>Level3</SYCLWarningLevel>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VTUNE_API;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,6 +84,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,6 +92,11 @@
     <ClCompile Include="DpcppBaseAlgorithm.cpp" />
     <ClCompile Include="DpcppRemappingV2.cpp" />
     <ClCompile Include="DpcppRemappingV3.cpp" />
+    <ClCompile Include="DpcppRemappingV4.cpp" />
+    <ClCompile Include="DpcppRemappingV5.cpp" />
+    <ClCompile Include="DpcppRemappingV6.cpp" />
+    <ClCompile Include="DpcppRemappingV7.cpp" />
+    <ClCompile Include="Equi2Rect.cpp" />
     <ClCompile Include="SerialRemapping.cpp" />
     <ClCompile Include="ParallelRemapping.cpp" />
     <ClCompile Include="DpcppRemapping.cpp" />
@@ -104,6 +111,11 @@
     <ClInclude Include="DpcppBaseAlgorithm.hpp" />
     <ClInclude Include="DpcppRemappingV2.hpp" />
     <ClInclude Include="DpcppRemappingV3.hpp" />
+    <ClInclude Include="DpcppRemappingV4.hpp" />
+    <ClInclude Include="DpcppRemappingV5.hpp" />
+    <ClInclude Include="DpcppRemappingV6.hpp" />
+    <ClInclude Include="DpcppRemappingV7.hpp" />
+    <ClInclude Include="Equi2Rect.hpp" />
     <ClInclude Include="Flatten360Image.h" />
     <ClInclude Include="Point2D.hpp" />
     <ClInclude Include="SerialRemapping.hpp" />
@@ -117,7 +129,7 @@
     <ClInclude Include="TimingStats.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\oneAPIFlatten360Image\oneAPIFlatten360Image\CmdLineExamples.txt" />
+    <Text Include="CmdLineExamples.txt" />
     <Text Include="InteractiveKeys.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

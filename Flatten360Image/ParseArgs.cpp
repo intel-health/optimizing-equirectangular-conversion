@@ -5,21 +5,25 @@
 #include <string.h>
 //#include <math.h>
 #include <stdlib.h>
+#include <iostream>
 
 void InitializeParameters(SParameters * parameters)
 {
-    parameters->m_algorithm = 0;
+    parameters->m_startAlgorithm = 0;
+    parameters->m_endAlgorithm = MAX_ALGORITHM;
+    parameters->m_algorithm = -1;
     parameters->m_yaw = 0;
     parameters->m_pitch = 0;
     parameters->m_roll = 0;                     // Sometimes referred to as psi.  Should be -180 to 180 degrees
     parameters->m_deltaYaw = 0;
     parameters->m_deltaPitch = 0;
     parameters->m_deltaRoll = 0;
+    parameters->m_deltaImage = false;
     parameters->m_fov = 60;
     parameters->m_widthOutput = 1080;
     parameters->m_heightOutput = 540;
-    strcpy(parameters->m_imgFilename[0], "image1.jpg");
-    strcpy(parameters->m_imgFilename[1], "image2.jpg");
+    strcpy_s(parameters->m_imgFilename[0], "image1.jpg");
+    strcpy_s(parameters->m_imgFilename[1], "image2.jpg");
     // m_iterations = 0 means interactive
     parameters->m_iterations = 0;
     for (int i = 0; i < 3; i++)
@@ -90,15 +94,15 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
             // Check all the flags that do not require a value (or we will ignore the value) first.
             // Once those are all done, the else portion will first check that a value exists since all the
             // remaining flags require a value
-            if (strnicmp("help", flagStart, flagLength) == 0 || strnicmp("?", flagStart, flagLength) == 0)
+            if (_strnicmp("help", flagStart, flagLength) == 0 || _strnicmp("?", flagStart, flagLength) == 0)
             {
                 // No error message, but force the Usage to be printed
                 errorMessage[0] = NULL;
                 bRetVal = false;
-//            }
-//            else if (strnicmp("showDiffs", flagStart, flagLength) == 0)
-//            {
-//                g_bShowDiffs = true;
+            }
+            else if (strnicmp("deltaImage", flagStart, flagLength) == 0)
+            {
+                parameters->m_deltaImage = true;
             }
             else
             {
@@ -110,7 +114,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                 }
                 else
                 {
-                    if (strnicmp("yaw", flagStart, flagLength) == 0)
+                    if (_strnicmp("yaw", flagStart, flagLength) == 0)
                     {
                         parameters->m_yaw = atoi(valueStart);
                         if (parameters->m_yaw < -180 || parameters->m_yaw > 180)
@@ -120,7 +124,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("pitch", flagStart, flagLength) == 0)
+                    else if (_strnicmp("pitch", flagStart, flagLength) == 0)
                     {
                         parameters->m_pitch = atoi(valueStart);
                         if (parameters->m_pitch < -90 || parameters->m_pitch > 90)
@@ -130,7 +134,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("roll", flagStart, flagLength) == 0)
+                    else if (_strnicmp("roll", flagStart, flagLength) == 0)
                     {
                         parameters->m_roll = atoi(valueStart);
                         if (parameters->m_roll < 0 || parameters->m_roll > 360)
@@ -140,7 +144,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("deltaYaw", flagStart, flagLength) == 0)
+                    else if (_strnicmp("deltaYaw", flagStart, flagLength) == 0)
                     {
                         parameters->m_deltaYaw = atoi(valueStart);
                         if (parameters->m_deltaYaw < -360 || parameters->m_deltaYaw > 360)
@@ -150,7 +154,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("deltaPitch", flagStart, flagLength) == 0)
+                    else if (_strnicmp("deltaPitch", flagStart, flagLength) == 0)
                     {
                         parameters->m_deltaPitch = atoi(valueStart);
                         if (parameters->m_deltaPitch < -90 || parameters->m_deltaPitch > 90)
@@ -160,7 +164,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("deltaRoll", flagStart, flagLength) == 0)
+                    else if (_strnicmp("deltaRoll", flagStart, flagLength) == 0)
                     {
                         parameters->m_deltaRoll = atoi(valueStart);
                         if (parameters->m_deltaRoll < -360 || parameters->m_deltaRoll > 360)
@@ -170,7 +174,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("fov", flagStart, flagLength) == 0)
+                    else if (_strnicmp("fov", flagStart, flagLength) == 0)
                     {
                         parameters->m_fov = atoi(valueStart);
                         if (parameters->m_fov < 10 || parameters->m_roll > 120)
@@ -180,25 +184,45 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("algorithm", flagStart, flagLength) == 0)
+                    else if (_strnicmp("algorithm", flagStart, flagLength) == 0)
                     {
                         parameters->m_algorithm = atoi(valueStart);
-                        if (parameters->m_algorithm < -1 || parameters->m_algorithm > 6)
+                        if (parameters->m_algorithm < -1 || parameters->m_algorithm > MAX_ALGORITHM)
                         {
                             sprintf(errorMessage, "Error: Illegal value for algorithm (%s)", valueStart);
                             bRetVal = false;
                             break;
                         }
                     }
-                    else if (strnicmp("img0", flagStart, flagLength) == 0)
+                    else if (_strnicmp("startAlgorithm", flagStart, flagLength) == 0)
                     {
-                        strcpy(parameters->m_imgFilename[0], valueStart);
+                        parameters->m_startAlgorithm = atoi(valueStart);
+                        if (parameters->m_startAlgorithm < 0 || parameters->m_startAlgorithm > MAX_ALGORITHM)
+                        {
+                            sprintf(errorMessage, "Error: Illegal value for startAlgorithm (%s)", valueStart);
+                            bRetVal = false;
+                            break;
+                        }
                     }
-                    else if (strnicmp("img1", flagStart, flagLength) == 0)
+                    else if (_strnicmp("endAlgorithm", flagStart, flagLength) == 0)
                     {
-                        strcpy(parameters->m_imgFilename[1], valueStart);
+                        parameters->m_endAlgorithm = atoi(valueStart);
+                        if (parameters->m_endAlgorithm < -1 || parameters->m_endAlgorithm > MAX_ALGORITHM)
+                        {
+                            sprintf(errorMessage, "Error: Illegal value for m_endAlgorithm (%s)", valueStart);
+                            bRetVal = false;
+                            break;
+                        }
                     }
-                    else if (strnicmp("widthOutput", flagStart, flagLength) == 0)
+                    else if (_strnicmp("img0", flagStart, flagLength) == 0)
+                    {
+                        strcpy_s(parameters->m_imgFilename[0], valueStart);
+                    }
+                    else if (_strnicmp("img1", flagStart, flagLength) == 0)
+                    {
+                        strcpy_s(parameters->m_imgFilename[1], valueStart);
+                    }
+                    else if (_strnicmp("widthOutput", flagStart, flagLength) == 0)
                     {
                         parameters->m_widthOutput = atoi(valueStart);
                         if (parameters->m_widthOutput <= 0)
@@ -208,7 +232,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("heightOutput", flagStart, flagLength) == 0)
+                    else if (_strnicmp("heightOutput", flagStart, flagLength) == 0)
                     {
                         parameters->m_heightOutput = atoi(valueStart);
                         if (parameters->m_heightOutput <= 0)
@@ -218,23 +242,23 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                             break;
                         }
                     }
-                    else if (strnicmp("iterations", flagStart, flagLength) == 0)
+                    else if (_strnicmp("iterations", flagStart, flagLength) == 0)
                     {
                         parameters->m_iterations = atoi(valueStart);
                     }
-                    else if (strnicmp("typePreference", flagStart, flagLength) == 0)
+                    else if (_strnicmp("typePreference", flagStart, flagLength) == 0)
                     {
                         parameters->m_typePreference = valueStart;
                     }
-                    else if (strnicmp("platformName", flagStart, flagLength) == 0)
+                    else if (_strnicmp("platformName", flagStart, flagLength) == 0)
                     {
                         parameters->m_platformName = valueStart;
                     }
-                    else if (strnicmp("deviceName", flagStart, flagLength) == 0)
+                    else if (_strnicmp("deviceName", flagStart, flagLength) == 0)
                     {
                         parameters->m_deviceName = valueStart;
                     }
-                    else if (strnicmp("driverVersion", flagStart, flagLength) == 0)
+                    else if (_strnicmp("driverVersion", flagStart, flagLength) == 0)
                     {
                         parameters->m_driverVersion = valueStart;
                     }
@@ -258,8 +282,9 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("%s\n", pMessage);
     printf("Usage: %s [flags]\n", pProgramName);
     printf("Where: flags can be zero or more of the following (all flags are case insensitive):\n");
-    printf("--algorithm=N where N is the number of the algorithm to use during the run.  This can be from -1 to 2.  Default is 0.\n");
-    printf("   -1 = execute --iterations of each algorithm listed below.\n");
+    printf("--algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes\n");
+    printf("   precedence over --startAlgorithm and --endAlgorithm.  Defaults to - 1.\n");
+    printf("   -1 = execute algorithms from --startAlgorithm to --endAlgorithm.\n");
     printf("    0 = serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.\n");
     printf("    1 = serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.\n");
     printf("    2 = serial point by point conversion from equirectangular to flat.  Memory structure of arrays layout.\n");
@@ -267,6 +292,8 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("    4 = parallel conversion from equirectangular to flat.  Memory array of structure column/row layout.\n");
     printf("    5 = parallel conversion from equirectangular to flat.  Memory structure of arrays layout.\n");
     printf("    6 = DPC++ conversion from equirectangular to flat.\n");
+    printf("--deltaImage is a flag to indicate that the image should be changed between each iteration to\n");
+    printf("    simulate a video stream.\n");
     printf("--deltaPitch=N where N is the amount of pitch to add each iteration (up or down).  This can run from\n");
     printf("    -90 to 90 integer degrees.  The negative values are down and positive are up.  Default is 0\n");
     printf("--deltaRoll=N where N is the amount of roll to add each iteration.  This can run from -360 to 360 degrees.\n");
@@ -279,6 +306,8 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("   Defaults to empty string (select any)\n");
     printf("--driverVersion=value where value is a version number to select.  Only used for\n");
     printf("   DPC++ algorithms.  Defaults to empty string (select any)\n");
+    printf("--endAlgorithm=N where N denotes the last algorithm to run.  Use -1 to run to end of all algorithms.\n");
+    printf("    Defaults to -1");
     printf("--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.\n");
     printf("--heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.\n");
     printf("--help|-h|-? means to display the usage message\n");
@@ -293,6 +322,8 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("--roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.  The rotation is counter clockwise\n");
     printf("    so 90 integer degrees will lift the right side of the 'camera' up to be on top.  180 will flip the 'camera'\n");
     printf("    upside down.  270 will place the left side of the camera on top.  Default is 0\n");
+    printf("--startAlgorithm=N where N defines the first algorithm number to run and then all algorithms up to and including\n");
+    printf("    --endAlgorithm will be run in succession.  Defaults to 0.\n");
     printf("--typePreference=type1;type2;... where the types can be CPU, GPU, or \n");
     printf("    ACC (for Accelerator such as FPGA.  The first item is highest preference.\n");
     printf("--widthOutput=N where N is the number of pixels width the flattened image will be.  Default is 1080.\n");

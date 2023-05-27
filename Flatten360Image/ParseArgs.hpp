@@ -11,10 +11,17 @@
 const int MAX_PATH = 1024;
 const int MAX_ERROR_MESSAGE = 1024;
 const double DEGREE_CONVERSION_FACTOR = 2 * M_PI / 360.0;
+const int MAX_ALGORITHM = 9;
 
 typedef struct _SParameters {
 	// m_algorithm defines the algorithm to use during the current run of the program
 	int			m_algorithm;
+	// m_startAlgorithm can be used to define an algorithm number to begin and then the program
+	// will run each algorithm from that point to m_endAlgorithm.
+	int			m_startAlgorithm;
+	// m_endAlgorithm can be used to run up to and including the m_endAlgorithm.  This is useful
+	// for running through a range of algorithms from m_startAlgorithm to m_endAlgorithm (inclusive).
+	int			m_endAlgorithm;
 	// m_yaw defines the yaw of the viewer's perspective (moving the camera lens left or right direction).
 	// Also sometimes referred to as theta or pan.
 	// This can run from -180 to 180.  Negative values are to the left of center and positive to the right.  0 is 
@@ -37,6 +44,9 @@ typedef struct _SParameters {
 	int			m_deltaYaw;
 	int			m_deltaPitch;
 	int			m_deltaRoll;
+	// m_deltaImage tells whether to toggle between the two loaded images with each iteration to simulate a
+	// video stream
+	bool		m_deltaImage;
 	// m_fov holds the field of view in degrees from 10 to 120.
 	int			m_fov;
 	// m_imgFilename holds the path to the images to load.  This should be an equirectangular (360) image.
