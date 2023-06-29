@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{5e043e92-a66c-4dd9-b7c8-749621cae338}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Flatten360Image</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\OpenCV-4.6\opencv\build\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\OpenCV-4.6\opencv\build\include;$(oneTBBProductDir)\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <SYCLWarningLevel>Level3</SYCLWarningLevel>
+      <PreprocessorDefinitions>VTUNE_API;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <SYCLWarningLevel>Level3</SYCLWarningLevel>
+      <PreprocessorDefinitions>VTUNE_API;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ConfigurableDeviceSelector.cpp" />
+    <ClCompile Include="DpcppBaseAlgorithm.cpp" />
+    <ClCompile Include="DpcppRemappingV2.cpp" />
+    <ClCompile Include="DpcppRemappingV3.cpp" />
+    <ClCompile Include="DpcppRemappingV4.cpp" />
+    <ClCompile Include="DpcppRemappingV5.cpp" />
+    <ClCompile Include="DpcppRemappingV6.cpp" />
+    <ClCompile Include="DpcppRemappingV7.cpp" />
+    <ClCompile Include="Equi2Rect.cpp" />
+    <ClCompile Include="SerialRemapping.cpp" />
+    <ClCompile Include="ParallelRemapping.cpp" />
+    <ClCompile Include="DpcppRemapping.cpp" />
+    <ClCompile Include="BaseAlgorithm.cpp" />
+    <ClCompile Include="Flatten360Image.cpp" />
+    <ClCompile Include="ParseArgs.cpp" />
+    <ClCompile Include="SerialRemappingV2.cpp" />
+    <ClCompile Include="TimingStats.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConfigurableDeviceSelector.hpp" />
+    <ClInclude Include="DpcppBaseAlgorithm.hpp" />
+    <ClInclude Include="DpcppRemappingV2.hpp" />
+    <ClInclude Include="DpcppRemappingV3.hpp" />
+    <ClInclude Include="DpcppRemappingV4.hpp" />
+    <ClInclude Include="DpcppRemappingV5.hpp" />
+    <ClInclude Include="DpcppRemappingV6.hpp" />
+    <ClInclude Include="DpcppRemappingV7.hpp" />
+    <ClInclude Include="Equi2Rect.hpp" />
+    <ClInclude Include="Flatten360Image.h" />
+    <ClInclude Include="Point2D.hpp" />
+    <ClInclude Include="SerialRemapping.hpp" />
+    <ClInclude Include="ParallelRemapping.hpp" />
+    <ClInclude Include="DpcppRemapping.hpp" />
+    <ClInclude Include="BaseAlgorithm.hpp" />
+    <ClInclude Include="Point3D.hpp" />
+    <ClInclude Include="SerialRemappingV2.hpp" />
+    <ClInclude Include="SoAPoints3D.hpp" />
+    <ClInclude Include="ParseArgs.hpp" />
+    <ClInclude Include="TimingStats.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CmdLineExamples.txt" />
+    <Text Include="InteractiveKeys.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
