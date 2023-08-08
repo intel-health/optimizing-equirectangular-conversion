@@ -9,7 +9,7 @@ import time
 
 img = []
 img.append(cv2.imread("..\\..\\images\\IMG_20230629_082736_00_095.jpg", cv2.IMREAD_ANYCOLOR))
-img.append(cv2.imread("..\\..\\images\\IMG_20230629_082736_00_096.jpg", cv2.IMREAD_ANYCOLOR))
+img.append(cv2.imread("..\\..\\images\\ImageAndOverlay.jpg", cv2.IMREAD_ANYCOLOR))
 
 cv2.namedWindow("Equirectangular Original", cv2.WINDOW_NORMAL)
 

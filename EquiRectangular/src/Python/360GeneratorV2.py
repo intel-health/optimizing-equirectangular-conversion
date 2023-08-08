@@ -6,24 +6,43 @@ import numpy as np
 
 # First generate the 6 cube faces so they are recognizable
 
-#genWidth = 11968
-#genHeight = 5984
-#cubeWidth = 5984
-#cubeHeight = 5984
+genWidth = 11968
+genHeight = 5984
+cubeWidth = 5984
+cubeHeight = 5984
 
-genWidth = 1024
-genHeight = 512
-cubeWidth = 512
-cubeHeight = 512
+#genWidth = 1024
+#genHeight = 512
+#cubeWidth = 512
+#cubeHeight = 512
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-fontScale = 3
-fontLineWidth = 4
+fontScale = cubeWidth / 200
+fontLineWidth = int(cubeWidth / 100)
 fontColor = (255, 255, 255)
 
-def GenerateCubeFace(text, color, lineColor = (74, 136, 175), lineWidth = 2, bQuarters = True):
+lineWidth = int(cubeWidth / 100)
+
+def GenerateCubeFace(text, color, lineWidth = 5, horizontalLineColor = (74, 136, 175), verticalLineColor = (136, 175, 74)):
     flatImg = np.zeros((cubeHeight, cubeWidth, 3), np.uint8)
     flatImg[:] = color      # (B, G, R)
+    
+    width = cubeWidth - 1
+    height = cubeHeight - 1
+    # Draw lines every 10 degrees
+    for i in range(0, 100, 10):
+        if i == 0:
+            X = 0
+            Y = 0
+        else:
+            X = int(cubeWidth * (i / 90) - 1)
+            Y = int(cubeHeight * (i / 90) - 1)
+        # Draw horizontal
+        cv2.line(flatImg, (0, Y), (width, Y), horizontalLineColor, lineWidth)
+        # Draw vertical
+        cv2.line(flatImg, (X, 0), (X, height), verticalLineColor, lineWidth)
+  
+    
     textsize = cv2.getTextSize(text, font, fontScale, lineWidth)[0]
     textX = int((flatImg.shape[1] - textsize[0]) / 2)
     textY = int((flatImg.shape[0] + textsize[1]) / 2)
@@ -53,35 +72,26 @@ def GenerateCubeFace(text, color, lineColor = (74, 136, 175), lineWidth = 2, bQu
     textY = cubeHeight - 5
     cv2.putText(flatImg, text, (textX, textY), font, fontScale, fontColor, fontLineWidth)
     
-    width = cubeWidth - 1
-    height = cubeHeight - 1
-    midX = int(cubeWidth/2 - 1)
-    midY = int(cubeHeight/2 - 1)
-    # Now we want to draw a line showing where each of the 45 degree marks are (the outer edges of each
-    # Cube Face and both horizontal and vertical center lines)
-    cv2.line(flatImg, (0, 0), (width, 0), lineColor, 2)
-    cv2.line(flatImg, (0, 0), (0, height), lineColor, 2)
-    cv2.line(flatImg, (width, 0), (width, height), lineColor, 2)
-    cv2.line(flatImg, (0, height), (width, height), lineColor, 2)
-    cv2.line(flatImg, (midX, 0), (midX, height), lineColor, 2)
-    cv2.line(flatImg, (0, midY), (width, midY), lineColor, 2)
-  
+    #cv2.namedWindow("Debug View", cv2.WINDOW_NORMAL)
+    #cv2.imshow("Debug View", flatImg)
+    #key = cv2.waitKeyEx(0)
+    
     return flatImg
 
 ##########################################################################################################
-# Being main program  
+# Begin main program  
 genImg = np.zeros((genHeight, genWidth, 3), np.uint8)
 genImg[:] = (0, 0, 0)
 
 leftRightImg = np.zeros((genHeight, genWidth, 3), np.uint8)
 leftRightImg[:] = (0, 0, 0)
 
-frontImg = GenerateCubeFace("Front", (0, 0, 96))
-rightImg = GenerateCubeFace("Right", (0, 96, 96))
-backImg = GenerateCubeFace("Back", (0, 96, 0))
-leftImg = GenerateCubeFace("Left", (96, 96, 0))
-aboveImg = GenerateCubeFace("Above", (96, 0, 0))
-belowImg = GenerateCubeFace("Below", (96, 0, 96))
+frontImg = GenerateCubeFace("Front", (40, 40, 96), lineWidth)
+rightImg = GenerateCubeFace("Right", (40, 96, 96), lineWidth)
+backImg = GenerateCubeFace("Back", (40, 96, 40), lineWidth)
+leftImg = GenerateCubeFace("Left", (96, 96, 40), lineWidth)
+aboveImg = GenerateCubeFace("Above", (96, 40, 40), lineWidth)
+belowImg = GenerateCubeFace("Below", (96, 40, 96), lineWidth)
 
 # Go through each point on the equirectangular image to compute the pixel value to show
 for j in range(0, genHeight-1):
