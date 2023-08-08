@@ -152,7 +152,7 @@ for j in range(0, genHeight-1):
         genImg[j, i] = img[yPixel, xPixel]
 
 
-cv2.imwrite("..\..\images\generated360image.jpg", genImg)
+cv2.imwrite("..\..\images\generated360image-equirectangular.jpg", genImg)
 
 while True:
     cv2.namedWindow("Generated View", cv2.WINDOW_NORMAL)
