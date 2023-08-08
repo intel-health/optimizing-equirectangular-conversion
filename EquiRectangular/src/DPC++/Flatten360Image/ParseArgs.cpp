@@ -35,8 +35,8 @@ void InitializeParameters(SParameters * parameters)
     parameters->m_fov = 60;
     parameters->m_widthOutput = 1080;
     parameters->m_heightOutput = 540;
-    strcpy_s(parameters->m_imgFilename[0], "..\\..\\images\\IMG_20230629_082736_00_095.jpg");
-    strcpy_s(parameters->m_imgFilename[1], "..\\..\\images\\IMG_20230629_082736_00_096.jpg");
+    strcpy_s(parameters->m_imgFilename[0], "..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg");
+    strcpy_s(parameters->m_imgFilename[1], "..\\..\\..\\images\\IMG_20230629_082736_00_096.jpg");
     // m_iterations = 0 means interactive
     parameters->m_iterations = 0;
     for (int i = 0; i < 3; i++)
