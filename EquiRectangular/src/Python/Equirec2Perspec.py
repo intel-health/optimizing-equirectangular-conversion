@@ -1,5 +1,8 @@
 # From https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py
 
+# Copyright (C) 2023 Intel Corporation
+# Modifications by Doug Bogia to add timing, add psi (roll) and tailor to a specific use case
+
 import os
 import sys
 import cv2
@@ -50,7 +53,7 @@ class Equirectangular:
 
     def GetPerspective(self, imgIndex, FOV, THETA, PHI, psi, height, width):
         #
-        # THETA is left/right angle, PHI is up/down angle, both in degrees
+        # THETA is left/right angle, PHI is up/down angle, psi is the roll, all in degrees
         #
         # f may be focal length
         bChanged = False
@@ -64,7 +67,6 @@ class Equirectangular:
           self.height = height
           self.width = width
           f = 0.5 * width * 1 / np.tan(0.5 * FOV / 180.0 * np.pi)
-          #print("f = ", f)
           cx = (width - 1) / 2.0
           cy = (height - 1) / 2.0
           K = np.array([
@@ -87,25 +89,18 @@ class Equirectangular:
           #
           # Generate an array of values from 0 to width, including 0, but excluding width
           x = np.arange(width)
-          #print("width = ", width)
           # Generate an array of values from 0 to height, including 0, but excluding height
           y = np.arange(height)
-          #print("height = ", height)
           # Generate two array of arrays where the x sub-arrays will run [0, width) and y from [0, height)
           x, y = np.meshgrid(x, y)
-          #print("x shape = ", x.shape)
           # Generate an array of arrays where each sub-array contains width number of 1s
           z = np.ones_like(x)
           # Generate a 3 dimensional array of indexes into the flattened image where z is always 1
           # The axis=-1 concatenates around the last dimension (z)
           xyz = np.concatenate([x[..., None], y[..., None], z[..., None]], axis=-1)
-          #print("xyz shape = ", xyz.shape)
-          #print("z shape = ", z.shape)
-          #print("xyz 1 = ", xyz)
           # Matrix multiply to convert to equirectangular sphere coordinates
           xyz = xyz @ K_inv.T
           xyz_time = time.perf_counter()
-          #print("xyz 2 = ", xyz)
 
           x_axis = np.array([1.0, 0.0, 0.0], np.float32)
           y_axis = np.array([0.0, 1.0, 0.0], np.float32)
@@ -116,7 +111,6 @@ class Equirectangular:
           R = R3 @ R2 @ R1
           xyz = xyz @ R.T
           lonlat = xyz2lonlat(xyz) 
-          #print("lonlat = ", lonlat)
           lonlat_time = time.perf_counter()
           self.XY = lonlat2XY(lonlat, shape=self._img[imgIndex].shape).astype(np.float32)
           XY_time = time.perf_counter()
@@ -128,9 +122,9 @@ class Equirectangular:
           print("xyz_time time required = ", xyz_time - k_inv_time)
           print("lonlat_time time required = ", lonlat_time - xyz_time)
           print("XY_time time required = ", XY_time - lonlat_time)
-          print("persp_time ime required = ", persp_time - XY_time)
+          print("persp_time time required = ", persp_time - XY_time)
         else:
-          print("persp_time ime required = ", persp_time - start_time)
+          print("persp_time time required = ", persp_time - start_time)
         print("Total time required = ", persp_time - start_time)
 
         return persp, self.XY

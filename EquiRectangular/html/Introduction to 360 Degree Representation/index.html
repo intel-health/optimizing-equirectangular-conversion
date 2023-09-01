@@ -1,0 +1,198 @@
+<html>
+
+<head>
+  <title>
+    Introduction to 360 Degree Videos and Imaging
+  </title>
+  <script type="text/javascript" src="Equirectangular.js"></script>
+</head>
+
+<body onLoad="displayFlattened([['globe-equirectangular.jpg', 'GlobeFlattenedImage', 'GlobeRawImage'], 
+['IMG_20230629_082736_00_095.jpg', 'PhotoFlattenedImage', 'PhotoRawImage'],
+['generated360image-equirectangular.jpg', 'Generated360imageFlattenedImage', 'Generated360imageRawImage'],
+['ImageAndOverlay-equirectangular.jpg', 'ImageAndOverlay-FlattenedImage', 'ImageAndOverlay-RawImage']])")>
+
+
+<h1>Introduction to 360 Degree Videos and Imaging</h1>
+
+<p>
+The ability to capture and digitially represent the world around us continues to evolve.  A relatively recent development allows images and videos to capture an 
+entire panorama of 360 degrees horizontally and 180 degrees vertically.  These images and videos can be displayed on web pages such as this or on virtual reality headsets affording people
+that view to have an immersive view in the environment and "look around" to see all any angle of the scene that is desired.
+
+For instance, in Figure 1 below, it initially appears as a standard two dimensional image; however, after selecting the image by clicking on it, it is possible to navigate 
+around the scene with the following keystrokes:
+<ul>
+<li>Right or left arrows - change the camera position to the right or left.</li>
+<li>Up or down arrows - change the camera position up or down.</li>
+<li>PgUp, PgDn, Home, End - change the roll of the camera in the event the original image was not taken with a level camera.</li>
+<li>* or / - change the field of view to be narrower or wider.</li>
+</ul>
+
+Alternatively, it is also possible to use the mouse to click and drag the image to change the right/left/up/down positioning and the mouse scroll wheel changes the field of view.
+
+<center>
+<canvas id="PhotoFlattenedImage" width="640" height="640" tabindex="1">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 1: An example 360 degree image
+</center>
+
+<p>
+This blog series explores different representations for storing images, describes how these representations convert from 360 degree coordinates to a flat image representation,
+different techniques on how to extract "flattened" views, how to create optimized code for extracting the views.
+</p>
+
+<p>
+Figure 2, below, shows the raw image containing all the pixel data for representing the "flattened" view shown in Figure 1 above.  There are multiple ways to represent
+all the data.  This particular format is referred to as the equirectangular format.  Given the mathematical conversion from the 360 view to the equirectangular format,
+human understanding of the image poses challenges.  However, once the format is better understood, it is a bit easier to understand the layout of the pixels.
+</p>
+
+<p>
+To shoot this scene, a 360 degree camera was placed on a tripod which was situated along the edge of a road.  Specifically, looking directly down on the camera placed the edge of the road
+directly underneath the camera.  This can be seen by changing the Figure 1 view to look directly downwards to see the road below.  The primary lens of the camera was facing the
+fenced yard with the road extending directly to the left and right of the camera.  Directly behind the camera was the road and then a meadow on the other side of the road.
+</p>
+
+<p>
+Further down in this post, additional visualization techniques are used to help understand why the road appears to get folded in half.
+</p>
+
+<canvas id="PhotoRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 2: The equirectangular representation of data for Figure 1
+<br>
+</center>
+
+<h1>Representations of 360 Images and Videos</h1>
+
+<p>
+There are two common formats used when working with 360 degree images: 1) Equirectangular, and 2) Cubemap.
+</p>
+
+<h2>Equirectangular Format</h2>
+
+<p>
+The equirectangular format takes a 360 degree image and maps discrete points along the longitude and latitudes to the X, Y locations on the output image.  
+As shown in Figure 3 below, the X coordinates start at -180 degrees and end at 180 degrees in equal parts along the X axis.  Likewise, the Y coordinates
+go from -90 at the bottom of the image to 90 degrees at the top of the image.  The equirectangular format allways results in a 2:1 ratio image since the
+horizontal coverage is twice as much as the vertical coverage.
+</p>
+
+<canvas id="GlobeRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 3: Equirectangular Image Layout
+<br>
+</center>
+
+<p>
+Figure 4 allows viewing how the data from Figure 3 looks when the camera is at the center of the sphere and moved around to view different angles within the sphere.  As shown, Figure 3 
+data essentially wraps around the outside of the sphere with the -180 and 180 points meeting directly behind the initial viewing perspective and the top and bottom
+of the image converge at the two poles of the sphere.
+</p>
+
+<p></p>
+<center>
+<canvas id="GlobeFlattenedImage" width="640" height="640" tabindex="2">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 4: View from Inside the Sphere Created from Data in Figure 3
+<br>
+</center>
+
+<h2>Cubemap Format</h2>
+
+<p>
+The Cubemap Format captures 360 degree images with a different layout.  The efficient layout of he equirectangular format makes it popular; however, 
+the Cubemap format represents the data in a way that is easier for humans to parse if they do not have a viewer.  As the format name suggests, the cubemap splits out each
+side of a cube (Left, Front, Right, Back, Above, and Below) and shows the portion of image in that direction.  Figure 5 shows how the data from Figure 3 looks when saved
+in one of the cubemap formats.  Alternatively, Figure 6 displays another rendition when each of the cube faces are labeled.  
+NOTE: TL = Top Left, TR = Top Right, BL = Bottom Left, and BR = Bottom Right.
+</p>
+
+<p>
+Conceptually, the faces of the cubemap become folded together to create a cube that surrounds the camera position at the center.  The particular format shown in these figures
+are not particularily storage efficient given the amount of unused pixels (the black regions).  However, other cubemap layouts exist where the six faces are stored one after the
+other either horizontally or vertically.  While the storage size is more efficient, visualizing how the cubemap folds into a cube is harder with these layouts.
+</p>
+
+<p>
+TODO: Should the cubemap generating code be referenced here?
+</p>
+
+<img src="globe-cubemap.jpg" style="max-width:100%"></img>
+<center>
+Figure 5: Example Cubemap Image Layout
+<br>
+</center>
+
+<p></p>
+
+<img src="generated360image-cubemap.jpg" style="max-width:100%"></img>
+<center>
+Figure 6: Cubemap Labeled Faces
+<br>
+</center>
+
+<h2>Returning to the Equirectangular Format</h2>
+
+<p>
+Using the same cubefaces found in Figure 6 and saving that data into an equirectangular format results in the image shown in Figure 7.  This shows how the mapping
+algorithm from 360 image coordinates to equirectangular coordinates does interesting things to how the data is captured in the final format and provides some
+insights into why the image in Figure 2 looks the way it does.  In fact, Figure 9 makes the Cube face representation 50% transparent and overlays it on Figure 2 to assist
+in understanding how the 360 image coordinates correspond to the equirectangular mapping.  Figure 10 allows interacting with the overlay and looking around the scene.
+</p>
+
+
+<canvas id="Generated360imageRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 7: The equirectangular representation of data for Figure 8
+<br>
+</center>
+
+<p></p>
+
+<center>
+<canvas id="Generated360imageFlattenedImage" width="640" height="640" tabindex="3">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 8: Flattened Generated 360 Image
+<br>
+</center>
+
+<p></p>
+
+<canvas id="ImageAndOverlay-RawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 9: Raw Overlay of Cube Faces and Original Image
+<br>
+</center>
+
+<p></p>
+
+<center>
+<canvas id="ImageAndOverlay-FlattenedImage" width="640" height="640" tabindex="3">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 10: Flattened Overlay of Cube Faces and Original Image
+<br>
+</center>
+
+<p>
+</p>
+
+</body>
+</html>

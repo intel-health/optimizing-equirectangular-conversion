@@ -36,7 +36,7 @@ void InitializeParameters(SParameters * parameters)
     parameters->m_widthOutput = 1080;
     parameters->m_heightOutput = 540;
     strcpy_s(parameters->m_imgFilename[0], "..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg");
-    strcpy_s(parameters->m_imgFilename[1], "..\\..\\..\\images\\IMG_20230629_082736_00_096.jpg");
+    strcpy_s(parameters->m_imgFilename[1], "..\\..\\..\\images\\ImageAndOverlay-equirectangular.jpg");
     // m_iterations = 0 means interactive
     parameters->m_iterations = 0;
     for (int i = 0; i < 3; i++)
@@ -132,7 +132,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_yaw = atoi(valueStart);
                         if (parameters->m_yaw < -180 || parameters->m_yaw > 180)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for yaw (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for yaw (%s).  Must be -180 to 180.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -142,7 +142,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_pitch = atoi(valueStart);
                         if (parameters->m_pitch < -90 || parameters->m_pitch > 90)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for pitch (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for pitch (%s).  Must be -90 to 90.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -152,7 +152,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_roll = atoi(valueStart);
                         if (parameters->m_roll < 0 || parameters->m_roll > 360)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for roll (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for roll (%s).  Must be 0 to 360.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -162,7 +162,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_deltaYaw = atoi(valueStart);
                         if (parameters->m_deltaYaw < -360 || parameters->m_deltaYaw > 360)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for delta yaw (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for delta yaw (%s).  Must be -360 to 360.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -172,7 +172,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_deltaPitch = atoi(valueStart);
                         if (parameters->m_deltaPitch < -90 || parameters->m_deltaPitch > 90)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for delta pitch (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for delta pitch (%s).  Must be -90 to 90.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -182,7 +182,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_deltaRoll = atoi(valueStart);
                         if (parameters->m_deltaRoll < -360 || parameters->m_deltaRoll > 360)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for delta roll (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for delta roll (%s).  Must be -360 to 360.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -192,7 +192,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_fov = atoi(valueStart);
                         if (parameters->m_fov < 10 || parameters->m_roll > 120)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for fov (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for fov (%s).  Must be 10 to 120.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -202,7 +202,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_algorithm = atoi(valueStart);
                         if (parameters->m_algorithm < -1 || parameters->m_algorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for algorithm (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for algorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -212,7 +212,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_startAlgorithm = atoi(valueStart);
                         if (parameters->m_startAlgorithm < 0 || parameters->m_startAlgorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for startAlgorithm (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for startAlgorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -222,7 +222,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_endAlgorithm = atoi(valueStart);
                         if (parameters->m_endAlgorithm < -1 || parameters->m_endAlgorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for m_endAlgorithm (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for m_endAlgorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -240,7 +240,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_widthOutput = atoi(valueStart);
                         if (parameters->m_widthOutput <= 0)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for widthOutput (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for widthOutput (%s).  Must be a positive number.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -250,7 +250,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                         parameters->m_heightOutput = atoi(valueStart);
                         if (parameters->m_heightOutput <= 0)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for heightOutput (%s)", valueStart);
+                            sprintf(errorMessage, "Error: Illegal value for heightOutput (%s).  Must be a positive number.", valueStart);
                             bRetVal = false;
                             break;
                         }
@@ -331,7 +331,7 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("   Other options include all to run on all platforms or list to list the platforms.\n");
     printf("   Only used for DPC++ algorithms.  Defaults to empty string (select any)\n");
     printf("--pitch=N where N is the pitch of the viewer's perspective (up or down).  This can run from\n");
-    printf("    -180 to 180 integer degrees.  The negative values are down and positive are up.  0 is straight ahead.  Default is 0\n");
+    printf("    -90 to 90 integer degrees.  The negative values are down and positive are up.  0 is straight ahead.  Default is 0\n");
     printf("--roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.  The rotation is counter clockwise\n");
     printf("    so 90 integer degrees will lift the right side of the 'camera' up to be on top.  180 will flip the 'camera'\n");
     printf("    upside down.  270 will place the left side of the camera on top.  Default is 0\n");

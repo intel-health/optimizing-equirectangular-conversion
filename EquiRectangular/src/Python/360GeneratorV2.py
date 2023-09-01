@@ -1,3 +1,4 @@
+# This was adapted from the code found in https://stackoverflow.com/questions/34250742/converting-a-cubemap-into-equirectangular-panorama
 # Code to take 6 cube faces (Front, Right, Back, Left, Above, and Below) and convert them into an equirectangular format
 
 import sys  # Access to the system

@@ -34,7 +34,6 @@ def e2p(e_img, fov_deg, u_deg, v_deg, out_hw, in_rot_deg=0, mode='bilinear'):
     setup_time = time.time()
     xyz = utils.xyzpers(h_fov, v_fov, u, v, out_hw, in_rot)
     xyzpers_time = time.time()
-    print("xyz = ", xyz)
     # Generate the coordinates of points on the equirectangular sphere
     uv = utils.xyz2uv(xyz)
     #print("uv = ", uv)

@@ -405,7 +405,7 @@ void SerialRemapping::ComputeLonLatCoords()
 
 void SerialRemapping::ComputeXYCoords()
 {
-	// Python code snippet that this is attempting to match (shape is the size or the equirectangular image)
+	// Python code snippet that this is attempting to match (shape is the width and height of the equirectangular image)
 	//X = (lonlat[..., 0:1] / (2 * np.pi) + 0.5) * (shape[1] - 1)
 	//Y = (lonlat[..., 1:] / (np.pi) + 0.5) * (shape[0] - 1)
 	//lst = [X, Y]

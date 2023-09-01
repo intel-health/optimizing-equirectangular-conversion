@@ -1,18 +1,17 @@
+# Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # This code was written to leverage the code from 
 # https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py but was also
-#  modified by Doug Bogia to test timing, add psi (roll) and tailor to a specific use case
+# modified by Doug Bogia to test timing, add psi (roll) and tailor to a specific use case
 
 import sys  # Access to the system
+import getopt   # Access to getopt
 import cv2  # Access to OpenCV
 import Equirec2Perspec as E2P
 import time
 
 img = []
-img.append(cv2.imread("..\\..\\images\\IMG_20230629_082736_00_095.jpg", cv2.IMREAD_ANYCOLOR))
-img.append(cv2.imread("..\\..\\images\\ImageAndOverlay-equirectangular.jpg", cv2.IMREAD_ANYCOLOR))
-
-cv2.namedWindow("Equirectangular Original", cv2.WINDOW_NORMAL)
-
 FOV = 90
 window_width = 1080 # The height will be calculated 
 theta = 0           # Equivalent to yaw or pan (moving the camera lens left or right)
@@ -23,6 +22,65 @@ bDebug = False
 bEnteringDelta = False
 delta = 10
 imgIndex = 0
+img1 = "..\\..\\images\\IMG_20230629_082736_00_095.jpg"
+img2 = "..\\..\\images\\ImageAndOverlay-equirectangular.jpg"
+
+def usage():
+    print("Usage: ", sys.argv[0], " [flags]")
+    print("Where: flags can be zero or more of the following (all flags are case insensitive):")
+    print("    --fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.")
+    print("        Default is 90.")
+    print("    --help|-h means to display the usage message");
+    print("    --img0=filePath where filePath is the path to an equirectangular image to load for the first frame.")
+    print("        One interesting one is  ..\..\images\globe-equirectangular.jpg")
+    print("        Default is ", img1)
+    print("    --img1=filePath where filePath is the path to an equirectangular image to load for the second frame.")
+    print("        Default is ", img2)
+    print("    --pitch=N where N is the pitch of the viewer's perspective (up or down).  This can run from")
+    print("        -90 to 90 integer degrees.  The negative values are down and positive are up.  0 is straight ahead.")
+    print("        Default is 0");
+    print("    --roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.")
+    print("        The rotation is counter clockwise so 90 integer degrees will lift the right side of the 'camera'")
+    print("        up to be on top.  180 will flip the 'camera' upside down.  270 will place the left side of the")
+    print("        camera on top.  Default is 0");
+    print("    --yaw=N where N defines the yaw of the viewer's perspective (left or right angle).  This can run from");
+    print("        -180 to 180 integer degrees.  Negative values are to the left of center and positive to the right.  0 is");
+    print("        straight ahead (center of equirectangular image).  -90 is directly left.  Default is 0.");
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "img1=", "img2=", "fov=", "pitch=", "roll=", "yaw="])
+except getopt.GetoptError as err:
+    # print help information and exit:
+    print(err)  # will print something like "option -a not recognized"
+    usage()
+    sys.exit(2)
+
+for o, a in opts:
+    if o in ("-h", "--help"):
+        usage()
+        sys.exit()
+    elif o in ("--img1"):
+        img1 = a
+    elif o in ("--img2"):
+        img2 = a
+    elif o in ("--fov"):
+        FOV = int(a)
+    elif o in ("--pitch"):
+        phi = int(a)
+    elif o in ("--roll"):
+        psi = int(a)
+    elif o in ("--yaw"):
+        theta = int(a)
+    else:
+        assert False, "unhandled option"
+
+if (len(sys.argv) == 2 and sys.argv[1] == "globe"):
+    img.append(cv2.imread("..\\..\\images\\globe-equirectangular.jpg", cv2.IMREAD_ANYCOLOR))
+else:
+    img.append(cv2.imread(img1, cv2.IMREAD_ANYCOLOR))
+    img.append(cv2.imread(img2, cv2.IMREAD_ANYCOLOR))
+
+cv2.namedWindow("Equirectangular Original", cv2.WINDOW_NORMAL)
 
 equ = E2P.Equirectangular(img)
 while True:
@@ -100,7 +158,8 @@ while True:
     elif key == 100:        # d key (toggle debug mode)
       bDebug = not bDebug
     elif key == 102:        # f key (change frame)
-      imgIndex = (imgIndex + 1) % 2
+      if (len(img) > 1):
+        imgIndex = (imgIndex + 1) % len(img)
     
   # Normalize the values so they are always in the range from -180 to 180 or -90 to 90, etc
   if (phi > 90):

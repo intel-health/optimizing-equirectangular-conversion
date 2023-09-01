@@ -2,7 +2,7 @@ import sys  # Access to the system
 import cv2  # Access to OpenCV
 import py360convert
 
-img = cv2.imread("O:\ToConvert\Warren\IMG_20230303_172908_00_009_PureShot.jpg", cv2.IMREAD_ANYCOLOR)
+img = cv2.imread("..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg", cv2.IMREAD_ANYCOLOR)
 
 # The code below uses a 3 dimensional image since there are other functions that deal with equirectangle to
 # cube conversion or vice versa, but the equirectangle to perspective code used below only uses the first
