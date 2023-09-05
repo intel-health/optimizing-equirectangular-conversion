@@ -217,7 +217,7 @@ function mouseUp(e) {
 }
 
 function mouseScroll(e) {
-    e.target.parameters.fov += Math.sign(e.wheelDelta) * defaultIncrement;
+    e.target.parameters.fov += -Math.sign(e.wheelDelta) * defaultIncrement;
     displayFlattenedImage(e.target);
     e.preventDefault();
 }
