@@ -1,6 +1,7 @@
 # From https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py
 
 # Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 # Modifications by Doug Bogia to add timing, add psi (roll) and tailor to a specific use case
 
 import os

@@ -1,3 +1,6 @@
+# Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # This code generates a view of what it would be like to take an image inside a sphere with all the 10 degree longitude and latitude lines are drawn
 # and draws this as an equirectangular surface.
 

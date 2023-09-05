@@ -1,15 +1,5 @@
 // Copyright (C) 2023 Intel Corporation
-//
-// This software and the related documents are Intel copyrighted materials, 
-// and your use of them is governed by the express license under which
-// they were provided to you ("License"). Unless the License provides
-// otherwise, you may not use, modify, copy, publish, distribute, disclose or
-// transmit this software or the related documents without Intel's prior
-// written permission.
-//
-// This software and the related documents are provided as is, with no
-// express or implied warranties, other than those that are expressly stated
-// in the License.
+// SPDX-License-Identifier: Apache-2.0
 
 // This code investigates the impact of changing V2 to use the sub-groups to access the data so they are not
 // scattered when writing.  This is not significantly better than the V2 and might be slightly worse.  It does
