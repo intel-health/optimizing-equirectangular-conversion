@@ -494,6 +494,21 @@ int main(int argc, char** argv) {
                                     // Treat delta as temporary and restore the previous delta value
                                     delta = prevDelta;
                                 }
+                                else if (key == 115)                // s key for saving images
+                                {
+                                    char filename[1024];
+                                    bool bRetVal;
+
+                                    // Save out the different images
+                                    sprintf(filename, "..\\..\\..\\images\\flat-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                    bRetVal = cv::imwrite(filename, flatImg);
+                                    if (bDebug)
+                                    {
+                                        sprintf(filename, "..\\..\\..\\images\\full-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                        bRetVal = cv::imwrite(filename, debugImg);
+                                    }
+
+                                }
                                 else if (key == 27 || key == 113)   // Esc or q key to quit
                                 {
                                     // Stop running the variant and move on

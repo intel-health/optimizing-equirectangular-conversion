@@ -31,7 +31,7 @@ genImg = np.zeros((genHeight, genWidth, 3), np.uint8)
 genImg[:] = backgroundColor
 
 # Step through each of the degree increments that were requested in the vertical direction
-for j in range(0, 179, degreeIncrement):
+for j in range(0, 181, degreeIncrement):
     y = int((j / 180) * genHeight)
     # Draw horizontal
     if (j == 90):
@@ -46,7 +46,7 @@ for j in range(0, 179, degreeIncrement):
 
         
 # Step through each of the degree increments that were requested in the horizontal direction
-for i in range(0, 359, degreeIncrement):
+for i in range(0, 361, degreeIncrement):
     x = int((i / 360) * genWidth)
     # Draw vertical
     if (i == 180):

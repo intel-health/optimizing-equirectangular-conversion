@@ -1,0 +1,344 @@
+<!-- Copyright (C) 2023 Intel Corporation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+<html>
+
+<head>
+  <title>
+    Introduction to 360 Degree Videos and Imaging
+  </title>
+  <script type="text/javascript" src="Equirectangular.js"></script>
+  <style>
+  table {
+    table-layout: fixed;
+    width: 100%;    
+  }
+  </style>  
+</head>
+
+<body onLoad="displayFlattened([['globe-equirectangular.jpg', 'GlobeFlattenedImage', 'GlobeRawImage'], 
+['IMG_20230629_082736_00_095.jpg', 'PhotoFlattenedImage', 'PhotoRawImage'],
+['generated360image-equirectangular.jpg', 'Generated360imageFlattenedImage', 'Generated360imageRawImage'],
+['ImageAndOverlay-equirectangular.jpg', 'ImageAndOverlay-FlattenedImage', 'ImageAndOverlay-RawImage']])")>
+
+
+<h1>Introduction to 360 Degree Videos and Imaging</h1>
+
+<p>
+The ability to capture and digitially represent the world around us continues to evolve.  A relatively recent development allows images and videos to capture an 
+entire panorama of 360 degrees horizontally and 180 degrees vertically.  These images and videos can be displayed on web pages such as this or on virtual reality headsets affording people
+that view to have an immersive view in the environment and "look around" to see any angle of the scene that is desired.
+
+For instance, in Figure 1 below, it initially appears as a standard two dimensional image; however, after selecting the image by clicking on it, it is possible to navigate 
+around the scene with the following keystrokes:
+<ul>
+<li>Right or left arrows - change the camera position to the right or left, also known as the yaw.</li>
+<li>Up or down arrows - change the camera position up or down, also known as tilt.</li>
+<li>PgUp, PgDn, Home, End - change the roll of the camera in the event the original image was not taken with a level camera.</li>
+<li>* or / - change the field of view to be narrower or wider.</li>
+<li>Alternatively, it is also possible to use the mouse to click and drag the image to change the right/left/up/down positioning and the mouse scroll wheel changes the field of view.</li>
+</ul>
+
+<center>
+<canvas id="PhotoFlattenedImage" width="640" height="640" tabindex="1">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 1: An example 360 degree image
+</center>
+
+<p>
+This blog series explores different representations for storing images, describes how these representations convert from 360 degree coordinates to a flat image representation,
+different techniques on how to extract "flattened" views, and how to create optimized code for extracting the views.
+</p>
+
+<p>
+Figure 2, below, shows the raw image containing all the pixel data for representing the "flattened" view shown in Figure 1 above.
+</p>
+
+<p>
+There are multiple ways to represent
+all the data for a 360 degree image.  The format shown in Figure 2 is referred to as the equirectangular format.  The mathematical conversion from the 360 view to the
+equirectangular format makes human understanding of the image challenging.  The remainder of this section explains the conversion process for the equirectangular format.
+</p>
+
+<p>
+To shoot this scene, a 360 degree camera was placed on a tripod which was situated with the edge of a road running directly underneath the camera.
+This can be seen by changing the Figure 1 view to look directly downwards to see the road below.  The primary lens of the camera was facing the
+fenced yard with the road extending directly to the left and right of the camera.  Directly behind the camera was the road and then a meadow on the other side of the road.
+</p>
+
+<p>
+Further down in this post, additional visualization techniques are used to help understand why the road appears to get folded in half.
+</p>
+
+<canvas id="PhotoRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 2: The equirectangular representation of data for Figure 1
+<br>
+</center>
+
+<h1>Representations of 360 Images and Videos</h1>
+
+<p>
+There are two common formats used when working with 360 degree images: 1) Equirectangular, and 2) Cubemap.
+</p>
+
+<h2>Equirectangular Format</h2>
+
+<p>
+The equirectangular format takes a 360 degree image and maps discrete points along the longitude and latitudes to the X, Y locations on the output image.  
+As shown in Figure 3 below, the X coordinates start at -180 degrees and end at 180 degrees in equal parts along the X axis.  Likewise, the Y coordinates
+go from -90 at the bottom of the image to 90 degrees at the top of the image.  The equirectangular format always results in a 2:1 ratio image since the
+horizontal coverage is twice as much as the vertical coverage.
+</p>
+
+<p>
+In cases like this blog, the images used are controlled and known to be panorama images.  In other instances where a person provides a pointer to an image
+to load, the code must make a determination on whether the image represents a panorama image or not.  One option is to use the 2:1 ratio to "guess" whether
+the provided image is a panaorama.  Better yet, the code can examine the metadata within the image file to check if the image has been tagged as a
+panorama image.  https://exiv2.org/tags-xmp-GPano.html defines the eXtensible Metadta Platform (XMP) section (https://www.adobe.com/devnet/xmp.html) of an image that corresponds 
+to images that use the GPano properties.  The ProjectionType property defines the storage layout and is set to equirectangular for panorama images.
+</p>
+
+<p>
+For instance, the metadata for Figure 2 is:
+</p>
+
+<textarea rows="20" cols="70">
+<x:xmpmeta 
+  xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 4.4.0-Exiv2">
+  <rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about=""
+      xmlns:GPano="http://ns.google.com/photos/1.0/panorama/" 
+      GPano:UsePanoramaViewer="True" 
+      GPano:ProjectionType="equirectangular" 
+      GPano:CroppedAreaImageWidthPixels="11968" 
+      GPano:CroppedAreaImageHeightPixels="5984" 
+      GPano:FullPanoWidthPixels="11968" 
+      GPano:FullPanoHeightPixels="5984" 
+      GPano:CroppedAreaLeftPixels="0" 
+      GPano:CroppedAreaTopPixels="0" 
+      GPano:InitialViewVerticalFOVDegrees="95" 
+      GPano:CaptureSoftware="insta360 x3" 
+      GPano:StitchingSoftware="Insta360 Studio 2023 4.7.1" 
+      GPano:InitialHorizontalFOVDegrees="100"/>
+  </rdf:RDF>
+</x:xmpmeta>
+</textarea> 
+<p></p>
+
+<canvas id="GlobeRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 3: Equirectangular Image Layout
+<br>
+</center>
+
+<p>
+Figure 4 shows what the data from Figure 3 looks like when the camera is at the center of the sphere and moved around to view different angles within the sphere.  As shown, Figure 3 
+data essentially wraps around the outside of the sphere with the -180 and 180 points meeting directly behind the initial viewing perspective and the top and bottom
+of the image converge at the two poles of the sphere.
+</p>
+
+<p></p>
+<center>
+<canvas id="GlobeFlattenedImage" width="640" height="320" tabindex="2">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 4: View from Inside the Sphere Created from Data in Figure 3
+<br>
+</center>
+
+<p>
+Figures 5, 6, 7, and 8 below hold the yaw and roll at 0 degrees, the field of view at 60 degrees, and vary the tilt at 0, 45, 75, and 90 degrees, respectively.  The
+upper left image shows the flattened view as viewed from inside the sphere, the lower left image illustrates the bounding box of where the image pixels are extracted
+from the equirectangular image, and the right image shows the field of view of the flattened view when projected onto the sphere.
+</p>
+
+<p>
+The field of view "rectangle" outlines the top of the view with a blue line, the right side with green, the bottom with brown, and the left with a red line.  This helps
+understand the orientation of the rectangle as it is moved around in the equirectangular layout as well as on the spherical layout.
+</p>
+<table>
+<tr>
+  <td width="50%">
+    <img src="flat-view-0-0-0-60.jpg" style="max-width: 100%;"></img>
+    <p></p>
+    <img src="full-view-0-0-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+  <td width="50%">
+    <img src="sphere-view-0-0-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+</tr>
+</table>
+<center>
+Figure 5: The Three Perspectives with Tilt = 0
+<p></p>
+</center>
+
+<table>
+<tr>
+  <td width="50%">
+    <img src="flat-view-0-45-0-60.jpg" style="max-width: 100%;"></img>
+    <p></p>
+    <img src="full-view-0-45-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+  <td width="50%">
+    <img src="sphere-view-0-45-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+</tr>
+</table>
+<center>
+Figure 6: The Three Perspectives with Tilt = 45
+<p></p>
+</center>
+
+<p>
+Notice how the area of holding the pixels that are used in the flattened image become more and more distorted as the field of view moves towards
+the north pole of the sphere.
+</p>
+
+<table>
+<tr>
+  <td width="50%">
+    <img src="flat-view-0-74-0-60.jpg" style="max-width: 100%;"></img>
+    <p></p>
+    <img src="full-view-0-74-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+  <td width="50%">
+    <img src="sphere-view-0-74-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+</tr>
+</table>
+<center>
+Figure 7: The Three Perspectives with Tilt = 74
+<p></p>
+</center>
+
+<p>
+As the field of view is reaching the north pole of the sphere, the top line becomes more and more vertical and then as it intersects with the north pole
+it splits out to both the right and the left on the equirectangular layout.
+</p>
+
+<table>
+<tr>
+  <td width="50%">
+    <img src="flat-view-0-90-0-60.jpg" style="max-width: 100%;"></img>
+    <br><br>
+    <img src="full-view-0-90-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+  <td width="50%">
+    <img src="sphere-view-0-90-0-60.jpg" style="max-width: 100%;"></img>
+  </td>
+</tr>
+</table>
+<center>
+Figure 8: The Three Perspectives with Tilt = 90
+<p></p>
+</center>
+
+<p>
+When the field of view is looking directly up within the sphere, the rectangle in the equirectangular layout opens up in order to extract all the pixels around the north pole.
+</p>
+
+
+<h2>Cubemap Format</h2>
+
+<p>
+The Cubemap Format captures 360 degree images with a different layout.  The efficient layout of the equirectangular format makes it popular; however, 
+the Cubemap format represents the data in a way that is easier for humans to parse if they do not have a viewer.  As the format name suggests, the cubemap splits out each
+side of a cube (Left, Front, Right, Back, Above, and Below) and shows the portion of image in that direction.  Figure 9 shows how the data from Figure 3 looks when saved
+in one of the cubemap formats.
+</p>
+
+<p>
+Conceptually, the faces of the cubemap become folded together to create a cube that surrounds the camera position at the center.  The format shown in these figures
+are not particularily storage efficient given the amount of unused pixels (the black regions).  However, other cubemap layouts exist where the six faces are stored one after the
+other either horizontally or vertically.  While the storage size is more efficient, visualizing how the cubemap folds into a cube is harder with these layouts.
+</p>
+
+<img src="globe-cubemap.jpg" style="max-width:100%"></img>
+<center>
+Figure 9: Example Cubemap Image Layout
+<br>
+</center>
+
+<p>
+Alternatively, Figure 10 displays the Cubemap showing a grid plotted every 10 degrees on each face and each face is labeled with the direction of the view.  For each face, 
+TL = Top Left, TR = Top Right, BL = Bottom Left, and BR = Bottom Right are also shown for orientation.
+</p>
+
+<img src="generated360image-cubemap.jpg" style="max-width:100%"></img>
+<center>
+Figure 10: Cubemap Labeled Faces
+<br>
+</center>
+
+<h2>Returning to the Equirectangular Format</h2>
+
+<p>
+The code in 360GeneratorV2.py takes each of the 6 faces found in Figure 10 and saves them out as in equirectangular format which results in Figure 11.
+This shows how the mapping algorithm from 360 image coordinates to equirectangular coordinates does interesting things to how the data is captured in the final format and provides some
+insights into why the image in Figure 2 looks the way it does.
+<p>
+
+<p>
+Notice that the lines less that 45 degrees in the Left cubeface appear to break to towards the left and then join with the right side as lines greater than 45 degrees.  
+Similarly, lines greater than 45 degrees on the left make a U like shape when joining up to the right side as lines less than 45 degrees.  These are both a result of the
+equirectangular image being wrapped around the sphere.
+</p>
+
+<canvas id="Generated360imageRawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 11: The equirectangular representation of data for Figure 12
+<br>
+</center>
+
+<p></p>
+
+<center>
+<canvas id="Generated360imageFlattenedImage" width="640" height="640" tabindex="3">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 12: Flattened Generated 360 Image
+<br>
+</center>
+
+<p>
+Figure 13 makes the Cube face representation 50% transparent and overlays it on Figure 2 to assist
+in understanding how the 360 image coordinates correspond to the equirectangular mapping.  Figure 14 allows interacting with the overlay and looking around the scene.
+</p>
+
+<canvas id="ImageAndOverlay-RawImage" style="max-width:100%">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<center>
+Figure 13: Raw Overlay of Cube Faces and Original Image
+<br>
+</center>
+
+<p></p>
+
+<center>
+<canvas id="ImageAndOverlay-FlattenedImage" width="640" height="640" tabindex="3">
+  Sorry, this browser does not support the HTML5 canvas element
+</canvas>
+<br>
+Figure 14: Flattened Overlay of Cube Faces and Original Image
+<br>
+</center>
+
+<p>
+</p>
+
+</body>
+</html>
