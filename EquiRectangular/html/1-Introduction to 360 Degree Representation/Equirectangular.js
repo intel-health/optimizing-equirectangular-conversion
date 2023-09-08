@@ -204,8 +204,8 @@ function mouseDown(e) {
 function mouseMove(e) {
     if (e.target.bMouseDown)
     {
-        e.target.parameters.yaw += (e.target.lastX - e.clientX);
-        e.target.parameters.pitch -= (e.target.lastY - e.clientY);
+        e.target.parameters.yaw += ((e.target.lastX - e.clientX) / e.target.clientWidth) * e.target.parameters.fov;
+        e.target.parameters.pitch -= ((e.target.lastY - e.clientY) / e.target.clientHeight) * e.target.parameters.fov;
         e.target.lastX=e.clientX;
         e.target.lastY=e.clientY;	
         displayFlattenedImage(e.target);

@@ -156,9 +156,12 @@ Figure 4: View from Inside the Sphere Created from Data in Figure 3
 </center>
 
 <p>
-Figures 5, 6, 7, and 8 below hold the yaw and roll at 0 degrees, the field of view at 60 degrees, and vary the tilt at 0, 45, 75, and 90 degrees, respectively.  The
-upper left image shows the flattened view as viewed from inside the sphere, the lower left image illustrates the bounding box of where the image pixels are extracted
-from the equirectangular image, and the right image shows the field of view of the flattened view when projected onto the sphere.
+Figures 5, 6, 7, and 8 below hold the yaw and roll at 0 degrees, the field of view at 60 degrees, and vary the tilt to 0, 45, 75, and 90 degrees, respectively.  The
+upper left image shows the flattened view as viewed from inside the sphere, the lower left image illustrates the bounding box surrounding the image pixels are extracted
+from the equirectangular image, and the right image shows the field of view when projected onto the sphere.  The right hand view was generated from the lower left data
+using a slightly modified version of code found in the first answer in https://stackoverflow.com/questions/30265375/how-to-draw-orthographic-projection-from-equirectangular-projection.
+The code was modified since several of the calls used in the original code have been deprecated and removed and only a single frame is created instead of creating
+the cool gif image shown in the answer.
 </p>
 
 <p>
