@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--startAlgorithm=2 --endAlgorithm=2 --iterations=1 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=GPU;CPU --platform=all --img1=..\..\..\images\globe-equirectangular.jpg</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--startAlgorithm=1 --endAlgorithm=1 --iterations=1 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=GPU;CPU --platform=all --img1=..\..\..\images\globe-equirectangular.jpg</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=C:\OpenCV-4.6\opencv\build\x64\vc15\bin;%PATH%
 OPENCV_OPENCL_DEVICE=:GPU:

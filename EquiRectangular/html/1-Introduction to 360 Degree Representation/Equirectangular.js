@@ -66,6 +66,42 @@ function imageLoaded()
     displayFlattenedImage(this.data_flattenedCanvas);
 }
 
+// Derived from page 17 of https://www.cs.rpi.edu/~trink/Courses/RobotManipulation/lectures/lecture6.pdf
+function Rodrigues(vec, angle)
+{
+    n0Squared = vec[0] * vec[0]
+    n1Squared = vec[1] * vec[1]
+    n2Squared = vec[2] * vec[2]
+    cAngle = Math.cos(angle)
+    sAngle = Math.sin(angle)
+    oneMinusCAngle = 1 - cAngle
+    oneMinusSAngle = 1 - sAngle
+
+    return ([ [ n0Squared + (1 - n0Squared) * cAngle, vec[0] * vec[1] * oneMinusCAngle - vec[2] * sAngle, vec[0] * vec[2] * oneMinusCAngle + vec[1] * sAngle, ],
+             [ vec[0] * vec[1] * oneMinusCAngle + vec[2] * sAngle, n1Squared + (1 - n1Squared) * cAngle, vec[1] * vec[2] * oneMinusCAngle - vec[0] * sAngle ],
+             [ vec[0] * vec[2] * oneMinusCAngle - vec[1] * sAngle, vec[1] * vec[2] * oneMinusCAngle + vec[0] * sAngle, n2Squared + (1 - n2Squared) * cAngle ]]);
+}
+
+function matrixMultiply(mat1, mat2)
+{
+    // Should do bounds checking, but for now assume the matrices are of the right size
+    retMat = new Array(mat1.length);
+    for (row = 0; row < mat1.length; row++)
+    {
+        retMat[row] = new Array(mat2[0].length);
+        for (col = 0; col < mat2[0].length; col++)
+        {
+            retMat[row][col] = 0
+            for (k = 0; k < mat1[0].length; k++)
+            {                
+                retMat[row][col] += mat1[row][k] * mat2[k][col]
+            }
+        }
+    }
+    
+    return retMat;
+}
+
 function displayFlattenedImage(flattenedCanvas)
 {
     var rawCanvas = flattenedCanvas.rawCanvas;
@@ -134,29 +170,33 @@ function displayFlattenedImage(flattenedCanvas)
     translatecx = -cx * invf;
     translatecy = -cy * invf;
     
-    // Now calculate the rotational matrix elements.  See (1) in https://faculty.sites.iastate.edu/jia/files/inline-files/rotation.pdf
-    // However, in our case the X axis goes to the right (i.e., is equal to Y axis in the article), the Y axis goes up (i.e., is
-    // equal to the Z axis), and the Z axis comes outward (i.e., is equal to the X axis).  This we need to translate the phi, theta, and
-    // psi values.
-    var radPhi = flattenedCanvas.parameters.roll * DEGREE_CONVERSION_FACTOR;
     var radTheta = flattenedCanvas.parameters.yaw * DEGREE_CONVERSION_FACTOR;
-    var radPsi = flattenedCanvas.parameters.pitch * DEGREE_CONVERSION_FACTOR;
-    var cosPhi = Math.cos(radPhi)
-    var cosTheta = Math.cos(radTheta)
-    var cosPsi = Math.cos(radPsi)
-    var sinPhi = Math.sin(radPhi)
-    var sinTheta = Math.sin(radTheta)
-    var sinPsi = Math.sin(radPsi)
-    var m00 = cosPhi * cosTheta;
-    var m01 = cosPhi * sinTheta * sinPsi - sinPhi * cosPsi;
-    var m02 = cosPhi * sinTheta * cosPsi + sinPhi * sinPsi;
-    var m10 = sinPhi * cosTheta;
-    var m11 = sinPhi * sinTheta * sinPsi + cosPhi * cosPsi;
-    var m12 = sinPhi * sinTheta * cosPsi - cosPhi * sinPsi;
-    var m20 = -sinTheta;
-    var m21 = cosTheta * sinPsi;
-    var m22 = cosTheta * cosPsi;
+    var radPhi = flattenedCanvas.parameters.pitch * DEGREE_CONVERSION_FACTOR;
+    var radPsi = flattenedCanvas.parameters.roll * DEGREE_CONVERSION_FACTOR;
 
+    R1a = Rodrigues([0, 1, 0], radTheta)
+    // The following line of code for R2a is the equivalent of the following python
+    // R2a = cv2.Rodrigues(np.dot(R1a, [1, 0, 0]), np.radians(PHI))
+    R2a = Rodrigues([R1a[0][0], R1a[1][0], R1a[2][0]], radPhi)
+    // The following line of code for R3a is the equivalent of the following python
+    // R3a = cv2.Rodrigues(np.dot(R1a, np.dot(R2a, [0, 0, -1])), np.radians(PSI))
+    R3a = Rodrigues([R1a[0][0] * -R2a[0][2] + R1a[0][1] * -R2a[1][2] + R1a[0][2] * -R2a[2][2],
+                     R1a[1][0] * -R2a[0][2] + R1a[1][1] * -R2a[1][2] + R1a[1][2] * -R2a[2][2],
+                     R1a[2][0] * -R2a[0][2] + R1a[2][1] * -R2a[1][2] + R1a[2][2] * -R2a[2][2]], radPsi)
+
+    Ra = matrixMultiply(R3a, R2a)
+    Ra = matrixMultiply(Ra, R1a)
+    // Increases speed slightly by caching the array values
+    Ra00 = Ra[0][0]
+    Ra01 = Ra[0][1]
+    Ra02 = Ra[0][2]
+    Ra10 = Ra[1][0]
+    Ra11 = Ra[1][1]
+    Ra12 = Ra[1][2]
+    Ra20 = Ra[2][0]
+    Ra21 = Ra[2][1]
+    Ra22 = Ra[2][2]
+        
     for (var row = 0; row < flattenedCanvas.height; row++)
     {
         for (var col = 0; col < flattenedCanvas.width; col++)
@@ -171,9 +211,12 @@ function displayFlattenedImage(flattenedCanvas)
             var eY = y;
             var eZ = z;
 
-            x = eX * m00 + eY * m01 + eZ * m02;
-            y = eX * m10 + eY * m11 + eZ * m12;
-            z = eX * m20 + eY * m21 + eZ * m22;
+            // x = eX * Ra[0][0] + eY * Ra[0][1] + eZ * Ra[0][2];
+            // y = eX * Ra[1][0] + eY * Ra[1][1] + eZ * Ra[1][2];
+            // z = eX * Ra[2][0] + eY * Ra[2][1] + eZ * Ra[2][2];
+            x = eX * Ra00 + eY * Ra01 + eZ * Ra02;
+            y = eX * Ra10 + eY * Ra11 + eZ * Ra12;
+            z = eX * Ra20 + eY * Ra21 + eZ * Ra22;
 
             norm = Math.sqrt(x * x + y * y + z * z);
 
@@ -258,11 +301,13 @@ function keyDown(e) {
             e.target.parameters.pitch -= defaultIncrement;
             updateRequired = true;
             break;
+        case 56:     // 8 key (we will just assume the intention is the * even if not shifted)
         case 106:    // NumpadMultiply
             e.target.parameters.fov -= defaultIncrement;
             updateRequired = true;
             break;
         case 111:    // NumpadDivide
+        case 191:    // Main keyboard divide
             e.target.parameters.fov += defaultIncrement;
             updateRequired = true;
             break;
