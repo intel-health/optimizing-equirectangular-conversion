@@ -54,10 +54,10 @@ std::string SerialRemappingV1b::GetDescription()
 	switch (m_storageOrder)
 	{
 	case STORE_ROW_COL:
-		return "V1b = Changed V1a, but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.";
+		return "V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.";
 		break;
 	case STORE_COL_ROW:
-		return "V1b = Changed V1a, but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.";
+		return "V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.";
 		break;
 	}
 

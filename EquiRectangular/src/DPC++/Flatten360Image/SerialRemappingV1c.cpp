@@ -54,10 +54,10 @@ std::string SerialRemappingV1c::GetDescription()
 	switch (m_storageOrder)
 	{
 	case STORE_ROW_COL:
-		return "V1c = Changed V1a, but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.";
+		return "V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.";
 		break;
 	case STORE_COL_ROW:
-		return "V1c = Changed V1a, but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.";
+		return "V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.";
 		break;
 	}
 
