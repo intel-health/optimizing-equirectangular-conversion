@@ -86,9 +86,9 @@ void DpcppRemappingV5::FrameCalculations(bool bParametersChanged)
 		float imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows - 1;;
 		float xDiv = 2 * M_PI;
 
-		std::chrono::system_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point startTime;
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 
 		f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
 		cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
@@ -189,7 +189,7 @@ void DpcppRemappingV5::FrameCalculations(bool bParametersChanged)
 
 cv::Mat DpcppRemappingV5::ExtractFrameImage()
 {
-	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
+	std::chrono::high_resolution_clock::time_point startTime	= std::chrono::high_resolution_clock::now();
 	cv::Mat retVal;
 
 	switch (m_storageType)
@@ -247,7 +247,7 @@ cv::Mat DpcppRemappingV5::ExtractFrameImage()
 			});
 		}).wait();
 		retVal = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_8UC3, m_pFlatImage);
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 #ifdef VTUNE_API
 		__itt_task_end(pittTests_domain);
 #endif
@@ -306,7 +306,7 @@ cv::Mat DpcppRemappingV5::ExtractFrameImage()
 		retVal = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_8UC3);
 		m_pQ->memcpy(retVal.data, m_pDevFlatImage, m_parameters->m_heightOutput * m_parameters->m_widthOutput * sizeof(unsigned char) * pixelBytes);
 		m_pQ->wait();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	}

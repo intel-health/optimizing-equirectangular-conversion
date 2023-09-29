@@ -49,7 +49,7 @@ void TimingStats::ResetLap()
 	}
 }
 
-void TimingStats::AddIterationResults(ETimingType timingType, std::chrono::system_clock::time_point startTime, std::chrono::system_clock::time_point endTime, bool bReportIteration /* = false */)
+void TimingStats::AddIterationResults(ETimingType timingType, std::chrono::high_resolution_clock::time_point startTime, std::chrono::high_resolution_clock::time_point endTime, bool bReportIteration /* = false */)
 {
 	std::chrono::duration<double> duration = std::chrono::duration<double>(endTime - startTime);
 

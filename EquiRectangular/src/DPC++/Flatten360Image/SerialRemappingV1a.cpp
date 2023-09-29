@@ -300,19 +300,19 @@ void SerialRemappingV1a::FrameCalculations(bool bParametersChanged)
 
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
-		std::chrono::system_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point startTime;
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeXYZCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::high_resolution_clock::now());
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeLonLatCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::high_resolution_clock::now());
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeXYCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::high_resolution_clock::now());
 		m_bFrameCalcRequired = false;
 #ifdef VTUNE_API
 		__itt_task_end(pittTests_domain);
@@ -328,9 +328,9 @@ cv::Mat SerialRemappingV1a::ExtractFrameImage()
 #endif
 
 	cv::Mat retVal;
-	std::chrono::system_clock::time_point startTime;
+	std::chrono::high_resolution_clock::time_point startTime;
 
-	startTime = std::chrono::system_clock::now();
+	startTime = std::chrono::high_resolution_clock::now();
 
 	switch (m_storageOrder)
 	{
@@ -340,7 +340,7 @@ cv::Mat SerialRemappingV1a::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 
 		break;
 	}
@@ -370,13 +370,13 @@ cv::Mat SerialRemappingV1a::ExtractFrameImage()
 		cv::Mat mapX = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pX);
 		cv::Mat mapY = cv::Mat(m_parameters->m_heightOutput, m_parameters->m_widthOutput, CV_32FC1, m_pY);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_MAP, startTime, std::chrono::high_resolution_clock::now());
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, mapX, mapY, cv::INTER_CUBIC, cv::BORDER_WRAP);
 		delete[] m_pX;
 		delete[] m_pY;
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	}

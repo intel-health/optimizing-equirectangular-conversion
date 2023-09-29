@@ -81,15 +81,15 @@ int main(int argc, char** argv) {
 
     std::string description;
     BaseAlgorithm* pAlg = NULL;
-    std::chrono::system_clock::time_point initStartTime;
-    std::chrono::system_clock::time_point initEndTime;
-    std::chrono::system_clock::time_point variantInitStartTime;
-    std::chrono::system_clock::time_point variantInitStopTime;
-    std::chrono::system_clock::time_point frameStartTime;
-    std::chrono::system_clock::time_point frameEndTime;
-    std::chrono::system_clock::time_point totalTimeStart;
-    std::chrono::system_clock::time_point totalTimeEnd;
-    std::chrono::system_clock::time_point extractionStartTime;
+    std::chrono::high_resolution_clock::time_point initStartTime;
+    std::chrono::high_resolution_clock::time_point initEndTime;
+    std::chrono::high_resolution_clock::time_point variantInitStartTime;
+    std::chrono::high_resolution_clock::time_point variantInitStopTime;
+    std::chrono::high_resolution_clock::time_point frameStartTime;
+    std::chrono::high_resolution_clock::time_point frameEndTime;
+    std::chrono::high_resolution_clock::time_point totalTimeStart;
+    std::chrono::high_resolution_clock::time_point totalTimeEnd;
+    std::chrono::high_resolution_clock::time_point extractionStartTime;
     TimingStats *pTimingStats = TimingStats::GetTimingStats();
     bool bInteractive = parameters.m_iterations <= 1;
     int iteration = 0;
@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
 
         while (algorithm <= endAlgorithm)
         {
-            initStartTime = std::chrono::system_clock::now();
+            initStartTime = std::chrono::high_resolution_clock::now();
             switch (algorithm)
             {
             case 0:
@@ -227,12 +227,12 @@ int main(int argc, char** argv) {
                 break;
             }
 
-            initEndTime = std::chrono::system_clock::now();
+            initEndTime = std::chrono::high_resolution_clock::now();
 
             bVariantValid = true;
             while (bVariantValid)
             {
-                variantInitStartTime = std::chrono::system_clock::now();
+                variantInitStartTime = std::chrono::high_resolution_clock::now();
                 bVariantValid = pAlg->StartVariant();
 
                 if (bVariantValid)
@@ -242,9 +242,9 @@ int main(int argc, char** argv) {
                     iteration = 0;
 
                     pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
-                    pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::system_clock::now());
+                    pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::high_resolution_clock::now());
                     bRunningVariant = true;
-                    totalTimeStart = std::chrono::system_clock::now();
+                    totalTimeStart = std::chrono::high_resolution_clock::now();
                     while (bRunningVariant)
                     {
                         pTimingStats->ResetLap();
@@ -296,13 +296,13 @@ int main(int argc, char** argv) {
 
                                     bool bParametersChanged = prevParameters != parameters;
 
-                                    frameStartTime = std::chrono::system_clock::now();
+                                    frameStartTime = std::chrono::high_resolution_clock::now();
                                     pAlg->FrameCalculations(bParametersChanged);
-                                    pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::system_clock::now());
+                                    pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::high_resolution_clock::now());
                                     prevParameters = parameters;
-                                    extractionStartTime = std::chrono::system_clock::now();
+                                    extractionStartTime = std::chrono::high_resolution_clock::now();
                                     flatImg = pAlg->ExtractFrameImage();
-                                    frameEndTime = std::chrono::system_clock::now();
+                                    frameEndTime = std::chrono::high_resolution_clock::now();
                                     pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, extractionStartTime, frameEndTime);
                                     pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, frameStartTime, frameEndTime, bInteractive);
                                     iteration++;
@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
 #ifdef VTUNE_API
                                 __itt_pause();
 #endif
-                                totalTimeEnd = std::chrono::system_clock::now();
+                                totalTimeEnd = std::chrono::high_resolution_clock::now();
 
                                 if (bInteractive)
                                 {
@@ -503,9 +503,9 @@ int main(int argc, char** argv) {
                         }
                     }
 
-                    variantInitStopTime = std::chrono::system_clock::now();
+                    variantInitStopTime = std::chrono::high_resolution_clock::now();
                     pAlg->StopVariant();
-                    pTimingStats->AddIterationResults(ETimingType::VARIANT_TERMINATION, variantInitStopTime, std::chrono::system_clock::now());
+                    pTimingStats->AddIterationResults(ETimingType::VARIANT_TERMINATION, variantInitStopTime, std::chrono::high_resolution_clock::now());
                     summaryStats.push_back(description + "\n" + pTimingStats->SummaryStats(false));
                 }
             }

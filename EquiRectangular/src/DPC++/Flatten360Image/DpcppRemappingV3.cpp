@@ -86,9 +86,9 @@ void DpcppRemappingV3::FrameCalculations(bool bParametersChanged)
 		const float xDiv = 2 * M_PI;
 		const int numWorkItems = 16;
 
-		std::chrono::system_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point startTime;
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 
 		const float f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
 		const float cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
@@ -212,7 +212,7 @@ cv::Mat DpcppRemappingV3::ExtractFrameImage()
 	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV3_extract_kernel);
 #endif
 
-	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
+	std::chrono::high_resolution_clock::time_point startTime	= std::chrono::high_resolution_clock::now();
 	cv::Mat retVal;
 
 	switch (m_storageType)
@@ -223,7 +223,7 @@ cv::Mat DpcppRemappingV3::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	case STORAGE_TYPE_DEVICE:
@@ -232,7 +232,7 @@ cv::Mat DpcppRemappingV3::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	}

@@ -61,7 +61,7 @@ public:
 
 	void Reset();
 	void ResetLap();
-	void AddIterationResults(ETimingType timingType, std::chrono::system_clock::time_point startTime, std::chrono::system_clock::time_point endTime, bool bReportIteration = false);
+	void AddIterationResults(ETimingType timingType, std::chrono::high_resolution_clock::time_point startTime, std::chrono::high_resolution_clock::time_point endTime, bool bReportIteration = false);
 	std::string GetTypeString(ETimingType timingType);
 	void ReportTime(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType);
 	void ReportTimes(bool bIncludeLap);

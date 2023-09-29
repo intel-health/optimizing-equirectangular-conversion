@@ -121,9 +121,9 @@ void SerialRemappingV2::FrameCalculations(bool bParametersChanged)
 		float imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows - 1;;
 		float xDiv = 2 * M_PI;
 
-		std::chrono::system_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point startTime;
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 
 		f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
 		cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
@@ -234,9 +234,9 @@ cv::Mat SerialRemappingV2::ExtractFrameImage()
 #endif
 
 	cv::Mat retVal;
-	std::chrono::system_clock::time_point startTime;
+	std::chrono::high_resolution_clock::time_point startTime;
 
-	startTime = std::chrono::system_clock::now();
+	startTime = std::chrono::high_resolution_clock::now();
 
 	switch (m_storageType)
 	{
@@ -246,7 +246,7 @@ cv::Mat SerialRemappingV2::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 
 		break;
 	}
@@ -257,7 +257,7 @@ cv::Mat SerialRemappingV2::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, mapX, mapY, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	}

@@ -61,19 +61,19 @@ void DpcppRemapping::FrameCalculations(bool bParametersChanged)
 #endif
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
 
-		std::chrono::system_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point startTime;
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeXYZCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XYZ_COORDS, startTime, std::chrono::high_resolution_clock::now());
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeLonLatCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_LON_LAT_COORDS, startTime, std::chrono::high_resolution_clock::now());
 
-		startTime = std::chrono::system_clock::now();
+		startTime = std::chrono::high_resolution_clock::now();
 		ComputeXYCoords();
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_CREATE_XY_COORDS, startTime, std::chrono::high_resolution_clock::now());
 		m_bFrameCalcRequired = false;
 #ifdef VTUNE_API
 		__itt_task_end(pittTests_domain);
@@ -86,7 +86,7 @@ cv::Mat DpcppRemapping::ExtractFrameImage()
 #ifdef VTUNE_API
 	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemapping_extract_kernel);
 #endif
-	std::chrono::system_clock::time_point startTime	= std::chrono::system_clock::now();
+	std::chrono::high_resolution_clock::time_point startTime	= std::chrono::high_resolution_clock::now();
 	cv::Mat retVal;
 
 	switch (m_storageType)
@@ -97,7 +97,7 @@ cv::Mat DpcppRemapping::ExtractFrameImage()
 
 		cv::remap(m_parameters->m_image[m_parameters->m_imageIndex], retVal, map, cv::Mat{}, cv::INTER_CUBIC, cv::BORDER_WRAP);
 
-		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::system_clock::now());
+		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, startTime, std::chrono::high_resolution_clock::now());
 		break;
 	}
 	}
