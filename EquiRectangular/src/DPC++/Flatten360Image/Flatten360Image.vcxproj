@@ -97,12 +97,13 @@
     <ClCompile Include="DpcppRemappingV6.cpp" />
     <ClCompile Include="DpcppRemappingV7.cpp" />
     <ClCompile Include="Equi2Rect.cpp" />
-    <ClCompile Include="SerialRemapping.cpp" />
-    <ClCompile Include="ParallelRemapping.cpp" />
+    <ClCompile Include="SerialRemappingV1a.cpp" />
     <ClCompile Include="DpcppRemapping.cpp" />
     <ClCompile Include="BaseAlgorithm.cpp" />
     <ClCompile Include="Flatten360Image.cpp" />
     <ClCompile Include="ParseArgs.cpp" />
+    <ClCompile Include="SerialRemappingV1b.cpp" />
+    <ClCompile Include="SerialRemappingV1c.cpp" />
     <ClCompile Include="SerialRemappingV2.cpp" />
     <ClCompile Include="TimingStats.cpp" />
   </ItemGroup>
@@ -118,11 +119,12 @@
     <ClInclude Include="Equi2Rect.hpp" />
     <ClInclude Include="Flatten360Image.h" />
     <ClInclude Include="Point2D.hpp" />
-    <ClInclude Include="SerialRemapping.hpp" />
-    <ClInclude Include="ParallelRemapping.hpp" />
+    <ClInclude Include="SerialRemappingV1a.hpp" />
     <ClInclude Include="DpcppRemapping.hpp" />
     <ClInclude Include="BaseAlgorithm.hpp" />
     <ClInclude Include="Point3D.hpp" />
+    <ClInclude Include="SerialRemappingV1b.hpp" />
+    <ClInclude Include="SerialRemappingV1c.hpp" />
     <ClInclude Include="SerialRemappingV2.hpp" />
     <ClInclude Include="SoAPoints3D.hpp" />
     <ClInclude Include="ParseArgs.hpp" />

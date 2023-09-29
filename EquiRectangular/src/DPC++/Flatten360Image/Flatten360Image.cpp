@@ -1,5 +1,17 @@
 // Copyright (C) 2023 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http ://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// Author: Douglas P. Bogia
 
 
 #include <CL/sycl.hpp>
@@ -12,9 +24,10 @@
 
 #include "ParseArgs.hpp"
 #include "Equi2Rect.hpp"
-#include "SerialRemapping.hpp"
+#include "SerialRemappingV1a.hpp"
+#include "SerialRemappingV1b.hpp"
+#include "SerialRemappingV1c.hpp"
 #include "SerialRemappingV2.hpp"
-#include "ParallelRemapping.hpp"
 #include "DpcppRemapping.hpp"
 #include "DpcppRemappingV2.hpp"
 #include "DpcppRemappingV3.hpp"
@@ -114,37 +127,6 @@ int main(int argc, char** argv) {
         }
     }
 
-
-//#define CHECK_OPENCL
-#ifdef CHECK_OPENCL
-    if (!cv::ocl::haveOpenCL())
-    {
-        std::cout << "OpenCL is not available..." << std::endl;
-        //return;
-    }
-
-    cv::ocl::Context context;
-    if (!context.create(cv::ocl::Device::TYPE_ALL))
-    {
-        std::cout << "Failed creating the context..." << std::endl;
-        //return;
-    }
-
-    std::cout << context.ndevices() << " CPU devices are detected." << std::endl; //This bit provides an overview of the OpenCL devices you have in your computer
-    for (int i = 0; i < context.ndevices(); i++)
-    {
-        cv::ocl::Device device = context.device(i);
-        std::cout << "name:              " << device.name() << std::endl;
-        std::cout << "available:         " << device.available() << std::endl;
-        std::cout << "imageSupport:      " << device.imageSupport() << std::endl;
-        std::cout << "OpenCL_C_Version:  " << device.OpenCL_C_Version() << std::endl;
-        std::cout << std::endl;
-    }
-
-    cv::ocl::Device(context.device(0)); //Here is where you change which GPU to use (e.g. 0 or 1)
-#endif
-
-
     // See if we just need to list the platforms / devices
     if (parameters.m_platformName == "list" || parameters.m_deviceName == "list")
     {
@@ -211,30 +193,36 @@ int main(int argc, char** argv) {
                 pAlg = new Equi2Rect(parameters);
                 break;
             case 1:
-                pAlg = new SerialRemapping(parameters);
+                pAlg = new SerialRemappingV1a(parameters);
                 break;
             case 2:
-                pAlg = new SerialRemappingV2(parameters);
+                pAlg = new SerialRemappingV1b(parameters);
                 break;
             case 3:
-                pAlg = new DpcppRemapping(parameters);
+                pAlg = new SerialRemappingV1c(parameters);
                 break;
             case 4:
-                pAlg = new DpcppRemappingV2(parameters);
+                pAlg = new SerialRemappingV2(parameters);
                 break;
             case 5:
-                pAlg = new DpcppRemappingV3(parameters);
+                pAlg = new DpcppRemapping(parameters);
                 break;
             case 6:
-                pAlg = new DpcppRemappingV4(parameters);
+                pAlg = new DpcppRemappingV2(parameters);
                 break;
             case 7:
-                pAlg = new DpcppRemappingV5(parameters);
+                pAlg = new DpcppRemappingV3(parameters);
                 break;
             case 8:
-                pAlg = new DpcppRemappingV6(parameters);
+                pAlg = new DpcppRemappingV4(parameters);
                 break;
             case 9:
+                pAlg = new DpcppRemappingV5(parameters);
+                break;
+            case 10:
+                pAlg = new DpcppRemappingV6(parameters);
+                break;
+            case 11:
                 pAlg = new DpcppRemappingV7(parameters);
                 break;
             }
@@ -307,16 +295,6 @@ int main(int argc, char** argv) {
                                     }
 
                                     bool bParametersChanged = prevParameters != parameters;
-                                    //                                if (bParametersChanged)
-                                    //                                {
-                                    //#ifdef VTUNE_API
-                                    //                                    __itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_print_parameters);
-                                    //#endif
-                                    //                                    PrintParameters(&parameters);
-                                    //#ifdef VTUNE_API
-                                    //                                    __itt_task_end(pittTests_domain);
-                                    //#endif
-                                    //                                }
 
                                     frameStartTime = std::chrono::system_clock::now();
                                     pAlg->FrameCalculations(bParametersChanged);
@@ -382,7 +360,6 @@ int main(int argc, char** argv) {
 
                             cv::namedWindow("Debug View", cv::WINDOW_NORMAL);
                             cv::imshow("Debug View", debugImg);
-
                         }
                         if (bInteractive)
                         {
@@ -497,15 +474,14 @@ int main(int argc, char** argv) {
                                 else if (key == 115)                // s key for saving images
                                 {
                                     char filename[1024];
-                                    bool bRetVal;
 
                                     // Save out the different images
-                                    sprintf(filename, "..\\..\\..\\images\\flat-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
-                                    bRetVal = cv::imwrite(filename, flatImg);
+                                    sprintf(filename, "flat-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                    cv::imwrite(filename, flatImg);
                                     if (bDebug)
                                     {
-                                        sprintf(filename, "..\\..\\..\\images\\full-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
-                                        bRetVal = cv::imwrite(filename, debugImg);
+                                        sprintf(filename, "full-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                        cv::imwrite(filename, debugImg);
                                     }
 
                                 }
@@ -565,31 +541,6 @@ int main(int argc, char** argv) {
     {
         key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
     }
-#if 0
-    // create int array objects with "array_size" to store the input and output
-  // data
-  IntArray addend_1, addend_2, sum_scalar, sum_parallel;
-
-  // Initialize input arrays with values from 0 to array_size-1
-  initialize_array(addend_1);
-  initialize_array(addend_2);
-
-  // Compute vector addition in DPC++
-  VectorAddInDPCPP(addend_1, addend_2, sum_parallel);
-
-  // Computes the sum of two arrays in scalar for validation
-  for (size_t i = 0; i < sum_scalar.size(); i++)
-    sum_scalar[i] = addend_1[i] + addend_2[i];
-
-  // Verify that the two sum arrays are equal
-  for (size_t i = 0; i < sum_parallel.size(); i++) {
-    if (sum_parallel[i] != sum_scalar[i]) {
-      std::cout << "fail" << std::endl;
-      return -1;
-    }
-  }
-  std::cout << "success" << std::endl;
-#endif
 
   return 0;
 }

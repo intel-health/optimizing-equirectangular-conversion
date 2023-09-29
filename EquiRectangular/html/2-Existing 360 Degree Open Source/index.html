@@ -15,26 +15,33 @@
 <p>
 With the understanding gained from the Introduction to 360 Degree Videos and Imaging, Open Source code can be found and evaluated for how
 well it supports converting equirectangular images to flattened images and assessed on how well optimized the code appears to be.  This installment in
-the blog series investigates several implementations and adjusts the code to report on how efficiently each algorithm works.
+the blog series investigates several implementations and adds slight modifications the code to report on the amount of time each algorithm takes to extract a flattened image.
 </p>
 
 <p>
 For small projects which occassionally need to present a field of view from an equirectangular image, most any implementation works.  However, for situations
-where the equirectangular frames are from a video or in cases where many still images are being display from a sequence of images taken around the same time, 
+where the equirectangular frames are from a video or in cases where many still images are being displayed from a sequence of images taken around the same time, 
 code efficiency becomes far more important.
 </p>
 
 <p>
 Situations exist where a single computer may be handling multiple, simultaneous streams of 360 view images and/or videos.  For instance, some security monitoring solutions
-may display multiple feeds simultaneously.  Likewise, vitual Telesitting solutions in a hospital can display between 1 and 16 rooms on a single monitory.  In these
+may display multiple feeds simultaneously.  Likewise, vitual Telesitting solutions in a hospital can display between 1 and 16 rooms on a single monitor.  In these
 situations, having a highly optimized solution where one server can keep up with many inbound streams is paramount.
 </p>
 
 <p>
-This blog discusses initial Open Source solutions and their advantages and disadvantages.  The remainder of this blog series then introduces a framework for
+This blog discusses some Open Source solutions and their advantages and disadvantages.  The remainder of this blog series then introduces a framework for
 testing different algorithm variations, explores tools available to determine inefficiencies in the algorithms, and then proposes code changes to minimize
 the amount of time for extracting a given field of view from an equirectangular frame.  The efficiency assessments consider two cases: 1) where the field of view
 moves over a equirectangular image, and 2) where the field of view stays in the same spot while the underlying image changes (e.g., for working with a video stream).
+</p>
+
+<h2>Open Source C++ Code</h2>
+
+<p>
+The first code considered originates from <a href="https://github.com/rfn123/equirectangular-to-rectlinear/tree/master">https://github.com/rfn123/equirectangular-to-rectlinear/tree/master</a>.  The author notes that the code is not
+optimized to be efficient, but has a nice explanation for the algorithm that is used and references the book where the algorithm is explained further.
 </p>
 
 </body>

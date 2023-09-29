@@ -18,7 +18,7 @@
 // converting to C++, many additional features and optimizations have been implemented too by
 // Doug Bogia
 
-#include "SerialRemappingV1a.hpp"
+#include "SerialRemappingV1b.hpp"
 #include <chrono>
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
@@ -28,18 +28,18 @@
 #pragma comment(lib, "libittnotify.lib")
 extern __itt_domain *pittTests_domain;
 // Create string handle for denoting when the kernel is running
-wchar_t const *pSerialRemappingV1aExtract = _T("SerialRemappingV1a Extract Kernel");
-__itt_string_handle *handle_SerialRemappingV1a_extract_kernel = __itt_string_handle_create(pSerialRemappingV1aExtract);
-wchar_t const *pSerialRemappingV1aCalc = _T("SerialRemappingV1a Calc Kernel");
-__itt_string_handle *handle_SerialRemappingV1a_calc_kernel = __itt_string_handle_create(pSerialRemappingV1aCalc);
+wchar_t const *pSerialRemappingV1bExtract = _T("SerialRemappingV1b Extract Kernel");
+__itt_string_handle *handle_SerialRemappingV1b_extract_kernel = __itt_string_handle_create(pSerialRemappingV1bExtract);
+wchar_t const *pSerialRemappingV1bCalc = _T("SerialRemappingV1b Calc Kernel");
+__itt_string_handle *handle_SerialRemappingV1b_calc_kernel = __itt_string_handle_create(pSerialRemappingV1bCalc);
 #endif
 
-SerialRemappingV1a::SerialRemappingV1a(SParameters& parameters) : BaseAlgorithm(parameters)
+SerialRemappingV1b::SerialRemappingV1b(SParameters& parameters) : BaseAlgorithm(parameters)
 {
 	m_storageOrder = STORE_INIT;
 }
 
-SerialRemappingV1a::~SerialRemappingV1a()
+SerialRemappingV1b::~SerialRemappingV1b()
 {
 	delete m_pXYZPoints;
 	m_pXYZPoints = NULL;
@@ -49,22 +49,22 @@ SerialRemappingV1a::~SerialRemappingV1a()
 	m_pLonLatPoints = NULL;
 }
 
-std::string SerialRemappingV1a::GetDescription()
+std::string SerialRemappingV1b::GetDescription()
 {
 	switch (m_storageOrder)
 	{
 	case STORE_ROW_COL:
-		return "V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.";
+		return "V1b = Changed V1a, but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.";
 		break;
 	case STORE_COL_ROW:
-		return "V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.";
+		return "V1b = Changed V1a, but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.";
 		break;
 	}
 
 	return "Unknown";
 }
 
-void SerialRemappingV1a::ComputeXYZCoords()
+void SerialRemappingV1b::ComputeXYZCoords()
 {
 	float f;
 	float cx;
@@ -94,15 +94,16 @@ void SerialRemappingV1a::ComputeXYZCoords()
 	{
 	case STORE_ROW_COL:
 	{
+		Point3D* pElement = &m_pXYZPoints[0];
+
 		for (int y = 0; y < m_parameters->m_heightOutput; y++)
 		{
-			Point3D *pRow = &m_pXYZPoints[y * m_parameters->m_widthOutput];
-
 			for (int x = 0; x < m_parameters->m_widthOutput; x++)
 			{
-				pRow[x].m_x = x * invf + translatecx;
-				pRow[x].m_y = y * invf + translatecy;
-				pRow[x].m_z = 1.0f;
+				pElement->m_x = x * invf + translatecx;
+				pElement->m_y = y * invf + translatecy;
+				pElement->m_z = 1.0f;
+				pElement++;
 			}
 		}
 
@@ -110,15 +111,16 @@ void SerialRemappingV1a::ComputeXYZCoords()
 	}
 	case STORE_COL_ROW:
 	{
+		Point3D* pElement = &m_pXYZPoints[0];
+
 		for (int x = 0; x < m_parameters->m_widthOutput; x++)
 		{
-			Point3D* pCol = &m_pXYZPoints[x * m_parameters->m_heightOutput];
-
 			for (int y = 0; y < m_parameters->m_heightOutput; y++)
 			{
-				pCol[y].m_x = x * invf + translatecx;
-				pCol[y].m_y = y * invf + translatecy;
-				pCol[y].m_z = 1.0f;
+				pElement->m_x = x * invf + translatecx;
+				pElement->m_y = y * invf + translatecy;
+				pElement->m_z = 1.0f;
+				pElement++;
 			}
 		}
 		break;
@@ -127,7 +129,7 @@ void SerialRemappingV1a::ComputeXYZCoords()
 }
 
 // Pass in theta, phi, and psi in radians, not degrees
-void SerialRemappingV1a::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
+void SerialRemappingV1b::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
 {
 	// Python code snippet that this is attempting to match
 	//# Compute a matrix representing the three rotations THETA, PHI, and PSI
@@ -153,7 +155,7 @@ void SerialRemappingV1a::ComputeRotationMatrix(float radTheta, float radPhi, flo
 	m_rotationMatrix = Rz * Rx * Ry;
 }
 
-void SerialRemappingV1a::ConvertXYZToLonLat()
+void SerialRemappingV1b::ConvertXYZToLonLat()
 {
 	// Python code snippet that this is attempting to match along with applying the rotation matrix to the points
 	//xyz = xyz @ R.T
@@ -215,9 +217,9 @@ void SerialRemappingV1a::ConvertXYZToLonLat()
 				float eY = pXYZElement->m_y;
 				float eZ = pXYZElement->m_z;
 
-				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(1, 0) + eZ * m_rotationMatrix.at<float>(2, 0);
-				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(0, 1) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(2, 1);
-				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(0, 2) + eY * m_rotationMatrix.at<float>(1, 2) + eZ * m_rotationMatrix.at<float>(2, 2);
+				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(0, 1) + eZ * m_rotationMatrix.at<float>(0, 2);
+				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(1, 0) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(1, 2);
+				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(2, 0) + eY * m_rotationMatrix.at<float>(2, 1) + eZ * m_rotationMatrix.at<float>(2, 2);
 
 				norm = sqrt(pXYZElement->m_x * pXYZElement->m_x + pXYZElement->m_y * pXYZElement->m_y + pXYZElement->m_z * pXYZElement->m_z);
 
@@ -234,13 +236,13 @@ void SerialRemappingV1a::ConvertXYZToLonLat()
 
 }
 
-void SerialRemappingV1a::ComputeLonLatCoords()
+void SerialRemappingV1b::ComputeLonLatCoords()
 {
 	ComputeRotationMatrix((float)m_parameters->m_yaw * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_pitch * DEGREE_CONVERSION_FACTOR, (float)m_parameters->m_roll * DEGREE_CONVERSION_FACTOR);
 	ConvertXYZToLonLat();
 }
 
-void SerialRemappingV1a::ComputeXYCoords()
+void SerialRemappingV1b::ComputeXYCoords()
 {
 	// Python code snippet that this is attempting to match (shape is the width and height of the equirectangular image)
 	//X = (lonlat[..., 0:1] / (2 * np.pi) + 0.5) * (shape[1] - 1)
@@ -290,12 +292,12 @@ void SerialRemappingV1a::ComputeXYCoords()
 
 }
 
-void SerialRemappingV1a::FrameCalculations(bool bParametersChanged)
+void SerialRemappingV1b::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
 #ifdef VTUNE_API
-		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV1a_calc_kernel);
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV1b_calc_kernel);
 #endif
 
 		BaseAlgorithm::FrameCalculations(bParametersChanged);
@@ -321,10 +323,10 @@ void SerialRemappingV1a::FrameCalculations(bool bParametersChanged)
 	}
 }
 
-cv::Mat SerialRemappingV1a::ExtractFrameImage()
+cv::Mat SerialRemappingV1b::ExtractFrameImage()
 {
 #ifdef VTUNE_API
-	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV1a_extract_kernel);
+	__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_SerialRemappingV1b_extract_kernel);
 #endif
 
 	cv::Mat retVal;
@@ -388,7 +390,7 @@ cv::Mat SerialRemappingV1a::ExtractFrameImage()
 	return retVal;
 }
 
-cv::Mat SerialRemappingV1a::GetDebugImage()
+cv::Mat SerialRemappingV1b::GetDebugImage()
 {
 	cv::Mat retVal;
 	Point2D* pXYElement = &m_pXYPoints[0];
@@ -470,7 +472,7 @@ cv::Mat SerialRemappingV1a::GetDebugImage()
 	return retVal;
 }
 
-bool SerialRemappingV1a::StartVariant()
+bool SerialRemappingV1b::StartVariant()
 {
 	BaseAlgorithm::StartVariant();
 
@@ -493,7 +495,7 @@ bool SerialRemappingV1a::StartVariant()
 	return bRetVal;
 }
 
-void SerialRemappingV1a::StopVariant()
+void SerialRemappingV1b::StopVariant()
 {
 	delete m_pXYPoints;
 	m_pXYPoints = NULL;

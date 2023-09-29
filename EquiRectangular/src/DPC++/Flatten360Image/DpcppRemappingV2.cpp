@@ -1,5 +1,17 @@
 // Copyright (C) 2023 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http ://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// Author: Douglas P. Bogia
 
 // The code here is a version two of DpcppRemapping with a key difference being that the number of
 // kernels used has been collapsed to 1 to see how that impacts efficiency.
@@ -243,18 +255,6 @@ void DpcppRemappingV2::ComputeRotationMatrix(float radTheta, float radPhi, float
 
 	m_rotationMatrix = Rz * Rx * Ry;
 
-	//#define CONFIRMATION_PRINTS
-#ifdef CONFIRMATION_PRINTS
-	printf("ComputeRotationMatrix:\n");
-	for (int row = 0; row < 3; row++)
-	{
-		for (int col = 0; col < 3; col++)
-		{
-			printf("%10.4f    ", m_rotationMatrix.at<float>(row, col));
-		}
-		printf("\n");
-	}
-#endif
 }
 
 bool DpcppRemappingV2::StartVariant()

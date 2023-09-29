@@ -15,35 +15,39 @@
 
 #pragma once
 
-// The primary difference between this implementation and DpcppRemapping2 is that this one spawns
-// less parallel_for items and does more work in each of the iterations
-
-#include <sycl/sycl.hpp>
-#include "DpcppBaseAlgorithm.hpp"
+#include "BaseAlgorithm.hpp"
 #include "Point2D.hpp"
 #include "Point3D.hpp"
+#include "SoAPoints3D.hpp"
+#include <opencv2/core/mat.hpp>
 
-class DpcppRemappingV3 : public DpcppBaseAlgorithm {
+class SerialRemappingV1c : public BaseAlgorithm {
+
 private:
-
-	Point2D* m_pDevXYPoints = NULL;
-	int m_storageType;
+	Point3D *m_pXYZPoints = NULL;
+	Point2D *m_pLonLatPoints = NULL;
+	Point2D *m_pXYPoints = NULL;
+	int m_storageOrder;
 	cv::Mat m_rotationMatrix;
 
-private:
 	// Pass in theta, phi, and psi in radians, not degrees
 	void ComputeRotationMatrix(float radTheta, float radPhi, float radPsi);
+	void ComputeXYZCoords();
+	void ComputeLonLatCoords();
+	void ConvertXYZToLonLat();
+	void ComputeXYCoords();
+
 
 public:
-
-	DpcppRemappingV3(SParameters& parameters);
+	SerialRemappingV1c(SParameters &parameters);
+	~SerialRemappingV1c();
 
 	virtual void FrameCalculations(bool bParametersChanged);
 	virtual cv::Mat ExtractFrameImage();
+	virtual cv::Mat GetDebugImage();
 
 	virtual std::string GetDescription();
 
 	virtual bool StartVariant();
 	virtual void StopVariant();
-
 };

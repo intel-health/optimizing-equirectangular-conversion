@@ -27,13 +27,10 @@
     <ClCompile Include="BaseAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SerialRemapping.cpp">
+    <ClCompile Include="SerialRemappingV1a.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TimingStats.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ParallelRemapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DpcppRemapping.cpp">
@@ -69,6 +66,12 @@
     <ClCompile Include="DpcppRemappingV7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SerialRemappingV1b.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialRemappingV1c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ParseArgs.hpp">
@@ -83,16 +86,13 @@
     <ClInclude Include="Point3D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SerialRemapping.hpp">
+    <ClInclude Include="SerialRemappingV1a.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Flatten360Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TimingStats.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ParallelRemapping.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DpcppRemapping.hpp">
@@ -129,6 +129,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DpcppRemappingV7.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialRemappingV1b.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialRemappingV1c.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

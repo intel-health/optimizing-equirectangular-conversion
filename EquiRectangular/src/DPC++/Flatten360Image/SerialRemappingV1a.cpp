@@ -215,9 +215,9 @@ void SerialRemappingV1a::ConvertXYZToLonLat()
 				float eY = pXYZElement->m_y;
 				float eZ = pXYZElement->m_z;
 
-				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(1, 0) + eZ * m_rotationMatrix.at<float>(2, 0);
-				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(0, 1) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(2, 1);
-				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(0, 2) + eY * m_rotationMatrix.at<float>(1, 2) + eZ * m_rotationMatrix.at<float>(2, 2);
+				pXYZElement->m_x = eX * m_rotationMatrix.at<float>(0, 0) + eY * m_rotationMatrix.at<float>(0, 1) + eZ * m_rotationMatrix.at<float>(0, 2);
+				pXYZElement->m_y = eX * m_rotationMatrix.at<float>(1, 0) + eY * m_rotationMatrix.at<float>(1, 1) + eZ * m_rotationMatrix.at<float>(1, 2);
+				pXYZElement->m_z = eX * m_rotationMatrix.at<float>(2, 0) + eY * m_rotationMatrix.at<float>(2, 1) + eZ * m_rotationMatrix.at<float>(2, 2);
 
 				norm = sqrt(pXYZElement->m_x * pXYZElement->m_x + pXYZElement->m_y * pXYZElement->m_y + pXYZElement->m_z * pXYZElement->m_z);
 

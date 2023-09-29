@@ -1,5 +1,17 @@
 // Copyright (C) 2023 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http ://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// Author: Douglas P. Bogia
 
 // The code here takes inspiration from the python code at 
 // https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py and changes to DPC++ (SYCL)
@@ -164,15 +176,6 @@ void DpcppRemapping::ComputeXYZCoords()
 		//		pElement++;
 		//	}
 		//}
-
-//#define CONFIRMATION_PRINTS
-#ifdef CONFIRMATION_PRINTS
-		Point3D* pRow = &m_pXYZPoints[0];
-		printf("Row, Col Point[0, 0] = [%f, %f, %f]\n", pRow[0].m_x, pRow[0].m_y, pRow[0].m_z);
-		printf("Point[1, 0] = [%f, %f, %f]\n", pRow[1].m_x, pRow[1].m_y, pRow[1].m_z);
-		pRow = &m_pXYZPoints[m_parameters->m_widthOutput];
-		printf("Point[0, 1] = [%f, %f, %f]\n", pRow[0].m_x, pRow[0].m_y, pRow[0].m_z);
-#endif
 		break;
 	}
 	}
@@ -203,20 +206,6 @@ void DpcppRemapping::ComputeRotationMatrix(float radTheta, float radPhi, float r
 	cv::Rodrigues(Rx * Ry * z_axis * radPsi, Rz);
 
 	m_rotationMatrix = Rz * Rx * Ry;
-
-	//#define CONFIRMATION_PRINTS
-#ifdef CONFIRMATION_PRINTS
-	printf("ComputeRotationMatrix:\n");
-	for (int row = 0; row < 3; row++)
-	{
-		for (int col = 0; col < 3; col++)
-		{
-			printf("%10.4f    ", m_rotationMatrix.at<float>(row, col));
-		}
-		printf("\n");
-	}
-#endif
-
 }
 
 void DpcppRemapping::ConvertXYZToLonLat()
@@ -242,8 +231,6 @@ void DpcppRemapping::ConvertXYZToLonLat()
 	Point2D* pLonLatPoints = &m_pLonLatPoints[0];
 	// Optimization, pull the values out of the rotational matrix if CACHE_ROTATION_ELEMENTS is defined.  This can
 	// bring a 10x speed improvement for this function.
-#define	CACHE_ROTATION_ELEMENTS
-#ifdef CACHE_ROTATION_ELEMENTS
 	float m00 = m_rotationMatrix.at<float>(0, 0);
 	float m01 = m_rotationMatrix.at<float>(0, 1);
 	float m02 = m_rotationMatrix.at<float>(0, 2);
@@ -253,7 +240,6 @@ void DpcppRemapping::ConvertXYZToLonLat()
 	float m20 = m_rotationMatrix.at<float>(2, 0);
 	float m21 = m_rotationMatrix.at<float>(2, 1);
 	float m22 = m_rotationMatrix.at<float>(2, 2);
-#endif
 
 	switch (m_storageType)
 	{
@@ -283,23 +269,6 @@ void DpcppRemapping::ConvertXYZToLonLat()
 		});
 		m_pQ->wait();
 
-		//#define	CONFIRMATION_PRINTS
-#ifdef CONFIRMATION_PRINTS
-		printf("ConvertXYZToLonLat:\n");
-		Point3D* pXYZElement = &m_pXYZPoints[0];
-		Point3D* pXYZRow = &pXYZElement[0];
-		printf("Row, Col Point[0, 0] = [%f, %f, %f]\n", pXYZRow[0].m_x, pXYZRow[0].m_y, pXYZRow[0].m_z);
-		printf("Point[1, 0] = [%f, %f, %f]\n", pXYZRow[1].m_x, pXYZRow[1].m_y, pXYZRow[1].m_z);
-		pXYZRow = &pXYZElement[m_parameters->m_widthOutput];
-		printf("Point[0, 1] = [%f, %f, %f]\n", pXYZRow[0].m_x, pXYZRow[0].m_y, pXYZRow[0].m_z);
-
-		Point2D* pLonLatElement = &m_pLonLatPoints[0];
-		Point2D* pRow = &m_pLonLatPoints[0];
-		printf("Row, Col Point[0, 0] = [%f, %f]\n", pRow[0].m_x, pRow[0].m_y);
-		printf("Point[1, 0] = [%f, %f]\n", pRow[1].m_x, pRow[1].m_y);
-		pRow = &m_pLonLatPoints[m_parameters->m_widthOutput];
-		printf("Point[0, 1] = [%f, %f]\n", pRow[0].m_x, pRow[0].m_y);
-#endif
 		break;
 	}
 	}
@@ -343,16 +312,6 @@ void DpcppRemapping::ComputeXYCoords()
 		});
 		m_pQ->wait();
 
-		//#define	CONFIRMATION_PRINTS
-#ifdef CONFIRMATION_PRINTS
-		Point2D* pXYElement = &m_pXYPoints[0];
-		printf("ComputeXYCoords:\n");
-		Point2D* pRow = &pXYElement[0];
-		printf("Row, Col Point[0, 0] = [%f, %f]\n", pRow[0].m_x, pRow[0].m_y);
-		printf("Point[1, 0] = [%f, %f]\n", pRow[1].m_x, pRow[1].m_y);
-		pRow = &pXYElement[m_parameters->m_widthOutput];
-		printf("Point[0, 1] = [%f, %f]\n", pRow[0].m_x, pRow[0].m_y);
-#endif
 		break;
 	}
 	}
