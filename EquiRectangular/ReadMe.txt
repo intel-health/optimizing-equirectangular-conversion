@@ -1,3 +1,5 @@
+TODO: Expand this file to include instructions on how to make the code.  Also this readme should probably be moved to the top level.
+
 To make the images in the EquiRectangular images folder the following steps were taken:
 - IMG_20230629_082736_00_095.jpg and IMG_20230629_082736_00_096.jpg were taken with an Insta360 X3 camera using the Interval setting
 - generated360image-equirectangular.jpg was created by running python .\360GeneratorV2.py from the src\Python folder

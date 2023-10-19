@@ -137,7 +137,7 @@ std::string TimingStats::GetTypeString(ETimingType timingType)
 		strDesc = "Image extraction";
 		break;
 	case TIMING_FRAME:
-		strDesc = "Frame";
+		strDesc = "frame(s)";
 		break;
 	case VARIANT_TERMINATION:
 		strDesc = "Variant cleanup";

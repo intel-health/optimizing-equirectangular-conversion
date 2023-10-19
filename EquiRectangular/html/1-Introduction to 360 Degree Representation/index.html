@@ -39,6 +39,7 @@ around the scene with the following keystrokes:
 <li>Alternatively, it is also possible to use the mouse to click and drag the image to change the right/left/up/down positioning and the mouse scroll wheel changes the field of view.</li>
 </ul>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <center>
 <canvas id="PhotoFlattenedImage" width="640" height="640" tabindex="1">
   Sorry, this browser does not support the HTML5 canvas element
@@ -46,14 +47,15 @@ around the scene with the following keystrokes:
 <br>
 Figure 1: An example 360 degree image
 </center>
+</div> 
 
 <p>
 This blog series explores different representations for storing images, describes how these representations convert from 360 degree coordinates to a flat image representation,
-different techniques on how to extract "flattened" views, and how to create optimized code for extracting the views.
+different techniques on how to extract rectilinear views, and how to create optimized code for extracting the views.
 </p>
 
 <p>
-Figure 2, below, shows the raw image containing all the pixel data for representing the "flattened" view shown in Figure 1 above.
+Figure 2, below, shows the raw image containing all the pixel data for representing the rectilinear view shown in Figure 1 above.
 </p>
 
 <p>
@@ -72,13 +74,14 @@ fenced yard with the road extending directly to the left and right of the camera
 Further down in this post, additional visualization techniques are used to help understand why the road appears to get folded in half.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <canvas id="PhotoRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <center>
 Figure 2: The equirectangular representation of data for Figure 1
-<br>
 </center>
+</div> 
 
 <h1>Representations of 360 Images and Videos</h1>
 
@@ -131,13 +134,14 @@ For instance, the metadata for Figure 2 is:
 </textarea> 
 <p></p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <canvas id="GlobeRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <center>
 Figure 3: Equirectangular Image Layout
-<br>
 </center>
+</div> 
 
 <p>
 Figure 4 shows what the data from Figure 3 looks like when the camera is at the center of the sphere and moved around to view different angles within the sphere.  As shown, Figure 3 
@@ -146,18 +150,20 @@ of the image converge at the two poles of the sphere.
 </p>
 
 <p></p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <center>
 <canvas id="GlobeFlattenedImage" width="640" height="320" tabindex="2">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <br>
 Figure 4: View from Inside the Sphere Created from Data in Figure 3
-<br>
 </center>
+</div> 
 
 <p>
 Figures 5, 6, 7, and 8 below set the yaw and roll at 0 degrees, the field of view at 60 degrees, and vary the tilt to 0, 45, 75, and 90 degrees, respectively.  The
-upper left image shows the flattened view as viewed from inside the sphere, the lower left image illustrates the bounding box surrounding the image pixels are extracted
+upper left image shows the rectilinear view as viewed from inside the sphere, the lower left image illustrates the bounding box surrounding the image pixels are extracted
 from the equirectangular image, and the right image shows the field of view when projected onto the sphere.  The right hand view was generated from the lower left data
 using a slightly modified version of code found in the first answer in https://stackoverflow.com/questions/30265375/how-to-draw-orthographic-projection-from-equirectangular-projection.
 The code was modified since several of the calls used in the original code have been deprecated and removed and only a single frame is created instead of creating
@@ -168,6 +174,9 @@ the cool gif image shown in the answer.
 The field of view "rectangle" outlines the top of the view with a blue line, the right side with green, the bottom with brown, and the left with a red line.  This helps
 understand the orientation of the rectangle as it is moved around in the equirectangular layout as well as on the spherical layout.
 </p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+
 <table>
 <tr>
   <td width="50%">
@@ -182,9 +191,12 @@ understand the orientation of the rectangle as it is moved around in the equirec
 </table>
 <center>
 Figure 5: The Three Perspectives with Tilt = 0
-<p></p>
 </center>
+</div> 
 
+<p></p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <table>
 <tr>
   <td width="50%">
@@ -199,14 +211,17 @@ Figure 5: The Three Perspectives with Tilt = 0
 </table>
 <center>
 Figure 6: The Three Perspectives with Tilt = 45
-<p></p>
 </center>
+</div> 
+
+<p></p>
 
 <p>
-Notice how the area of holding the pixels that are used in the flattened image become more and more distorted as the field of view moves towards
+Notice how the area of holding the pixels that are used in the rectilinear image become more and more distorted as the field of view moves towards
 the north pole of the sphere.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <table>
 <tr>
   <td width="50%">
@@ -221,14 +236,17 @@ the north pole of the sphere.
 </table>
 <center>
 Figure 7: The Three Perspectives with Tilt = 74
-<p></p>
 </center>
+</div> 
+
+<p></p>
 
 <p>
 As the field of view is reaching the north pole of the sphere, the top line becomes more and more vertical and then as it intersects with the north pole
 it splits out to both the right and the left on the equirectangular layout.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <table>
 <tr>
   <td width="50%">
@@ -243,8 +261,10 @@ it splits out to both the right and the left on the equirectangular layout.
 </table>
 <center>
 Figure 8: The Three Perspectives with Tilt = 90
-<p></p>
 </center>
+</div> 
+
+<p></p>
 
 <p>
 When the field of view is looking directly up within the sphere, the rectangle in the equirectangular layout opens up in order to extract all the pixels around the north pole.
@@ -266,22 +286,24 @@ are not particularily storage efficient given the amount of unused pixels (the b
 other either horizontally or vertically.  While the storage size is more efficient, visualizing how the cubemap folds into a cube is harder with these layouts.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <img src="globe-cubemap.jpg" style="max-width:100%"></img>
 <center>
 Figure 9: Example Cubemap Image Layout
-<br>
 </center>
+</div> 
 
 <p>
 Alternatively, Figure 10 displays the Cubemap showing a grid plotted every 10 degrees on each face and each face is labeled with the direction of the view.  For each face, 
 TL = Top Left, TR = Top Right, BL = Bottom Left, and BR = Bottom Right are also shown for orientation.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <img src="generated360image-cubemap.jpg" style="max-width:100%"></img>
 <center>
 Figure 10: Cubemap Labeled Faces
-<br>
 </center>
+</div> 
 
 <h2>Returning to the Equirectangular Format</h2>
 
@@ -297,51 +319,81 @@ Similarly, lines greater than 45 degrees on the left make a U like shape when jo
 equirectangular image being wrapped around the sphere.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <canvas id="Generated360imageRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <center>
 Figure 11: The equirectangular representation of data for Figure 12
-<br>
 </center>
+</div> 
 
 <p></p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <center>
 <canvas id="Generated360imageFlattenedImage" width="640" height="640" tabindex="3">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <br>
-Figure 12: Flattened Generated 360 Image
-<br>
+Figure 12: Rectilinear Image Extracted from the 360 Image
 </center>
+</div> 
 
 <p>
 Figure 13 makes the Cube face representation 50% transparent and overlays it on Figure 2 to assist
 in understanding how the 360 image coordinates correspond to the equirectangular mapping.  Figure 14 allows interacting with the overlay and looking around the scene.
 </p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <canvas id="ImageAndOverlay-RawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <center>
 Figure 13: Raw Overlay of Cube Faces and Original Image
-<br>
 </center>
+</div> 
 
 <p></p>
 
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
 <center>
 <canvas id="ImageAndOverlay-FlattenedImage" width="640" height="640" tabindex="3">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
 <br>
-Figure 14: Flattened Overlay of Cube Faces and Original Image
-<br>
+Figure 14: Rectilinear View of Overlay of Cube Faces and Original Image
 </center>
+</div> 
+
+<h2>
+Summary
+</h2>
 
 <p>
+This blog described the two common file representations for 360 image data: 1) equirectangular and 2) cube map.  The blog shows examples of both file types and provides various views
+of the raw data as well as the extracted field of view to showcase how the formats map the 360 degree data onto a 2D surface.
 </p>
+
+<p>
+The next blog in this series explores some existing open source solutions for extracting a specified view from an equirectangular image and explores the algorithms being used.
+</p>
+
+<h2>
+About the Author
+</h2>
+
+<table>
+<tr>
+<td width="130">
+<img src="author.jpg"></img>
+</td>
+<td>
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
+</td>
+</tr>
+</table>
 
 </body>
 </html>

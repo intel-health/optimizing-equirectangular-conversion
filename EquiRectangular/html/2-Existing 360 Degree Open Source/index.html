@@ -5,44 +5,414 @@
 
 <head>
   <title>
-    Existing 360 Degree Open Source
+    Existing Open Source for 360 Degree Projection
   </title>
+  <script type="text/javascript" src="MakeZoomable.js"></script>
+  <style type="text/css">
+  table {
+    table-layout: fixed;
+    width: 100%;    
+  }
+  span {
+    font-family: 'Consolas';
+    font-size: 10pt;
+    color: #DCDCCC;
+  }
+  .sc0 {
+  }
+  .sc2 {
+    font-weight: bold;
+    font-style: italic;
+    color: #7F9F7F;
+  }
+  .sc4 {
+    color: #8CD0D3;
+  }
+  .sc5 {
+    font-weight: bold;
+    color: #DFC47D;
+  }
+  .sc6 {
+    color: #CC9393;
+  }
+  .sc9 {
+    color: #FFCFAF;
+  }
+  .sc10 {
+    font-weight: bold;
+    color: #9F9D6D;
+  }
+  .sc11 {
+  }
+  .sc16 {
+    font-weight: bold;
+    color: #CEDF99;
+  }
+  </style>  
 </head>
 
-<h1>Existing 360 Degree Open Source</h1>
+<body onLoad="enableZoom()">
 
-<!-- TODO: Make the Introduction to 360 Degree Videos and Imaging be a link to blog 1 -->
+<h1>Existing Open Source for 360 Degree Projection</h1>
+
 <p>
-With the understanding gained from the Introduction to 360 Degree Videos and Imaging, Open Source code can be found and evaluated for how
-well it supports converting equirectangular images to flattened images and assessed on how well optimized the code appears to be.  This installment in
-the blog series investigates several implementations and adds slight modifications the code to report on the amount of time each algorithm takes to extract a flattened image.
+With the understanding gained from the <a href="TODO insert URL here">Introduction to 360 Degree Videos and Imaging</a>, Open Source code can be found and evaluated for how well it supports converting equirectangular images 
+to rectilinear images and assessed on how well optimized the code appears to be. This installment in the blog series investigates several implementations and adds slight modifications the 
+code to report on the amount of time each algorithm takes to extract a rectilinear image. 
 </p>
 
 <p>
-For small projects which occassionally need to present a field of view from an equirectangular image, most any implementation works.  However, for situations
-where the equirectangular frames are from a video or in cases where many still images are being displayed from a sequence of images taken around the same time, 
-code efficiency becomes far more important.
+For small projects which occassionally need to present a field of view from an equirectangular image, most any implementation works. However, for situations where the equirectangular 
+frames are from a video or in cases where many still images are being displayed from a sequence of images taken around the same time, code efficiency becomes far more important. 
 </p>
 
 <p>
-Situations exist where a single computer may be handling multiple, simultaneous streams of 360 view images and/or videos.  For instance, some security monitoring solutions
-may display multiple feeds simultaneously.  Likewise, vitual Telesitting solutions in a hospital can display between 1 and 16 rooms on a single monitor.  In these
-situations, having a highly optimized solution where one server can keep up with many inbound streams is paramount.
+Situations exist where a single computer may be handling multiple, simultaneous streams of 360 view images and/or videos. For instance, some security monitoring solutions may display 
+multiple feeds simultaneously. Likewise, vitual Telesitting solutions in a hospital can display between 1 and 16 rooms on a single monitor. In these situations, having a highly 
+optimized solution where one server can keep up with many inbound streams is paramount. 
 </p>
 
 <p>
-This blog discusses some Open Source solutions and their advantages and disadvantages.  The remainder of this blog series then introduces a framework for
-testing different algorithm variations, explores tools available to determine inefficiencies in the algorithms, and then proposes code changes to minimize
-the amount of time for extracting a given field of view from an equirectangular frame.  The efficiency assessments consider two cases: 1) where the field of view
-moves over a equirectangular image, and 2) where the field of view stays in the same spot while the underlying image changes (e.g., for working with a video stream).
+The basic steps taken by the algorithms include the following for each pixel in the rectilinear image:
 </p>
 
-<h2>Open Source C++ Code</h2>
+<ul>
+<li>Map the rectilinear coordinate to the equivalent spherical coordinate</li>
+<li>Rotate the spherical coordinate by the desired yaw, tilt, and roll degrees</li>
+<li>Convert back to latitude and longitude coordinates for getting the pixel information from the equirectangular image</li>
+</ul>
+
+<h2>
+Open Source C++ Code
+</h2>
 
 <p>
-The first code considered originates from <a href="https://github.com/rfn123/equirectangular-to-rectlinear/tree/master">https://github.com/rfn123/equirectangular-to-rectlinear/tree/master</a>.  The author notes that the code is not
-optimized to be efficient, but has a nice explanation for the algorithm that is used and references the book where the algorithm is explained further.
+The first code considered originates from https://github.com/rfn123/equirectangular-to-rectlinear/tree/master. The author notes that the code is not optimized to be efficient, 
+but has a nice explanation for the algorithm that is used and references a book for further details. 
 </p>
+
+<p>
+The package includes a sample 360 image to use when testing, but for this blog series all code was minimally altered to use the same images for consistency. The two selected 
+images are shown in Figure 1 and Figure 13 from the initial blog post. The Equirectangular to RectLinear code depends on OpenCV for reading and writing image files as well as 
+some of the operations. The code also has a dependency on libyaml-cpp-dev since the configuration file uses YAML to define all the desired parameters such as pan, roll, and 
+tilt angles; however, the core algorithm does not require YAML so it can be reused elsewhere without the YMAL dependency. The framework introduced later in this series leverages 
+that to incorporate this algorithm alongside other options. 
+</p>
+
+<p>
+The source code uses cmake which enables porting to different environments easier. After going through the steps described in the ReadMe.md file, the code runs great and produces 
+the expected output. 
+</p>
+
+<h3>
+Instrumenting the C++ Code to Capture Performance Numbers
+</h3>
+
+<p>
+While a goal of the original author was concentrating on how to obtain a rectlinear image and not on efficiency, the work described in this blog series attempts to produce 
+rectlinear images in an efficient manner. Determining the efficiency of different algorithms requires a metric to assess the speed of each. Minor modifications were made to 
+the code base. The first modification adds the chrono include at the top of the Equi2Rect.cpp file.
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000000; "><span class="sc9">
+#include &lt;chrono&gt;
+</span>
+</div>
+</code>
+<p>
+Next, the method save_rectlinear_image was updated as follows to utilize the high_resolution_clock for taking time measurements and added a loop around the bilinear_interpolation call.  
+The loop allows an average amount of time for each iteration to be calculated which helps smooth out any impact from being swapped out of the CPU.  In this case, the code ran for
+100 iterations.
+</p>
+<code>
+<div style="white-space: pre; line-height: 1; background: #000000; ">
+    <span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">high_resolution_clock</span><span class="sc10">::</span><span class="sc11">time_point</span><span class="sc0"> </span><span class="sc11">startTime</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">high_resolution_clock</span><span class="sc10">::</span><span class="sc11">now</span><span class="sc10">();</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">100</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc10">++)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">viewport</span><span class="sc10">.</span><span class="sc11">pan_angle</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">%</span><span class="sc0"> </span><span class="sc4">360</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">this</span><span class="sc10">-&gt;</span><span class="sc11">bilinear_interpolation</span><span class="sc10">();</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">high_resolution_clock</span><span class="sc10">::</span><span class="sc11">time_point</span><span class="sc0"> </span><span class="sc11">stopTime</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">high_resolution_clock</span><span class="sc10">::</span><span class="sc11">now</span><span class="sc10">();</span><span class="sc0">
+    </span><span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">duration</span><span class="sc10">&lt;</span><span class="sc16">double</span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">std</span><span class="sc10">::</span><span class="sc11">chrono</span><span class="sc10">::</span><span class="sc11">duration</span><span class="sc10">&lt;</span><span class="sc16">double</span><span class="sc10">&gt;(</span><span class="sc11">stopTime</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">startTime</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Average for %d iterations %12.8fs %12.5fms %12.3fus\n"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc4">1000.0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc4">1000000.0</span><span class="sc10">);</span><span class="sc0">
+    </span>
+</div>
+</code>
+
+<h3>
+Results from Running the C++ Code
+</h3>
+
+<p>
+The box below shows the results from running the code on an Intel&reg; i9-9900k machine.  First the code was compiled and run using the debug mode.  The second set of results are from 
+running the code in built in Release mode.  Not surprisingly, the debug code runs slower due to additional code checks, such as range checking method input parameters or
+ensuring no accesses to memory beyond the end of an array, which assist a developer when creating the code.  The Release mode
+removes these checks since, presumably, the code functions properly after debugging.
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000040; ">
+<span class="sc5">Debug mode - Original code
+</span><span class="sc5">Average for 100 frames   7.51577697s   7515.77697ms  7515776.973us   0.13305344 FPS
+</span><span class="sc5">
+</span><span class="sc5">Release mode - Original code
+</span><span class="sc5">Average for 100 frames   1.14592754s   1145.92755ms  1145927.545us   0.87265552 FPS
+</span>
+</div>
+</code>
+
+<h2>
+Open Source Python Code
+</h2>
+
+<p>
+Another interesting implementation comes from https://github.com/fuenwang/Equirec2Perspec. This code uses the Python language for implementation along with OpenCV for reading 
+the image and performing image operations. As with the C++ code above, the author of the Python code nicely ecapsulates the core algorithm in a class.  The Github ReadMe.md
+file shows a sample usage of that function.
+</p>
+
+<h3>
+Instrumenting the Python Code to Capture Performance Numbers
+</h3>
+
+<p>
+In order to instrument the code with timing information, the sample usage was augmented as follows:
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000000; ">
+<span class="sc5">import</span><span class="sc0"> </span><span class="sc11">os</span><span class="sc0">
+</span><span class="sc5">import</span><span class="sc0"> </span><span class="sc11">cv2</span><span class="sc0"> 
+</span><span class="sc5">import</span><span class="sc0"> </span><span class="sc11">Equirec2Perspec</span><span class="sc0"> </span><span class="sc5">as</span><span class="sc0"> </span><span class="sc11">E2P</span><span class="sc0"> 
+</span><span class="sc5">import</span><span class="sc0"> </span><span class="sc11">time</span><span class="sc0">
+
+</span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">__name__</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc4">'__main__'</span><span class="sc10">:</span><span class="sc0">
+    </span><span class="sc11">equ</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">E2P</span><span class="sc10">.</span><span class="sc11">Equirectangular</span><span class="sc10">(</span><span class="sc4">'..\..\\..\\images\\IMG_20230629_082736_00_095.jpg'</span><span class="sc10">)</span><span class="sc0">    </span><span class="sc1"># Load equirectangular image</span><span class="sc0">
+    
+    </span><span class="sc11">iterations</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc2">100</span><span class="sc0">
+    </span><span class="sc11">start_time</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">time</span><span class="sc10">.</span><span class="sc11">perf_counter</span><span class="sc10">()</span><span class="sc0">
+    </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc5">in</span><span class="sc0"> </span><span class="sc11">range</span><span class="sc10">(</span><span class="sc2">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc2">1</span><span class="sc10">):</span><span class="sc0">
+        </span><span class="sc1">#</span><span class="sc0">
+        </span><span class="sc1"># FOV unit is degree </span><span class="sc0">
+        </span><span class="sc1"># theta is z-axis angle(right direction is positive, left direction is negative)</span><span class="sc0">
+        </span><span class="sc1"># phi is y-axis angle(up direction positive, down direction negative)</span><span class="sc0">
+        </span><span class="sc1"># height and width is output image dimension </span><span class="sc0">
+        </span><span class="sc1">#</span><span class="sc0">
+        </span><span class="sc11">img</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">equ</span><span class="sc10">.</span><span class="sc11">GetPerspective</span><span class="sc10">(</span><span class="sc2">60</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc2">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc2">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc2">540</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc2">1080</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc1"># Specify parameters(FOV, theta, phi, height, width)</span><span class="sc0">
+    
+    </span><span class="sc11">end_time</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">time</span><span class="sc10">.</span><span class="sc11">perf_counter</span><span class="sc10">()</span><span class="sc0">
+    </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">end_time</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">start_time</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc0">
+    </span><span class="sc5">print</span><span class="sc10">(</span><span class="sc3">"Average for "</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc3">" frames "</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc3">"s "</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc2">1000</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc3">"ms "</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">aveDuration</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc2">1000000</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc3">"us "</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">iterations</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">end_time</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">start_time</span><span class="sc10">),</span><span class="sc0"> </span><span class="sc3">" FPS"</span><span class="sc10">)</span><span class="sc0">
+    
+    </span><span class="sc11">cv2</span><span class="sc10">.</span><span class="sc11">imshow</span><span class="sc10">(</span><span class="sc3">"Flat View"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">img</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc11">cv2</span><span class="sc10">.</span><span class="sc11">waitKeyEx</span><span class="sc10">(</span><span class="sc2">0</span><span class="sc10">)</span><span class="sc0">
+</span>
+</div>
+</code>
+
+<p>
+Similar to the C++ code additions, this code iterates 100 times calling the GetPerspective method to average out the results.  Each iteration extracts the same perspective, that is, theta and phi are set
+to 0 for each iteration.  If desired, one or both of the 0 parameters could be set to i to vary the selected perspective for each iteration; however, since the results are discarded this would not
+be visible unless an additional cv2.imshow("Flat View", img) were added to the loop along with a cv2.waitKeyEx(1) to allow openCV to draw the image.
+</p>
+
+<p>
+The time.perf_counter provides a clock with the highest available resolution which can be used to measure the amount of time that passes between to subsequent calls.
+</p>
+
+<h3>
+Results from Running the Python Code
+</h3>
+
+<p>
+The box below shows the results from running the code on the same Intel&reg; i9-9900k machine as before.  Two different Python execution enviroments were run.  First is the standard
+distribution of Python.  For the second, Intel maintains a distribution of Python that is optimized for Intel hardware available at 
+<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/distribution-for-python.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/distribution-for-python.html</a>.
+This distribution has optimizations for accelerating core numerical packages and it can extend numerical capabilities to other accelerators such as a GPU.  However, for this
+particular code, there is not a significant difference in the performance most likely due to the fact that this code relies more on the openCV infrastructure rather than
+the Python execution engine computing all the math operations.  Fortunately, checking which distribution executes the code the fastest is very easy and both distributions can
+be installed simultaneously on a machine.
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000040; ">
+<span class="sc5">py RunEquirec2Perspec.py [Standard distribution of Python 3.9.13]
+Average for  100  frames  0.088532801 s  88.53280099999999 ms  88532.80099999999 us  11.295248638976192  FPS
+
+python RunEquirec2Perspec.py [Intel distribution of Python 3.9.16]
+Average for  100  frames  0.08876673799999998 s  88.76673799999999 ms  88766.73799999998 us  11.265480995820756  FPS
+</span>
+</div>
+</code>
+
+<h2>
+Intel&reg; VTune Profiler
+</h2>
+
+<p>
+Interestingly enough, the Python code runs greater than 10 times faster than the
+C++ code, but it also computes the results using slightly different techniques.  For instance, extracting the rectilinear image makes a call to cv2.remap so it is worth exploring
+what makes the Python more optimized than the C++.
+</p>
+
+<p>
+A fantastic tool, call Intel&reg; VTune Profiler, exists that assists developers in learning where code bottlenecks are, how memory is being used, uncovers interactions between threads, and generally helps
+visualize how code behaves.  The Intel&reg; oneAPI Base Toolkit 
+(<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html</a>) 
+includes VTune.  Alternatively, a standalone version is available at 
+<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler-download.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler-download.html</a>.
+Regardless of the selected download, the tool is free.
+</p>
+
+<h3>
+Configuring VTune to Run the Programs
+</h3>
+
+<p>
+Figure 1 and 2 show the configuration used to run each program under VTune.  For the C++ code, VTune was used within the Microsoft Visual Studio so all the parameters could be inherited
+directly from the Microsoft configuration making it very easy to do profiling of the code.  For the Python code, VTune was run standalone so VTune needed to be instructed on where to find
+the desired Python application, where to find the python code to be executed, and which working directory to use while running the application.
+</p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="EquiRectangular2Rectlinear-VTune-Config.jpg" style="max-width:100%"></img>
+<center>
+Figure 1: VTune Configuration to Run the C++ Program
+</center>
+</div>
+<br>
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="Python-VTune-Config.jpg" style="max-width:100%"></img>
+<center>
+Figure 2: VTune Configuration to Run the Python Program
+</center>
+</div>
+
+<p>
+For both VTune runs, the Hotspots profiling was selected and along with hardware event sampling.  This provides deeper insights into the code execution; however, it does require running VTune
+(or Visual Studio) with Administrator priviledges.
+</p>
+
+<p>
+After executing and closing the program, VTune crunches all the information it has collected and presents various options for displaying the information. In Figures 3 and 4, the Platform
+option was selected and, as seen in the figures, VTune shows the number of operating threads and what portion of the code ran within each thread.  In this case, both programs 
+executed for 10 iterations which provides enough data for VTune to sample for trends.  The initial zoom level provides a nice overview of the patterns of code execution, but
+requires zooming in or hovering over the individual boxes to learn which method is represented by each box.  However, even at this level of granularity the VTune plot for the Python
+code shows that twelve threads execute over the lifetime of the application and the brown regions show where each thread utilizes the CPU.  Whereas the C++ code mostly uses one thread
+for the bulk of the execution.
+</p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="EquiRectangular2Rectlinear-Platform-Orig.jpg" style="max-width:100%"></img>
+<center>
+Figure 3: VTune Platform View of the C++ Program
+</center>
+</div>
+<br>
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="Python-Platform.jpg" style="max-width:100%"></img>
+<center>
+Figure 4: VTune Platform View of Python Program
+</center>
+</div>
+
+<p>
+VTune enables a developer to zoom in on any portion of the execution to get more details on what code ran at any point in time.  In Figure 5, the zoom level illustrates the individual
+openCV method calls that are made by the C++ code over a duration of about 17.5 microseconds.  As shown in the tooltip, the method under the mouse cursor is the call to cv2.inv().  By
+hovering over each of the other function calls, VTune showcases that the code calls cv2's inv, then invert, gemm64f (a method to multiple 
+matrices), norm (to normalize the xyz matrix), multiply (the green box which multiples the matrices), and finally gemm64f before the cycle repeats.  The tooltip also shows the duration
+of each method call.  For example, cv::Mat::inv executes for 200ns.  The gemm64f tends to execute for around 1.5 microseconds and cv::norm runs around 2.8 microseconds.  While
+each call does not take a long time, it adds up quickly since these calls occur a lot as described in the summary page below.
+</p>
+
+<p>
+These calls come from the code line in reprojection that looks like:
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000000; "><span class="sc9">
+    cv::Mat ray3d = Rot * K.inv() * xyz / norm(xyz);
+</span>
+</div>
+</code>
+
+<p></p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="EquiRectangular2Rectlinear-Platform-Orig-Detail.jpg" style="max-width:100%"></img>
+<center>
+Figure 5: VTune Platform Detailed View of C++ Program
+</center>
+</div>
+
+<p>
+VTune also has a summary page shown in Figure 6.  The Top Tasks section describes the tasks that are most active in the application.  This reinforces the fact that gemm64f,
+norm, invert, multiply, and inv are called many times, either 11.6 or 5.8 million calls, and account for much of the overall execution time.
+</p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="EquiRectangular2Rectlinear-Summary-Orig.jpg" style="max-width:100%"></img>
+<center>
+Figure 6: VTune Summary Page for the C++ Program
+</center>
+</div>
+
+<p>
+Inspection of the rest of the code, it becomes clear that Rot, K, and K.inv do not change over the duration of the call to bilinear_interpolation.  Thus, the code can be
+optimized by computing Rot * K.inv() a single time (e.g., in the constructor) and caching it for use in the reprojection method.  Figure 7 shows the VTune summary
+of a code execution after caching and the code results from running 100 iterations of the changed code shown below indicates the altered code executes twice as fast, but
+still slower than the Python code.  The speed up comes from not making the extraneous calls to gemm64f, inv, and invert.
+</p>
+
+<code>
+<div style="white-space: pre; line-height: 1; background: #000040; ">
+</span><span class="sc5">Release mode - Original code
+</span><span class="sc5">Average for 100 frames   1.14592754s   1145.92755ms  1145927.545us   0.87265552 FPS
+</span><span class="sc5">Release mode - Cache Rot * K.inv()
+</span><span class="sc5">Average for 100 frames   0.56449626s    564.49626ms   564496.264us   1.77149091 FPS
+</span>
+</div>
+</code>
+
+<p></p>
+
+<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<img class="zoomable" src="EquiRectangular2Rectlinear-Summary-Opt1.jpg" style="max-width:100%"></img>
+<center>
+Figure 7: VTune Summary Page for the C++ Program
+</center>
+</div>
+
+<h2>
+Summary
+</h2>
+
+<p>
+This blog discussed some Open Source solutions and their advantages and disadvantages as well as introducing ways to measure the conversion speed when extracting the rectilinear 
+view from a 360 panoramic image. The remainder of this blog series then introduces a framework for testing different algorithm variations, explores tools available to determine inefficiencies 
+in the algorithms, and then proposes code changes to minimize the amount of time for extracting a given field of view from an equirectangular frame. [TODO: Update this paragraph 
+after full structure is understood and possibley move the following sentence to another blog] The efficiency assessments consider two cases: 1) where the field of view moves over a 
+equirectangular image, and 2) where the field of view stays in the same spot while the underlying image changes (e.g., for working with a video stream). 
+</p>
+
+<h2>
+About the Author
+</h2>
+
+<table>
+<tr>
+<td width="130">
+<img src="author.jpg"></img>
+</td>
+<td>
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
+</td>
+</tr>
+</table>
 
 </body>
-</html>
+</head>

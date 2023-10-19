@@ -13,7 +13,8 @@ import time
 
 img = []
 FOV = 90
-window_width = 1080 # The height will be calculated 
+window_width = 1080
+window_height = 540
 theta = 0           # Equivalent to yaw or pan (moving the camera lens left or right)
 phi = 0             # Equivalent to pitch or tilt (moving the camera lens up or down)
 psi = 0             # Equivalent to roll (raising or lowering the one side of the camera
@@ -96,7 +97,7 @@ while True:
   # height - The height of the flattened image
   # width - The width of the flattened image
   start_time = time.perf_counter()
-  flatImg, XY = equ.GetPerspective(imgIndex, FOV, theta, phi, psi, height=window_width, width=window_width)
+  flatImg, XY = equ.GetPerspective(imgIndex, FOV, theta, phi, psi, height=window_height, width=window_width)
   end_time = time.perf_counter()
   print("Time required = ", end_time - start_time)
   print("Max FPS = ", 1 / (end_time - start_time))
@@ -108,7 +109,6 @@ while True:
     # The color is BGR
     debugImg = img[imgIndex].copy()
     (height, width) = XY.shape[:2]
-    print("XY shape", XY.shape[:2])
     for pt in XY[0]:
       cv2.line(debugImg, (int(pt[0]), int(pt[1])), (int(pt[0]), int(pt[1])), (255, 0, 0), 10)
     for y in range(1, height-2):
