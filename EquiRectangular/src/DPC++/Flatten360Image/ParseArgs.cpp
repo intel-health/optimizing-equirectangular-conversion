@@ -326,8 +326,8 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.\n");
     printf("--heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.\n");
     printf("--help|-h|-? means to display the usage message\n");
-    printf("--img0=filePath where filePath is the path to an equirectangular image to load for the first frame.  Default image1.jpg.\n");
-    printf("--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.  Default image2.jpg.\n");
+    printf("--img0=filePath where filePath is the path to an equirectangular image to load for the first frame.  Default ..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg.\n");
+    printf("--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.  Default ..\\..\\..\\images\\ImageAndOverlay-equirectangular.jpg.\n");
     printf("--iterations=N where N is the number of iterations.  Defaults to -1 if --algorithm=-1; otherwise 0 (interactive)\n");
     printf("--platformName=value where value is a string to match against platform names.\n");
     printf("   Other options include all to run on all platforms or list to list the platforms.\n");

@@ -150,7 +150,7 @@ Results from Running the C++ Code
 The box below shows the results from running the code on an Intel&reg; i9-9900k machine.  First the code was compiled and run using the debug mode.  The second set of results are from 
 running the code in built in Release mode.  Not surprisingly, the debug code runs slower due to additional code checks, such as range checking method input parameters or
 ensuring no accesses to memory beyond the end of an array, which assist a developer when creating the code.  The Release mode
-removes these checks since, presumably, the code functions properly after debugging.
+removes these checks since, presumably, the code functions properly after debugging.  However, given the large difference in execution times, performance testing should use Release mode code.
 </p>
 
 <code>
@@ -392,7 +392,11 @@ Summary
 
 <p>
 This blog discussed some Open Source solutions and their advantages and disadvantages as well as introducing ways to measure the conversion speed when extracting the rectilinear 
-view from a 360 panoramic image. The remainder of this blog series then introduces a framework for testing different algorithm variations, explores tools available to determine inefficiencies 
+view from a 360 panoramic image.
+</p>
+
+<p>
+The remainder of this blog series introduces a framework for testing different algorithm variations, continues exploring tools available to determine inefficiencies 
 in the algorithms, and then proposes code changes to minimize the amount of time for extracting a given field of view from an equirectangular frame. [TODO: Update this paragraph 
 after full structure is understood and possibley move the following sentence to another blog] The efficiency assessments consider two cases: 1) where the field of view moves over a 
 equirectangular image, and 2) where the field of view stays in the same spot while the underlying image changes (e.g., for working with a video stream). 

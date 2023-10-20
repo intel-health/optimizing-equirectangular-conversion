@@ -165,19 +165,19 @@ int main(int argc, char** argv) {
         parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
     }
     // read src image1
-    printf("Loading Image1\n");
+    printf("Loading Image0\n");
     parameters.m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
     if (parameters.m_image[0].empty())
     {
-        printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[0]);
+        printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
         throw std::invalid_argument("Error: Could not load image 1.");
     }
     // read src image2
-    printf("Loading Image2\n");
+    printf("Loading Image1\n");
     parameters.m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
     if (parameters.m_image[1].empty())
     {
-        printf("Error: Could not load image 2 from %s\n", parameters.m_imgFilename[1]);
+        printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
         throw std::invalid_argument("Error: Could not load image 2.");
     }
     printf("Images loaded.\n");
