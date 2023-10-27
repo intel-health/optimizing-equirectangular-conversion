@@ -47,7 +47,7 @@ when testing how fast a specific algorithm functions:
 </p>
 
 <p>
-The code found in the github repository <a href="https://github.com/intel-health/TODO-getfinallocation">Flatten 360 Image</a> implements the elements described above with some enhancements.  For instance,
+The code found in the github repository <a href="https://github.com/intel-health/TODO-getfinallocation">OptimizingEquirectangularConversion</a> implements the elements described above with some enhancements.  For instance,
 some of the algorithms being tested take longer during the first iteration due to a need to compile a kernel or pass the kernel to an accelerator in the system such as a GPU.  In cases such as
 video conversion, this "warmup iteration" happens at the very beginning and has a minor effect on the overall experience; however, for cases where the extraction happens on a single frame, 
 this warmup time may be significant.  To help distinguish between these two situations, the framework separates out the first iteration as a "warmup iteration" and then takes the average 
@@ -56,14 +56,14 @@ or changing as the operator moves the viewport around the scene.
 </p>
 
 <p>
-The code that implements the psuedocode described above can be found in Flatten360Image.cpp.  This file uses ParseArg.cpp to parse the command line parameters.  Running the executable with
+The code that implements the psuedocode described above can be found in OptimizingEquirectangularConversion.cpp.  This file uses ParseArg.cpp to parse the command line parameters.  Running the executable with
 the command line flag --help, -h, or -? prints out the full list of available flags and their default values.  These can be used to configure the run and specify the algorithm(s) to use,
 the initial viewing direction, the amount to change that direction with each iteration, the images to use, and so on.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">Flatten360Image.exe -h
+<span class="CommandLine">OptimizingEquirectangularConversion.exe -h
 </span><span class="ResultsLine">Usage: Flatten360Image.exe [flags]
 Where: flags can be zero or more of the following (all flags are case insensitive):
 --algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes
@@ -225,7 +225,7 @@ Notice that all rows are comma separated variables (CSV).  This makes it easy to
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">Loading Image0
 </span><span class="ResultsLine">Loading Image1
 </span><span class="ResultsLine">Images loaded.
@@ -305,7 +305,7 @@ Comparing the FPS results below against the original Python results shows the C+
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">Loading Image0
 Loading Image1
 Images loaded.
@@ -394,7 +394,7 @@ can be reused.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">Loading Image0
 Loading Image1
 Images loaded.
@@ -511,7 +511,7 @@ Either the multiple additions from Algorithm 1 computing the array index offset 
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=2 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=2 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V1b = Changed V1a to access m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
@@ -658,7 +658,7 @@ This code change results in an approximately 2x improvement over Algorithm 1 (i.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=3 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=3 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
@@ -679,7 +679,7 @@ good code comments.  As shown below, these code changes result in about a 20% im
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=4 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=4 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.

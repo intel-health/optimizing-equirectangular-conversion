@@ -35,7 +35,7 @@
 #include "DpcppRemappingV5.hpp"
 #include "DpcppRemappingV6.hpp"
 #include "DpcppRemappingV7.hpp"
-#include "Flatten360Image.h"
+#include "OptimizingEquirectangularConversion.h"
 #include "TimingStats.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 

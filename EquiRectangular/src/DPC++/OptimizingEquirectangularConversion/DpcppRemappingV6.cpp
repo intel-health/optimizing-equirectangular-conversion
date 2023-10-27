@@ -222,7 +222,7 @@ cv::Mat DpcppRemappingV6::ExtractFrameImage()
 				int offset = item[0] * width + item[1];
 				Point2D *pElement = &pPoints[offset];
 				unsigned char *pFlatPixel = &pFlatImage[offset * pixelBytes];
-				// determine the nearest top left pixel for bilinear interpolation
+				// determine the nearest top left pixel 
 				int top_left_x = static_cast<int>(pElement->m_x); // convert the subpixel value to an integer pixel value (top left pixel due to int() operator)
 				int top_left_y = static_cast<int>(pElement->m_y);
 				// Starting bytes for the four points to use for the calculation of the color for the flat image pixel.

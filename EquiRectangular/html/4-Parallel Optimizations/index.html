@@ -1,0 +1,402 @@
+<!-- Copyright (C) 2023 Intel Corporation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+<html>
+
+<head>
+  <title>
+    Execution Framework and Parallel Code Optimizations
+  </title>
+  <script type="text/javascript" src="MakeZoomable.js"></script>
+  <link rel="stylesheet" href="BlogStyles.css">
+</head>
+
+<body onLoad="enableZoom()">
+
+<h1>Execution Framework and Parallel Code Optimizations</h1>
+
+<p>
+The previous blog, <a href="TODO insert URL here">Execution Framework and Serial Code Optimizations</a>, described a series of improvements for C++ code that extracts a rectilinear view
+from an equirectangular image.  This blog explores converting the code from serial processing to parallel processing to optimize the extraction further.
+</p>
+
+<h2>Introduction to Intel&reg; oneAPI Base Toolkit (Base Kit)<h2>
+
+<p>
+The Khronos group created an industry standard specification called SYCL (pronounced Sickle) which allows programmers to express data parallelism and reuse code across multiple hardware
+targets such as CPU, GPU, or FPGA).  SYCL extends ISO standard C++ (version 17 and up) allowing many developers to work with a familiar language and become productive very quickly.
+Compilers exist for multiple vendors' hardware platforms meaning that code written using SYCL reduces the amount of vendor lock-in.
+</p>
+
+<p>
+Intel created the Intel&reg; oneAPI Base Toolkit (Base Kit) which embodies all the tools and libraries required to write in SYCL and Intel refers to the language as Data Parallel C++ (DPC++).
+The toolkit(s) are available for no fee from 
+<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html</a>.  The tool kit
+integrates into Microsoft Visual Studio and Eclipse IDE allowing developers to continue using those familiar development environments, if desired.  The Base Toolkit includes the DPC++ compiler,
+VTune and Advisor that have been discussed previously in this series, as well as highly optimized libraries such as Math Kernel Library, Thread Building Blocks, Video Processing Library, 
+in addition to many others.
+</p>
+
+<h2>Introduction to Hardware Selection</h2>
+
+<p>
+The code in ConfigurableDeviceSelector.cpp enables code to request work queues that are directed to specific types or units of hardware for code execution.
+A list of all platforms and devices available on a particular system can be listed with a command line flag as shown below.  These results are for the Intel&reg; i9-9900k
+that has been used for executing all the code in this blog series.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">.\x64\Release\OptimizingEquirectangularConversion.exe --platformName=list
+</span><span class="ResultsLine">Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+
+Platform:                     Intel(R) OpenCL HD Graphics
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  3.0
+    driver_version:           31.0.101.2125
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+
+Platform:                     Intel(R) FPGA Emulation Platform for OpenCL(TM)
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) FPGA Emulation Device
+    type:                     ACC
+    version:                  1.2
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.0
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+</span>
+</div>
+</code>
+
+<p>
+The ConfigurableDeviceSelector class has a class function called set_search which sets the search parameters for the device selector.  The arguments are:
+<ul>
+<li>
+type_preference - a string specifying a filter of sorts for which type of device to select.  Options include CPU, GPU, ACC (which often means an FPGA).
+If there are multiple acceptable types separate each type with a semicolon (i.e. CPU;GPU)
+</li>
+<li>
+platform - a string specifying the platform name to select.  If this is an empty string, then any platform is acceptable.  If the full string is found
+anywhere within the platform name, it is considered a match.  That is, "Zero" would be sufficient to match the final platform in the output listed above.
+</li>
+<li>
+device_name - a string specifying the device to select.  If this is an empty string, then any device is acceptable.  If the full string is found
+anywhere within the device name, it is considered a match.  That is, "Emulation" would be sufficient to match the FPGA in the output listed above.
+</li>
+<li>
+driver_version - a string specifying the driver version to select.  If this is an empty string, then any driver is acceptable.  If the full string is found
+anywhere within the driver_version, it is considered a match.
+</li>
+</ul>
+</p>
+
+<h2>Command Line Flags to Select the Hardware Target(s)</h2>
+
+<p>
+The OptimizingEquirectangularConversion.exe framework calls the ConfigurableDeviceSelector by passing the values from the --typePreference, --platformName,
+--deviceName, and --driverVersion directly to the set_search function with two execptions.  First, if the platformName or deviceName equal all, then the code
+steps through all the platforms and/or devices in an attempt to execute the code there.  Second, if the platformName or deviceName is list, then the code
+provides a list of all the platforms and devices that are available such as the listing shown above.
+</p>
+
+<h2>Introduction to SYCL Device Queues</h2>
+
+<p>
+In SYCL, device queues represent the linkage between the program as it executes and the target device to utilize when running a specific chunk of code (also known as a kernel).
+Device queue creation involves a line of code that looks like the following.  In this case, the set_search passes the command line arguments to the ConfigurableDeviceSelector and
+then the class's device_selector is called with each platform and device to determine which to use.  After locating the best match for the device, a queue to that device gets created
+and any code utilizing that queue will execute on the selected device.
+</p>
+
+<code>
+<div class="CodeBlock">
+<span class="sc11">ConfigurableDeviceSelector::set_search(m_typePreference, m_platformName, m_deviceName, m_driverVersion);
+m_pQ</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">new</span><span class="sc0"> </span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">queue</span><span class="sc10">(</span><span class="sc11">ConfigurableDeviceSelector</span><span class="sc10">::</span><span class="sc11">device_selector</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">ehandler</span><span class="sc10">);
+</span>
+</div>
+</code>
+
+<h2>Introduction to parallel_for</h2>
+
+<p>
+The other key SYCL construct used by the code is parallel_for.  For instance, an example code loop from the original serial looks like the following.
+</p>
+
+<code>
+<div class="CodeBlock">
+<span class="sc0">        </span><span class="sc11">Point3D</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pElement</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">m_pXYZPoints</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">];</span><span class="sc0">
+
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_heightOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecx</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecy</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1.0f</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">++;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</div>
+</code>
+
+<p>
+In the parallel processing code, that same loop looks like the following.
+
+<code>
+<div class="CodeBlock">
+<span class="sc0">        </span><span class="sc11">m_pQ</span><span class="sc10">-&gt;</span><span class="sc11">submit</span><span class="sc10">([&amp;](</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">handler</span><span class="sc10">&amp;</span><span class="sc0"> </span><span class="sc11">cgh</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc11">cgh</span><span class="sc10">.</span><span class="sc11">parallel_for</span><span class="sc10">(</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">range</span><span class="sc10">&lt;</span><span class="sc4">2</span><span class="sc10">&gt;(</span><span class="sc11">height</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">width</span><span class="sc10">),</span><span class="sc0">
+            </span><span class="sc10">[=](</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">id</span><span class="sc10">&lt;</span><span class="sc4">2</span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc11">Point3D</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">pElement</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">pPoints</span><span class="sc10">[</span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">width</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">1</span><span class="sc10">]];</span><span class="sc0">
+
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">1</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecx</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecy</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1.0f</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">});</span><span class="sc0">
+        </span><span class="sc10">});</span><span class="sc0">
+        </span><span class="sc11">m_pQ</span><span class="sc10">-&gt;</span><span class="sc11">wait</span><span class="sc10">();</span><span class="sc0">
+</span>
+</div>
+</code>
+
+<p>
+This allows the SYCL compiler to break the original 2D image up into a series of work items.  Each work item processes a single pixel.  The index for which pixel is assigned to a particular
+kernel execution is passed in via the item variable with index 0 being the y index and index 1 being the x index.  The kernel takes these values and locates the proper element
+to compute.  The wait() function after the loop waits for all
+the processing of pixels to complete prior to moving on through the remainder of the code in the algorithm.
+</p>
+
+<h2>Algorithm 5</h2>
+
+<p>
+The previous blog covered algorithms 0 through 4 and this blog covers algorithms 5 through 11.  Algorithm 5 started from Algorithm 1 (which was a port to C++ of the Python algorithm) and
+changed it to utilize parallel processing and select which hardware to target for executing the code using the constructs describe above.  Once all the for loops were converted to parallel_for
+equivalents, algorithm 5 execution results in the following frames per second.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=5 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.34868130,s,   348.68130,ms,  348681.300,us, FPS,   <span class="ResultsHighlight">2.86794847</span>
+times averaging,100,               frame(s),  0.00455495,s,     4.55495,ms,    4554.948,us, FPS, <span class="ResultsHighlight">219.54147446</span>
+</span>
+</div>
+</code>
+
+<p>
+As a reminder, running algorithm 1 with the same parameters provides the following results.  The serial code is faster for the warmup iteration since the parallel code takes more
+overhead to select the hardware (even though it results in being the same CPU), construct the queue, and then compile the kernel for the target hardware.  However, note that for every
+subsequent run, that overhad disappears and the parallel nature of the code provides a nice speed improvement (219.54147446 / 64.83354991 = 3.386x).  Thus, if the use case
+requires processing a single image each time the code is invoked, pick the serial algorithm.  If many frames are likely to be processed each time, the parallel algorithm should be considered.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  <span class="ResultsHighlight">36.51434101</span>
+times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  <span class="ResultsHighlight">64.83354991</span>
+</span>
+</div>
+</code>
+
+<h2>Algorithm 6</h2>
+
+<p>
+Algorithm 6 optimizes by taking all the separate invocations of kernels and combining the code into a single kernel much like Algorithm 4 did when combining the separate functions
+into a single function.  Compared to Algorithm 5, this provides a 40% speed up (308.04708315 / 219.54147446 = 1.403).
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=6 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.29173290,s,   291.73290,ms,  291732.900,us, FPS,   3.42779303
+times averaging,100,               frame(s),  0.00324626,s,     3.24626,ms,    3246.257,us, FPS, <span class="ResultsHighlight">308.04708315</span>
+</span>
+</div>
+</code>
+
+<h2>Algorithms 7 and 8</h2>
+
+<p>
+The optimizations attempted in algorithms 7 and 8 decreased the frames per second.  Algorithm 7 experimented with parallel_for_work_item and algorithm 8 used sub_groups.  It is
+unclear if these constructs are not well suited to this particular use case or if there is a more optimal way to configure those constructs.  See the results from the two runs below.
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=7 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.48395650,s,   483.95650,ms,  483956.500,us, FPS,   2.06630141
+times averaging,100,               frame(s),  0.00510782,s,     5.10782,ms,    5107.817,us, FPS, <span class="ResultsHighlight">195.77835306</span>
+</span>
+</div>
+</code>
+<p></p>
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=8 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.35892010,s,   358.92010,ms,  358920.100,us, FPS,   2.78613541
+times averaging,100,               frame(s),  0.00640651,s,     6.40651,ms,    6406.509,us, FPS, <span class="ResultsHighlight">156.09125032</span>
+</span>
+</div>
+</code>
+
+<h2>Algorithm 9</h2>
+
+<p>
+Algorithm 9 enhances the ExtractFrameImage function relative to Algorithm 6.  Many of the previous uses of ExtractFrameImage relied on cv::remap to collect all of the pixel values
+into the rectilinear image.  Algorithm 8 replaces the remap function with a DPC++ parallel_for and computes all the pixel values using parallel processing.  Compared to Algorithm 5 this
+results in a 1.8745 times improvement (577.44988890 / 308.04708315)
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.47795310,s,   477.95310,ms,  477953.100,us, FPS,   2.09225550
+times averaging,100,               frame(s),  0.00173175,s,     1.73175,ms,    1731.752,us, FPS, <span class="ResultsHighlight">577.44988890</span>
+</span>
+</div>
+</code>
+
+<h2>Algorithm 10</h2>
+
+<p>
+Algorithm 10 experiments with possibly sacrificing image quality in favor of speed.  If the frames come from a video stream, then perhaps sampling multiple pixels can be dropped.
+Thus, this algorithm simply takes the nearest top, left pixel to the compute pixel location.  Note that the computed pixel locations are floating point so they may not uniquely
+identify a particular pixel in the equirectangular image.  Simply truncating to integer and using that value as the pixel address, the calculations are 50% faster
+(871.56602984 / 577.44988890 = 1.509) as shown below.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=10 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.46491030,s,   464.91030,ms,  464910.300,us, FPS,   2.15095256
+times averaging,100,               frame(s),  0.00114736,s,     1.14736,ms,    1147.360,us, FPS, <span class="ResultsHighlight">871.56602984</span>
+</span>
+</div>
+</code>
+ 
+<p>
+For a comparison of the output resulting from Algorithm 9 and 10 see Figure 1 and 2, respectively.
+</p>
+
+<div class="Figure">
+<img class="zoomable" src="Alg9-Output.jpg" style="max-width:100%"></img>
+<center>
+Figure 1: Output from Algorithm 9
+</center>
+</div>
+
+<div class="Figure">
+<img class="zoomable" src="Alg10-Output.jpg" style="max-width:100%"></img>
+<center>
+Figure 2: Output from Algorithm 10
+</center>
+</div>
+
+
+<h2>Algorithm 11</h2>
+
+<p>
+The final code optimization utilizes the Universal Shared Memory, but when the target device is the CPU, the code does not make a memory copy and just points to the original image buffer.
+This boosts the FPS by about 5% (917.69302985 / 871.56602984 = 1.05) as shown below.  Given that each frame is being processed within 1 millisecond, finding additional improvement is becoming
+increasingly harder, but plesae comment if there are further enhancements to consider.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,               frame(s),  0.44029590,s,   440.29590,ms,  440295.900,us, FPS,   2.27119989
+times averaging,100,               frame(s),  0.00108969,s,     1.08969,ms,    1089.689,us, FPS, <span class="ResultsHighlight">917.69302985</span>
+</span>
+</div>
+</code>
+
+<h2>Summary</h2>
+
+<p>
+After experimenting with 11 algorithms the code operates nearly 1000 times faster (917.69302985 / 0.92762988 = 989.2879) than the original C++ algorithm and 
+77 times faster (917.69302985 / 11.821199533998858 = 77.63) than the Python code which also provided inspriation for algorithms.  At 917 FPS, the code
+could potentially handle up to 30 video streams @ 30 FPS with an Intel&reg; Core i9 class processor.  Newer generations or more powerful computing classes
+such as Xeon processors could handle even more streams.  This is ideal for use cases such as Telesitting in hospital environments or video security
+setups where a single computer monitors multiple cameras simultaneously.
+</p>
+
+<h2>
+About the Author
+</h2>
+
+<table>
+<tr>
+<td width="130">
+<img src="author.jpg"></img>
+</td>
+<td>
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
+</td>
+</tr>
+</table>
+
+</body>
+</head>

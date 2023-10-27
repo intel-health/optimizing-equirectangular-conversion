@@ -1,0 +1,989 @@
+---------------------------------------------------------------------------------------------------------------------
+src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --startAlgorithm=0 --endAlgorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=GPU;CPU --platform=all --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg						
+
+
+V1 Equi2Rect reprojection.
+         warmup,  1,                  Frame,  1.10924040,s,  1109.24040,ms, 1109240.400,us, FPS,   0.90151783
+times averaging,100,                  Frame,  1.08131664,s,  1081.31664,ms, 1081316.642,us, FPS,   0.92479849
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.02723240,s,    27.23240,ms,   27232.400,us, FPS,  36.72096473
+times averaging,100,                  Frame,  0.01545028,s,    15.45028,ms,   15450.281,us, FPS,  64.72374192
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.02271240,s,    22.71240,ms,   22712.400,us, FPS,  44.02881245
+times averaging,100,                  Frame,  0.01759561,s,    17.59561,ms,   17595.611,us, FPS,  56.83235439
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.01986000,s,    19.86000,ms,   19860.000,us, FPS,  50.35246727
+times averaging,100,                  Frame,  0.01554075,s,    15.54075,ms,   15540.753,us, FPS,  64.34694638
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.02260100,s,    22.60100,ms,   22601.000,us, FPS,  44.24582983
+times averaging,100,                  Frame,  0.01762357,s,    17.62357,ms,   17623.572,us, FPS,  56.74218598
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.01118610,s,    11.18610,ms,   11186.100,us, FPS,  89.39666193
+times averaging,100,                  Frame,  0.00722310,s,     7.22310,ms,    7223.104,us, FPS, 138.44463544
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.01436970,s,    14.36970,ms,   14369.700,us, FPS,  69.59087524
+times averaging,100,                  Frame,  0.00940189,s,     9.40189,ms,    9401.887,us, FPS, 106.36162719
+
+V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
+         warmup,  1,                  Frame,  0.00739140,s,     7.39140,ms,    7391.400,us, FPS, 135.29236680
+times averaging,100,                  Frame,  0.00602048,s,     6.02048,ms,    6020.484,us, FPS, 166.09960262
+
+V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.
+         warmup,  1,                  Frame,  0.00733030,s,     7.33030,ms,    7330.300,us, FPS, 136.42006466
+times averaging,100,                  Frame,  0.00597526,s,     5.97526,ms,    5975.265,us, FPS, 167.35659423
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.86870320,s,   868.70320,ms,  868703.200,us, FPS,   1.15114115
+times averaging,100,                  Frame,  0.00454196,s,     4.54196,ms,    4541.960,us, FPS, 220.16926613
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.27663610,s,   276.63610,ms,  276636.100,us, FPS,   3.61485721
+times averaging,100,                  Frame,  0.00463937,s,     4.63937,ms,    4639.367,us, FPS, 215.54664677
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20602510,s,   206.02510,ms,  206025.100,us, FPS,   4.85377753
+times averaging,100,                  Frame,  0.00458620,s,     4.58620,ms,    4586.199,us, FPS, 218.04548821
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.18641750,s,   186.41750,ms,  186417.500,us, FPS,   5.36430324
+times averaging,100,                  Frame,  0.00462752,s,     4.62752,ms,    4627.521,us, FPS, 216.09842505
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.16501110,s,   165.01110,ms,  165011.100,us, FPS,   6.06019837
+times averaging,100,                  Frame,  0.00324270,s,     3.24270,ms,    3242.696,us, FPS, 308.38536822
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00853580,s,     8.53580,ms,    8535.800,us, FPS, 117.15363528
+times averaging,100,                  Frame,  0.00358765,s,     3.58765,ms,    3587.650,us, FPS, 278.73399022
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.11364260,s,   113.64260,ms,  113642.600,us, FPS,   8.79951708
+times averaging,100,                  Frame,  0.00335120,s,     3.35120,ms,    3351.198,us, FPS, 298.40075102
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00560020,s,     5.60020,ms,    5600.200,us, FPS, 178.56505125
+times averaging,100,                  Frame,  0.00395186,s,     3.95186,ms,    3951.858,us, FPS, 253.04552947
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.16522280,s,   165.22280,ms,  165222.800,us, FPS,   6.05243344
+times averaging,100,                  Frame,  0.00324360,s,     3.24360,ms,    3243.600,us, FPS, 308.29942040
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00717370,s,     7.17370,ms,    7173.700,us, FPS, 139.39807909
+times averaging,100,                  Frame,  0.00358169,s,     3.58169,ms,    3581.695,us, FPS, 279.19741910
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.11652270,s,   116.52270,ms,  116522.700,us, FPS,   8.58201878
+times averaging,100,                  Frame,  0.00337033,s,     3.37033,ms,    3370.334,us, FPS, 296.70649853
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00540660,s,     5.40660,ms,    5406.600,us, FPS, 184.95912403
+times averaging,100,                  Frame,  0.00399303,s,     3.99303,ms,    3993.033,us, FPS, 250.43619725
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.25291850,s,   252.91850,ms,  252918.500,us, FPS,   3.95384284
+times averaging,100,                  Frame,  0.00502254,s,     5.02254,ms,    5022.544,us, FPS, 199.10228761
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00908330,s,     9.08330,ms,    9083.300,us, FPS, 110.09214713
+times averaging,100,                  Frame,  0.00512911,s,     5.12911,ms,    5129.115,us, FPS, 194.96540826
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.13374620,s,   133.74620,ms,  133746.200,us, FPS,   7.47684794
+times averaging,100,                  Frame,  0.00494713,s,     4.94713,ms,    4947.127,us, FPS, 202.13752346
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00648290,s,     6.48290,ms,    6482.900,us, FPS, 154.25195514
+times averaging,100,                  Frame,  0.00551248,s,     5.51248,ms,    5512.479,us, FPS, 181.40658676
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.23911100,s,   239.11100,ms,  239111.000,us, FPS,   4.18215808
+times averaging,100,                  Frame,  0.00505551,s,     5.05551,ms,    5055.506,us, FPS, 197.80413672
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00914970,s,     9.14970,ms,    9149.700,us, FPS, 109.29320087
+times averaging,100,                  Frame,  0.00516393,s,     5.16393,ms,    5163.929,us, FPS, 193.65099714
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.13699360,s,   136.99360,ms,  136993.600,us, FPS,   7.29961108
+times averaging,100,                  Frame,  0.00487082,s,     4.87082,ms,    4870.825,us, FPS, 205.30402960
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00647190,s,     6.47190,ms,    6471.900,us, FPS, 154.51413032
+times averaging,100,                  Frame,  0.00543096,s,     5.43096,ms,    5430.957,us, FPS, 184.12961104
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17835700,s,   178.35700,ms,  178357.000,us, FPS,   5.60673256
+times averaging,100,                  Frame,  0.00641677,s,     6.41677,ms,    6416.773,us, FPS, 155.84157333
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.01025470,s,    10.25470,ms,   10254.700,us, FPS,  97.51626084
+times averaging,100,                  Frame,  0.00665668,s,     6.65668,ms,    6656.677,us, FPS, 150.22510481
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.10713730,s,   107.13730,ms,  107137.300,us, FPS,   9.33381745
+times averaging,100,                  Frame,  0.00612299,s,     6.12299,ms,    6122.987,us, FPS, 163.31898141
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00886560,s,     8.86560,ms,    8865.600,us, FPS, 112.79552427
+times averaging,100,                  Frame,  0.00679966,s,     6.79966,ms,    6799.659,us, FPS, 147.06619847
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17111630,s,   171.11630,ms,  171116.300,us, FPS,   5.84397863
+times averaging,100,                  Frame,  0.00639401,s,     6.39401,ms,    6394.008,us, FPS, 156.39642615
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.01002360,s,    10.02360,ms,   10023.600,us, FPS,  99.76455565
+times averaging,100,                  Frame,  0.00666105,s,     6.66105,ms,    6661.051,us, FPS, 150.12645902
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.10620140,s,   106.20140,ms,  106201.400,us, FPS,   9.41607173
+times averaging,100,                  Frame,  0.00611133,s,     6.11133,ms,    6111.334,us, FPS, 163.63039559
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00780750,s,     7.80750,ms,    7807.500,us, FPS, 128.08197246
+times averaging,100,                  Frame,  0.00681417,s,     6.81417,ms,    6814.174,us, FPS, 146.75293000
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.35305350,s,   353.05350,ms,  353053.500,us, FPS,   2.83243191
+times averaging,100,                  Frame,  0.00163542,s,     1.63542,ms,    1635.418,us, FPS, 611.46446963
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03820240,s,    38.20240,ms,   38202.400,us, FPS,  26.17636588
+times averaging,100,                  Frame,  0.00228069,s,     2.28069,ms,    2280.692,us, FPS, 438.46341374
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.18171930,s,   181.71930,ms,  181719.300,us, FPS,   5.50299280
+times averaging,100,                  Frame,  0.00235103,s,     2.35103,ms,    2351.030,us, FPS, 425.34548687
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.03981390,s,    39.81390,ms,   39813.900,us, FPS,  25.11685617
+times averaging,100,                  Frame,  0.00315675,s,     3.15675,ms,    3156.754,us, FPS, 316.78109856
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32956910,s,   329.56910,ms,  329569.100,us, FPS,   3.03426504
+times averaging,100,                  Frame,  0.00172844,s,     1.72844,ms,    1728.440,us, FPS, 578.55638611
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03841200,s,    38.41200,ms,   38412.000,us, FPS,  26.03353119
+times averaging,100,                  Frame,  0.00215657,s,     2.15657,ms,    2156.570,us, FPS, 463.69930028
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.17595040,s,   175.95040,ms,  175950.400,us, FPS,   5.68341987
+times averaging,100,                  Frame,  0.00236653,s,     2.36653,ms,    2366.534,us, FPS, 422.55889837
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03074870,s,    30.74870,ms,   30748.700,us, FPS,  32.52170010
+times averaging,100,                  Frame,  0.00325314,s,     3.25314,ms,    3253.143,us, FPS, 307.39503305
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32854080,s,   328.54080,ms,  328540.800,us, FPS,   3.04376199
+times averaging,100,                  Frame,  0.00114695,s,     1.14695,ms,    1146.948,us, FPS, 871.87910873
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03450090,s,    34.50090,ms,   34500.900,us, FPS,  28.98475112
+times averaging,100,                  Frame,  0.00168410,s,     1.68410,ms,    1684.098,us, FPS, 593.78967257
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21615170,s,   216.15170,ms,  216151.700,us, FPS,   4.62638045
+times averaging,100,                  Frame,  0.00126422,s,     1.26422,ms,    1264.217,us, FPS, 791.00344324
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.03834820,s,    38.34820,ms,   38348.200,us, FPS,  26.07684324
+times averaging,100,                  Frame,  0.00202009,s,     2.02009,ms,    2020.088,us, FPS, 495.02793938
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.33434100,s,   334.34100,ms,  334341.000,us, FPS,   2.99095833
+times averaging,100,                  Frame,  0.00115120,s,     1.15120,ms,    1151.197,us, FPS, 868.66105454
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03323780,s,    33.23780,ms,   33237.800,us, FPS,  30.08622713
+times averaging,100,                  Frame,  0.00168560,s,     1.68559,ms,    1685.595,us, FPS, 593.26231983
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.21885920,s,   218.85920,ms,  218859.200,us, FPS,   4.56914765
+times averaging,100,                  Frame,  0.00124486,s,     1.24486,ms,    1244.858,us, FPS, 803.30447328
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03005100,s,    30.05100,ms,   30051.000,us, FPS,  33.27676284
+times averaging,100,                  Frame,  0.00208498,s,     2.08498,ms,    2084.978,us, FPS, 479.62136771
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.30168150,s,   301.68150,ms,  301681.500,us, FPS,   3.31475414
+times averaging,100,                  Frame,  0.00107856,s,     1.07856,ms,    1078.557,us, FPS, 927.16472101
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00736850,s,     7.36850,ms,    7368.500,us, FPS, 135.71283165
+times averaging,100,                  Frame,  0.00169717,s,     1.69717,ms,    1697.169,us, FPS, 589.21651291
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21578110,s,   215.78110,ms,  215781.100,us, FPS,   4.63432618
+times averaging,100,                  Frame,  0.00124565,s,     1.24565,ms,    1245.650,us, FPS, 802.79372215
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.03891080,s,    38.91080,ms,   38910.800,us, FPS,  25.69980571
+times averaging,100,                  Frame,  0.00203534,s,     2.03534,ms,    2035.337,us, FPS, 491.31912799
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.30657370,s,   306.57370,ms,  306573.700,us, FPS,   3.26185840
+times averaging,100,                  Frame,  0.00108823,s,     1.08823,ms,    1088.226,us, FPS, 918.92676705
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00720110,s,     7.20110,ms,    7201.100,us, FPS, 138.86767299
+times averaging,100,                  Frame,  0.00173003,s,     1.73003,ms,    1730.027,us, FPS, 578.02566087
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.22161400,s,   221.61400,ms,  221614.000,us, FPS,   4.51235030
+times averaging,100,                  Frame,  0.00125737,s,     1.25737,ms,    1257.374,us, FPS, 795.30831718
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03017440,s,    30.17440,ms,   30174.400,us, FPS,  33.14067554
+times averaging,100,                  Frame,  0.00214198,s,     2.14198,ms,    2141.975,us, FPS, 466.85885690
+
+-----------------------------------------------------------------------------------------------------------------------
+src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --startAlgorithm=0 --endAlgorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=GPU;CPU --platform=all --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg										
+
+V1 Equi2Rect reprojection.
+         warmup,  1,                  Frame,  1.08618590,s,  1086.18590,ms, 1086185.900,us, FPS,   0.92065272
+times averaging,100,                  Frame,  1.08615258,s,  1086.15258,ms, 1086152.576,us, FPS,   0.92068096
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.02696160,s,    26.96160,ms,   26961.600,us, FPS,  37.08978696
+times averaging,100,                  Frame,  0.00288983,s,     2.88983,ms,    2889.826,us, FPS, 346.04159558
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.02268310,s,    22.68310,ms,   22683.100,us, FPS,  44.08568494
+times averaging,100,                  Frame,  0.00510861,s,     5.10861,ms,    5108.607,us, FPS, 195.74807770
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.02012850,s,    20.12850,ms,   20128.500,us, FPS,  49.68080085
+times averaging,100,                  Frame,  0.00286612,s,     2.86612,ms,    2866.124,us, FPS, 348.90325750
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.02249160,s,    22.49160,ms,   22491.600,us, FPS,  44.46104323
+times averaging,100,                  Frame,  0.00512295,s,     5.12295,ms,    5122.954,us, FPS, 195.19987882
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.01146420,s,    11.46420,ms,   11464.200,us, FPS,  87.22806650
+times averaging,100,                  Frame,  0.00287407,s,     2.87407,ms,    2874.066,us, FPS, 347.93912179
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.01393610,s,    13.93610,ms,   13936.100,us, FPS,  71.75608671
+times averaging,100,                  Frame,  0.00511886,s,     5.11886,ms,    5118.864,us, FPS, 195.35584458
+
+V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
+         warmup,  1,                  Frame,  0.00746970,s,     7.46970,ms,    7469.700,us, FPS, 133.87418504
+times averaging,100,                  Frame,  0.00283003,s,     2.83003,ms,    2830.028,us, FPS, 353.35339438
+
+V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.
+         warmup,  1,                  Frame,  0.00752530,s,     7.52530,ms,    7525.300,us, FPS, 132.88506770
+times averaging,100,                  Frame,  0.00274996,s,     2.74996,ms,    2749.960,us, FPS, 363.64165297
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.33970370,s,   339.70370,ms,  339703.700,us, FPS,   2.94374186
+times averaging,100,                  Frame,  0.00278365,s,     2.78365,ms,    2783.654,us, FPS, 359.24004923
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.18332400,s,   183.32400,ms,  183324.000,us, FPS,   5.45482315
+times averaging,100,                  Frame,  0.00277959,s,     2.77959,ms,    2779.591,us, FPS, 359.76515969
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20764830,s,   207.64830,ms,  207648.300,us, FPS,   4.81583524
+times averaging,100,                  Frame,  0.00278931,s,     2.78931,ms,    2789.310,us, FPS, 358.51160323
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.18654350,s,   186.54350,ms,  186543.500,us, FPS,   5.36067995
+times averaging,100,                  Frame,  0.00276842,s,     2.76842,ms,    2768.417,us, FPS, 361.21725882
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.16405760,s,   164.05760,ms,  164057.600,us, FPS,   6.09542015
+times averaging,100,                  Frame,  0.00279153,s,     2.79153,ms,    2791.532,us, FPS, 358.22623563
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00735420,s,     7.35420,ms,    7354.200,us, FPS, 135.97672079
+times averaging,100,                  Frame,  0.00280069,s,     2.80069,ms,    2800.686,us, FPS, 357.05537858
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.11267670,s,   112.67670,ms,  112676.700,us, FPS,   8.87494930
+times averaging,100,                  Frame,  0.00277481,s,     2.77481,ms,    2774.813,us, FPS, 360.38464574
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00549990,s,     5.49990,ms,    5499.900,us, FPS, 181.82148766
+times averaging,100,                  Frame,  0.00277697,s,     2.77697,ms,    2776.965,us, FPS, 360.10536683
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.16242790,s,   162.42790,ms,  162427.900,us, FPS,   6.15657778
+times averaging,100,                  Frame,  0.00278825,s,     2.78825,ms,    2788.253,us, FPS, 358.64751154
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00715170,s,     7.15170,ms,    7151.700,us, FPS, 139.82689430
+times averaging,100,                  Frame,  0.00278084,s,     2.78084,ms,    2780.835,us, FPS, 359.60421960
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.11628100,s,   116.28100,ms,  116281.000,us, FPS,   8.59985724
+times averaging,100,                  Frame,  0.00277326,s,     2.77326,ms,    2773.255,us, FPS, 360.58710793
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00512080,s,     5.12080,ms,    5120.800,us, FPS, 195.28198719
+times averaging,100,                  Frame,  0.00278125,s,     2.78125,ms,    2781.251,us, FPS, 359.55043252
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.25396560,s,   253.96560,ms,  253965.600,us, FPS,   3.93754115
+times averaging,100,                  Frame,  0.00279454,s,     2.79454,ms,    2794.537,us, FPS, 357.84103055
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00929820,s,     9.29820,ms,    9298.200,us, FPS, 107.54769740
+times averaging,100,                  Frame,  0.00280493,s,     2.80493,ms,    2804.927,us, FPS, 356.51551716
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.13247190,s,   132.47190,ms,  132471.900,us, FPS,   7.54877072
+times averaging,100,                  Frame,  0.00278451,s,     2.78451,ms,    2784.515,us, FPS, 359.12896860
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00652610,s,     6.52610,ms,    6526.100,us, FPS, 153.23087296
+times averaging,100,                  Frame,  0.00281035,s,     2.81035,ms,    2810.354,us, FPS, 355.82705951
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.25597870,s,   255.97870,ms,  255978.700,us, FPS,   3.90657504
+times averaging,100,                  Frame,  0.00278409,s,     2.78409,ms,    2784.092,us, FPS, 359.18353273
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00988300,s,     9.88300,ms,    9883.000,us, FPS, 101.18385106
+times averaging,100,                  Frame,  0.00278314,s,     2.78314,ms,    2783.137,us, FPS, 359.30678224
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.13389430,s,   133.89430,ms,  133894.300,us, FPS,   7.46857783
+times averaging,100,                  Frame,  0.00278724,s,     2.78724,ms,    2787.241,us, FPS, 358.77773038
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00651830,s,     6.51830,ms,    6518.300,us, FPS, 153.41423377
+times averaging,100,                  Frame,  0.00279869,s,     2.79869,ms,    2798.695,us, FPS, 357.30938884
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17848560,s,   178.48560,ms,  178485.600,us, FPS,   5.60269288
+times averaging,100,                  Frame,  0.00278824,s,     2.78824,ms,    2788.241,us, FPS, 358.64905509
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.01011000,s,    10.11000,ms,   10110.000,us, FPS,  98.91196835
+times averaging,100,                  Frame,  0.00280613,s,     2.80613,ms,    2806.133,us, FPS, 356.36229644
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.10451400,s,   104.51400,ms,  104514.000,us, FPS,   9.56809614
+times averaging,100,                  Frame,  0.00277764,s,     2.77764,ms,    2777.639,us, FPS, 360.01798650
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.00850650,s,     8.50650,ms,    8506.500,us, FPS, 117.55716217
+times averaging,100,                  Frame,  0.00280200,s,     2.80200,ms,    2802.000,us, FPS, 356.88793719
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17707310,s,   177.07310,ms,  177073.100,us, FPS,   5.64738518
+times averaging,100,                  Frame,  0.00277225,s,     2.77225,ms,    2772.253,us, FPS, 360.71743813
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00991270,s,     9.91270,ms,    9912.700,us, FPS, 100.88068841
+times averaging,100,                  Frame,  0.00278912,s,     2.78912,ms,    2789.125,us, FPS, 358.53538296
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.10588470,s,   105.88470,ms,  105884.700,us, FPS,   9.44423510
+times averaging,100,                  Frame,  0.00275212,s,     2.75212,ms,    2752.121,us, FPS, 363.35611697
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.00750190,s,     7.50190,ms,    7501.900,us, FPS, 133.29956411
+times averaging,100,                  Frame,  0.00277231,s,     2.77231,ms,    2772.306,us, FPS, 360.71054205
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32760860,s,   327.60860,ms,  327608.600,us, FPS,   3.05242292
+times averaging,100,                  Frame,  0.01755271,s,    17.55271,ms,   17552.709,us, FPS,  56.97126295
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03650330,s,    36.50330,ms,   36503.300,us, FPS,  27.39478349
+times averaging,100,                  Frame,  0.02515953,s,    25.15953,ms,   25159.530,us, FPS,  39.74637046
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.17689670,s,   176.89670,ms,  176896.700,us, FPS,   5.65301670
+times averaging,100,                  Frame,  0.01789012,s,    17.89012,ms,   17890.125,us, FPS,  55.89675869
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.04026170,s,    40.26170,ms,   40261.700,us, FPS,  24.83750065
+times averaging,100,                  Frame,  0.02664000,s,    26.64000,ms,   26640.001,us, FPS,  37.53753613
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32430410,s,   324.30410,ms,  324304.100,us, FPS,   3.08352562
+times averaging,100,                  Frame,  0.01816825,s,    18.16825,ms,   18168.246,us, FPS,  55.04108652
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03646910,s,    36.46910,ms,   36469.100,us, FPS,  27.42047377
+times averaging,100,                  Frame,  0.02527902,s,    25.27902,ms,   25279.020,us, FPS,  39.55849554
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.17448370,s,   174.48370,ms,  174483.700,us, FPS,   5.73119438
+times averaging,100,                  Frame,  0.01783568,s,    17.83568,ms,   17835.676,us, FPS,  56.06740109
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03409470,s,    34.09470,ms,   34094.700,us, FPS,  29.33007183
+times averaging,100,                  Frame,  0.02784297,s,    27.84297,ms,   27842.966,us, FPS,  35.91571386
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32794450,s,   327.94450,ms,  327944.500,us, FPS,   3.04929645
+times averaging,100,                  Frame,  0.01634588,s,    16.34588,ms,   16345.881,us, FPS,  61.17749175
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03387460,s,    33.87460,ms,   33874.600,us, FPS,  29.52064379
+times averaging,100,                  Frame,  0.02473352,s,    24.73352,ms,   24733.523,us, FPS,  40.43095680
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21238110,s,   212.38110,ms,  212381.100,us, FPS,   4.70851691
+times averaging,100,                  Frame,  0.01667506,s,    16.67506,ms,   16675.059,us, FPS,  59.96980281
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.03834450,s,    38.34450,ms,   38344.500,us, FPS,  26.07935949
+times averaging,100,                  Frame,  0.02667075,s,    26.67075,ms,   26670.745,us, FPS,  37.49426572
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.32960250,s,   329.60250,ms,  329602.500,us, FPS,   3.03395757
+times averaging,100,                  Frame,  0.01636836,s,    16.36836,ms,   16368.358,us, FPS,  61.09348293
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03441390,s,    34.41390,ms,   34413.900,us, FPS,  29.05802597
+times averaging,100,                  Frame,  0.02480461,s,    24.80461,ms,   24804.613,us, FPS,  40.31508171
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.22244220,s,   222.44220,ms,  222442.200,us, FPS,   4.49554986
+times averaging,100,                  Frame,  0.01667293,s,    16.67293,ms,   16672.933,us, FPS,  59.97744968
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03152220,s,    31.52220,ms,   31522.200,us, FPS,  31.72367411
+times averaging,100,                  Frame,  0.02687116,s,    26.87116,ms,   26871.157,us, FPS,  37.21462384
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.30525440,s,   305.25440,ms,  305254.400,us, FPS,   3.27595606
+times averaging,100,                  Frame,  0.00069204,s,     0.69204,ms,     692.043,us, FPS, 1444.99691493
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00763760,s,     7.63760,ms,    7637.600,us, FPS, 130.93118257
+times averaging,100,                  Frame,  0.00139928,s,     1.39928,ms,    1399.277,us, FPS, 714.65478243
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21187930,s,   211.87930,ms,  211879.300,us, FPS,   4.71966823
+times averaging,100,                  Frame,  0.01664907,s,    16.64907,ms,   16649.074,us, FPS,  60.06340052
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.03873440,s,    38.73440,ms,   38734.400,us, FPS,  25.81684498
+times averaging,100,                  Frame,  0.02673585,s,    26.73585,ms,   26735.852,us, FPS,  37.40295989
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.30825520,s,   308.25520,ms,  308255.200,us, FPS,   3.24406531
+times averaging,100,                  Frame,  0.00070019,s,     0.70019,ms,     700.188,us, FPS, 1428.18785812
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.00762710,s,     7.62710,ms,    7627.100,us, FPS, 131.11143161
+times averaging,100,                  Frame,  0.00139233,s,     1.39233,ms,    1392.333,us, FPS, 718.21898928
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.22613090,s,   226.13090,ms,  226130.900,us, FPS,   4.42221740
+times averaging,100,                  Frame,  0.01650382,s,    16.50382,ms,   16503.821,us, FPS,  60.59202896
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03111620,s,    31.11620,ms,   31116.200,us, FPS,  32.13760035
+times averaging,100,                  Frame,  0.02698021,s,    26.98021,ms,   26980.210,us, FPS,  37.06420373
+
+-----------------------------------------------------------------------------------------------------------------------
+src\DPC++\x64\Debug\OptimizingEquirectangularConversion.exe --startAlgorithm=0 --endAlgorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=GPU;CPU --platform=all --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg									
+
+V1 Equi2Rect reprojection.
+         warmup,  1,                  Frame,  7.13013070,s,  7130.13070,ms, 7130130.700,us, FPS,   0.14024988
+times averaging, 14,                  Frame,  7.11063520,s,  7110.63520,ms, 7110635.200,us, FPS,   0.14063441
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.07703210,s,    77.03210,ms,   77032.100,us, FPS,  12.98160118
+times averaging,100,                  Frame,  0.06649989,s,    66.49989,ms,   66499.892,us, FPS,  15.03761841
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.07066570,s,    70.66570,ms,   70665.700,us, FPS,  14.15113697
+times averaging,100,                  Frame,  0.06916975,s,    69.16975,ms,   69169.755,us, FPS,  14.45718580
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.06668340,s,    66.68340,ms,   66683.400,us, FPS,  14.99623594
+times averaging,100,                  Frame,  0.06589180,s,    65.89180,ms,   65891.800,us, FPS,  15.17639524
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.07008030,s,    70.08030,ms,   70080.300,us, FPS,  14.26934531
+times averaging,100,                  Frame,  0.06899666,s,    68.99666,ms,   68996.658,us, FPS,  14.49345561
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.03576880,s,    35.76880,ms,   35768.800,us, FPS,  27.95732594
+times averaging,100,                  Frame,  0.03457300,s,    34.57300,ms,   34573.002,us, FPS,  28.92430342
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.03924810,s,    39.24810,ms,   39248.100,us, FPS,  25.47894038
+times averaging,100,                  Frame,  0.03796920,s,    37.96920,ms,   37969.199,us, FPS,  26.33713711
+
+V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
+         warmup,  1,                  Frame,  0.04046970,s,    40.46970,ms,   40469.700,us, FPS,  24.70984465
+times averaging,100,                  Frame,  0.03921873,s,    39.21873,ms,   39218.727,us, FPS,  25.49802292
+
+V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.
+         warmup,  1,                  Frame,  0.03935790,s,    39.35790,ms,   39357.900,us, FPS,  25.40785967
+times averaging,100,                  Frame,  0.03855000,s,    38.55000,ms,   38549.997,us, FPS,  25.94033924
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.52744970,s,   527.44970,ms,  527449.700,us, FPS,   1.89591538
+times averaging,100,                  Frame,  0.19333106,s,   193.33106,ms,  193331.063,us, FPS,   5.17247453
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.29931470,s,   299.31470,ms,  299314.700,us, FPS,   3.34096521
+times averaging,100,                  Frame,  0.04948898,s,    49.48898,ms,   49488.977,us, FPS,  20.20651993
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.39251330,s,   392.51330,ms,  392513.300,us, FPS,   2.54768437
+times averaging,100,                  Frame,  0.18135666,s,   181.35666,ms,  181356.662,us, FPS,   5.51399650
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.29660260,s,   296.60260,ms,  296602.600,us, FPS,   3.37151461
+times averaging,100,                  Frame,  0.04948206,s,    49.48206,ms,   49482.065,us, FPS,  20.20934252
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.22028330,s,   220.28330,ms,  220283.300,us, FPS,   4.53960877
+times averaging,100,                  Frame,  0.10149811,s,   101.49811,ms,  101498.113,us, FPS,   9.85239992
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.10758130,s,   107.58130,ms,  107581.300,us, FPS,   9.29529574
+times averaging,100,                  Frame,  0.10336890,s,   103.36890,ms,  103368.901,us, FPS,   9.67408950
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21167860,s,   211.67860,ms,  211678.600,us, FPS,   4.72414311
+times averaging,100,                  Frame,  0.03665703,s,    36.65703,ms,   36657.026,us, FPS,  27.27989990
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.04007840,s,    40.07840,ms,   40078.400,us, FPS,  24.95109585
+times averaging,100,                  Frame,  0.03740507,s,    37.40507,ms,   37405.074,us, FPS,  26.73434091
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.22379650,s,   223.79650,ms,  223796.500,us, FPS,   4.46834513
+times averaging,100,                  Frame,  0.10375092,s,   103.75092,ms,  103750.923,us, FPS,   9.63846847
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.10797450,s,   107.97450,ms,  107974.500,us, FPS,   9.26144599
+times averaging,100,                  Frame,  0.10559291,s,   105.59291,ms,  105592.909,us, FPS,   9.47033290
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.21577200,s,   215.77200,ms,  215772.000,us, FPS,   4.63452162
+times averaging,100,                  Frame,  0.03662925,s,    36.62925,ms,   36629.251,us, FPS,  27.30058553
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.04030810,s,    40.30810,ms,   40308.100,us, FPS,  24.80890938
+times averaging,100,                  Frame,  0.03755270,s,    37.55270,ms,   37552.700,us, FPS,  26.62924370
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42997670,s,   429.97670,ms,  429976.700,us, FPS,   2.32570742
+times averaging,100,                  Frame,  0.26181017,s,   261.81017,ms,  261810.172,us, FPS,   3.81956130
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.26750990,s,   267.50990,ms,  267509.900,us, FPS,   3.73817941
+times averaging,100,                  Frame,  0.26713053,s,   267.13053,ms,  267130.535,us, FPS,   3.74348818
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.29554380,s,   295.54380,ms,  295543.800,us, FPS,   3.38359323
+times averaging,100,                  Frame,  0.07489800,s,    74.89800,ms,   74898.000,us, FPS,  13.35149136
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.07851830,s,    78.51830,ms,   78518.300,us, FPS,  12.73588450
+times averaging,100,                  Frame,  0.07521646,s,    75.21646,ms,   75216.463,us, FPS,  13.29496177
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.43116780,s,   431.16780,ms,  431167.800,us, FPS,   2.31928266
+times averaging,100,                  Frame,  0.26601951,s,   266.01951,ms,  266019.507,us, FPS,   3.75912282
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.26792990,s,   267.92990,ms,  267929.900,us, FPS,   3.73231954
+times averaging,100,                  Frame,  0.27021139,s,   270.21139,ms,  270211.386,us, FPS,   3.70080630
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.30693070,s,   306.93070,ms,  306930.700,us, FPS,   3.25806444
+times averaging,100,                  Frame,  0.07487463,s,    74.87463,ms,   74874.628,us, FPS,  13.35565901
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.07878500,s,    78.78500,ms,   78785.000,us, FPS,  12.69277147
+times averaging,100,                  Frame,  0.07507454,s,    75.07454,ms,   75074.537,us, FPS,  13.32009547
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.18210650,s,   182.10650,ms,  182106.500,us, FPS,   5.49129218
+times averaging,100,                  Frame,  0.03603790,s,    36.03790,ms,   36037.897,us, FPS,  27.74856702
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.04050350,s,    40.50350,ms,   40503.500,us, FPS,  24.68922439
+times averaging,100,                  Frame,  0.03683967,s,    36.83967,ms,   36839.665,us, FPS,  27.14465509
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.20495210,s,   204.95210,ms,  204952.100,us, FPS,   4.87918884
+times averaging,100,                  Frame,  0.04941915,s,    49.41915,ms,   49419.147,us, FPS,  20.23507205
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.05382900,s,    53.82900,ms,   53829.000,us, FPS,  18.57734678
+times averaging,100,                  Frame,  0.05050972,s,    50.50972,ms,   50509.721,us, FPS,  19.79816915
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17933160,s,   179.33160,ms,  179331.600,us, FPS,   5.57626208
+times averaging,100,                  Frame,  0.03614640,s,    36.14640,ms,   36146.401,us, FPS,  27.66527157
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.04021430,s,    40.21430,ms,   40214.300,us, FPS,  24.86677625
+times averaging,100,                  Frame,  0.03676106,s,    36.76106,ms,   36761.056,us, FPS,  27.20270060
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.21007930,s,   210.07930,ms,  210079.300,us, FPS,   4.76010725
+times averaging,100,                  Frame,  0.04961220,s,    49.61220,ms,   49612.204,us, FPS,  20.15633089
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.05516270,s,    55.16270,ms,   55162.700,us, FPS,  18.12819169
+times averaging,100,                  Frame,  0.05055140,s,    50.55140,ms,   50551.395,us, FPS,  19.78184776
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.35255880,s,   352.55880,ms,  352558.800,us, FPS,   2.83640630
+times averaging,100,                  Frame,  0.17746815,s,   177.46815,ms,  177468.146,us, FPS,   5.63481404
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20612030,s,   206.12030,ms,  206120.300,us, FPS,   4.85153573
+times averaging,100,                  Frame,  0.18010024,s,   180.10024,ms,  180100.243,us, FPS,   5.55246336
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.31389850,s,   313.89850,ms,  313898.500,us, FPS,   3.18574316
+times averaging,100,                  Frame,  0.03730502,s,    37.30503,ms,   37305.025,us, FPS,  26.80604021
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.07765510,s,    77.65510,ms,   77655.100,us, FPS,  12.87745428
+times averaging,100,                  Frame,  0.03886476,s,    38.86476,ms,   38864.760,us, FPS,  25.73025023
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.34804180,s,   348.04180,ms,  348041.800,us, FPS,   2.87321810
+times averaging,100,                  Frame,  0.17869678,s,   178.69678,ms,  178696.778,us, FPS,   5.59607180
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20543610,s,   205.43610,ms,  205436.100,us, FPS,   4.86769365
+times averaging,100,                  Frame,  0.18137259,s,   181.37259,ms,  181372.587,us, FPS,   5.51351236
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.32520080,s,   325.20080,ms,  325200.800,us, FPS,   3.07502319
+times averaging,100,                  Frame,  0.03726566,s,    37.26566,ms,   37265.662,us, FPS,  26.83435491
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06945090,s,    69.45090,ms,   69450.900,us, FPS,  14.39866150
+times averaging,100,                  Frame,  0.03868277,s,    38.68277,ms,   38682.766,us, FPS,  25.85130546
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42731650,s,   427.31650,ms,  427316.500,us, FPS,   2.34018579
+times averaging,100,                  Frame,  0.17623995,s,   176.23995,ms,  176239.950,us, FPS,   5.67408241
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20017180,s,   200.17180,ms,  200171.800,us, FPS,   4.99570869
+times averaging,100,                  Frame,  0.17835625,s,   178.35625,ms,  178356.246,us, FPS,   5.60675627
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.37961420,s,   379.61420,ms,  379614.200,us, FPS,   2.63425341
+times averaging,100,                  Frame,  0.03367507,s,    33.67507,ms,   33675.066,us, FPS,  29.69556170
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.07527170,s,    75.27170,ms,   75271.700,us, FPS,  13.28520546
+times averaging,100,                  Frame,  0.03514904,s,    35.14904,ms,   35149.040,us, FPS,  28.45027915
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42594630,s,   425.94630,ms,  425946.300,us, FPS,   2.34771378
+times averaging,100,                  Frame,  0.17659534,s,   176.59534,ms,  176595.341,us, FPS,   5.66266355
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20178660,s,   201.78660,ms,  201786.600,us, FPS,   4.95573046
+times averaging,100,                  Frame,  0.17852035,s,   178.52035,ms,  178520.351,us, FPS,   5.60160225
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.38884630,s,   388.84630,ms,  388846.300,us, FPS,   2.57171021
+times averaging,100,                  Frame,  0.03365279,s,    33.65279,ms,   33652.790,us, FPS,  29.71521826
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06763620,s,    67.63620,ms,   67636.200,us, FPS,  14.78498201
+times averaging,100,                  Frame,  0.03507700,s,    35.07700,ms,   35077.004,us, FPS,  28.50870616
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.39828910,s,   398.28910,ms,  398289.100,us, FPS,   2.51073906
+times averaging,100,                  Frame,  0.17697187,s,   176.97187,ms,  176971.869,us, FPS,   5.65061558
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.18169990,s,   181.69990,ms,  181699.900,us, FPS,   5.50358035
+times averaging,100,                  Frame,  0.17844571,s,   178.44571,ms,  178445.714,us, FPS,   5.60394519
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.38060420,s,   380.60420,ms,  380604.200,us, FPS,   2.62740138
+times averaging,100,                  Frame,  0.03366014,s,    33.66014,ms,   33660.137,us, FPS,  29.70873232
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.07588300,s,    75.88300,ms,   75883.000,us, FPS,  13.17818220
+times averaging,100,                  Frame,  0.03515874,s,    35.15874,ms,   35158.736,us, FPS,  28.44243320
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.40097620,s,   400.97620,ms,  400976.200,us, FPS,   2.49391360
+times averaging,100,                  Frame,  0.17717962,s,   177.17962,ms,  177179.617,us, FPS,   5.64399008
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.18203370,s,   182.03370,ms,  182033.700,us, FPS,   5.49348829
+times averaging,100,                  Frame,  0.17870048,s,   178.70048,ms,  178700.483,us, FPS,   5.59595578
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.40938150,s,   409.38150,ms,  409381.500,us, FPS,   2.44270931
+times averaging,100,                  Frame,  0.03366300,s,    33.66300,ms,   33662.997,us, FPS,  29.70620827
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06502490,s,    65.02490,ms,   65024.900,us, FPS,  15.37872415
+times averaging,100,                  Frame,  0.03505279,s,    35.05279,ms,   35052.785,us, FPS,  28.52840366	
+
+-----------------------------------------------------------------------------------------------------------------------
+src\DPC++\x64\debug\OptimizingEquirectangularConversion.exe --startAlgorithm=0 --endAlgorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=GPU;CPU --platform=all --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg										
+
+V1 Equi2Rect reprojection.
+         warmup,  1,                  Frame,  7.35573370,s,  7355.73370,ms, 7355733.700,us, FPS,   0.13594837
+times averaging,100,                  Frame,  7.39082743,s,  7390.82743,ms, 7390827.429,us, FPS,   0.13530285
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.07705460,s,    77.05460,ms,   77054.600,us, FPS,  12.97781054
+times averaging,100,                  Frame,  0.01566138,s,    15.66138,ms,   15661.383,us, FPS,  63.85132143
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.07273180,s,    72.73180,ms,   72731.800,us, FPS,  13.74914412
+times averaging,100,                  Frame,  0.01934500,s,    19.34500,ms,   19344.998,us, FPS,  51.69294926
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.06825530,s,    68.25530,ms,   68255.300,us, FPS,  14.65087693
+times averaging,100,                  Frame,  0.01554860,s,    15.54860,ms,   15548.603,us, FPS,  64.31445963
+
+V1b = Changed V1a but accessed m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.07169570,s,    71.69570,ms,   71695.700,us, FPS,  13.94783788
+times averaging,100,                  Frame,  0.01930392,s,    19.30392,ms,   19303.918,us, FPS,  51.80295523
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,                  Frame,  0.03586290,s,    35.86290,ms,   35862.900,us, FPS,  27.88396923
+times averaging,100,                  Frame,  0.01559616,s,    15.59616,ms,   15596.155,us, FPS,  64.11836764
+
+V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,                  Frame,  0.03953230,s,    39.53230,ms,   39532.300,us, FPS,  25.29577080
+times averaging,100,                  Frame,  0.01937443,s,    19.37443,ms,   19374.431,us, FPS,  51.61441902
+
+V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
+         warmup,  1,                  Frame,  0.04029070,s,    40.29070,ms,   40290.700,us, FPS,  24.81962339
+times averaging,100,                  Frame,  0.01523523,s,    15.23523,ms,   15235.230,us, FPS,  65.63734187
+
+V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.
+         warmup,  1,                  Frame,  0.03962190,s,    39.62190,ms,   39621.900,us, FPS,  25.23856756
+times averaging,100,                  Frame,  0.01450140,s,    14.50140,ms,   14501.401,us, FPS,  68.95885439
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.49928040,s,   499.28040,ms,  499280.400,us, FPS,   2.00288255
+times averaging,100,                  Frame,  0.01518223,s,    15.18223,ms,   15182.233,us, FPS,  65.86646378
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.40340440,s,   403.40440,ms,  403404.400,us, FPS,   2.47890206
+times averaging,100,                  Frame,  0.01508986,s,    15.08986,ms,   15089.864,us, FPS,  66.26964961
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.38799960,s,   387.99960,ms,  387999.600,us, FPS,   2.57732224
+times averaging,100,                  Frame,  0.01511114,s,    15.11114,ms,   15111.143,us, FPS,  66.17633094
+
+DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.35950920,s,   359.50920,ms,  359509.200,us, FPS,   2.78156998
+times averaging,100,                  Frame,  0.01513490,s,    15.13490,ms,   15134.897,us, FPS,  66.07246815
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.23393710,s,   233.93710,ms,  233937.100,us, FPS,   4.27465331
+times averaging,100,                  Frame,  0.01510225,s,    15.10225,ms,   15102.245,us, FPS,  66.21532097
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.10570610,s,   105.70610,ms,  105706.100,us, FPS,   9.46019199
+times averaging,100,                  Frame,  0.01518305,s,    15.18305,ms,   15183.048,us, FPS,  65.86292818
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.21150760,s,   211.50760,ms,  211507.600,us, FPS,   4.72796249
+times averaging,100,                  Frame,  0.01511734,s,    15.11734,ms,   15117.338,us, FPS,  66.14921225
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.04129960,s,    41.29960,ms,   41299.600,us, FPS,  24.21330957
+times averaging,100,                  Frame,  0.01505793,s,    15.05793,ms,   15057.931,us, FPS,  66.41018610
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.22424350,s,   224.24350,ms,  224243.500,us, FPS,   4.45943807
+times averaging,100,                  Frame,  0.01508717,s,    15.08717,ms,   15087.165,us, FPS,  66.28150484
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.10516480,s,   105.16480,ms,  105164.800,us, FPS,   9.50888510
+times averaging,100,                  Frame,  0.01512024,s,    15.12024,ms,   15120.239,us, FPS,  66.13652073
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.21662140,s,   216.62140,ms,  216621.400,us, FPS,   4.61634908
+times averaging,100,                  Frame,  0.01508989,s,    15.08989,ms,   15089.893,us, FPS,  66.26952226
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.03920930,s,    39.20930,ms,   39209.300,us, FPS,  25.50415335
+times averaging,100,                  Frame,  0.01509061,s,    15.09061,ms,   15090.613,us, FPS,  66.26636042
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42871640,s,   428.71640,ms,  428716.400,us, FPS,   2.33254431
+times averaging,100,                  Frame,  0.01506602,s,    15.06602,ms,   15066.024,us, FPS,  66.37451261
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.25111070,s,   251.11070,ms,  251110.700,us, FPS,   3.98230740
+times averaging,100,                  Frame,  0.01508044,s,    15.08044,ms,   15080.443,us, FPS,  66.31104935
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.30253450,s,   302.53450,ms,  302534.500,us, FPS,   3.30540814
+times averaging,100,                  Frame,  0.01505284,s,    15.05284,ms,   15052.843,us, FPS,  66.43263336
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.09081330,s,    90.81330,ms,   90813.300,us, FPS,  11.01160293
+times averaging,100,                  Frame,  0.01512833,s,    15.12833,ms,   15128.335,us, FPS,  66.10112745
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42901530,s,   429.01530,ms,  429015.300,us, FPS,   2.33091920
+times averaging,100,                  Frame,  0.01515715,s,    15.15715,ms,   15157.149,us, FPS,  65.97546808
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.25091970,s,   250.91970,ms,  250919.700,us, FPS,   3.98533874
+times averaging,100,                  Frame,  0.01518303,s,    15.18303,ms,   15183.033,us, FPS,  65.86299325
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.30332580,s,   303.32580,ms,  303325.800,us, FPS,   3.29678517
+times averaging,100,                  Frame,  0.01510802,s,    15.10802,ms,   15108.017,us, FPS,  66.19002348
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.08396170,s,    83.96170,ms,   83961.700,us, FPS,  11.91019239
+times averaging,100,                  Frame,  0.01515601,s,    15.15601,ms,   15156.011,us, FPS,  65.98042189
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.18272580,s,   182.72580,ms,  182725.800,us, FPS,   5.47268092
+times averaging,100,                  Frame,  0.01514733,s,    15.14733,ms,   15147.335,us, FPS,  66.01821376
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03916170,s,    39.16170,ms,   39161.700,us, FPS,  25.53515297
+times averaging,100,                  Frame,  0.01515700,s,    15.15700,ms,   15157.004,us, FPS,  65.97609923
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.20685870,s,   206.85870,ms,  206858.700,us, FPS,   4.83421775
+times averaging,100,                  Frame,  0.01508778,s,    15.08778,ms,   15087.776,us, FPS,  66.27882068
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.05418360,s,    54.18360,ms,   54183.600,us, FPS,  18.45576890
+times averaging,100,                  Frame,  0.01510898,s,    15.10898,ms,   15108.976,us, FPS,  66.18582226
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.18287720,s,   182.87720,ms,  182877.200,us, FPS,   5.46815021
+times averaging,100,                  Frame,  0.01512623,s,    15.12623,ms,   15126.229,us, FPS,  66.11033061
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.03913380,s,    39.13380,ms,   39133.800,us, FPS,  25.55335797
+times averaging,100,                  Frame,  0.01513798,s,    15.13798,ms,   15137.977,us, FPS,  66.05902493
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.21268620,s,   212.68620,ms,  212686.200,us, FPS,   4.70176250
+times averaging,100,                  Frame,  0.01506897,s,    15.06897,ms,   15068.970,us, FPS,  66.36153632
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.05501560,s,    55.01560,ms,   55015.600,us, FPS,  18.17666262
+times averaging,100,                  Frame,  0.01511880,s,    15.11880,ms,   15118.798,us, FPS,  66.14282432
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.36055040,s,   360.55040,ms,  360550.400,us, FPS,   2.77353735
+times averaging,100,                  Frame,  0.09732942,s,    97.32942,ms,   97329.420,us, FPS,  10.27438569
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.19788590,s,   197.88590,ms,  197885.900,us, FPS,   5.05341715
+times averaging,100,                  Frame,  0.10281676,s,   102.81676,ms,  102816.762,us, FPS,   9.72604058
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.35735800,s,   357.35800,ms,  357358.000,us, FPS,   2.79831430
+times averaging,100,                  Frame,  0.03278034,s,    32.78034,ms,   32780.337,us, FPS,  30.50609272
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.23765920,s,   237.65920,ms,  237659.200,us, FPS,   4.20770582
+times averaging,100,                  Frame,  0.03929433,s,    39.29433,ms,   39294.335,us, FPS,  25.44896103
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.35781160,s,   357.81160,ms,  357811.600,us, FPS,   2.79476685
+times averaging,100,                  Frame,  0.09690874,s,    96.90874,ms,   96908.735,us, FPS,  10.31898724
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.20254750,s,   202.54750,ms,  202547.500,us, FPS,   4.93711352
+times averaging,100,                  Frame,  0.10318323,s,   103.18323,ms,  103183.226,us, FPS,   9.69149772
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.32049460,s,   320.49460,ms,  320494.600,us, FPS,   3.12017738
+times averaging,100,                  Frame,  0.03242831,s,    32.42831,ms,   32428.311,us, FPS,  30.83725205
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06815840,s,    68.15840,ms,   68158.400,us, FPS,  14.67170591
+times averaging,100,                  Frame,  0.04237926,s,    42.37926,ms,   42379.258,us, FPS,  23.59644900
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42178020,s,   421.78020,ms,  421780.200,us, FPS,   2.37090314
+times averaging,100,                  Frame,  0.09360118,s,    93.60118,ms,   93601.178,us, FPS,  10.68362623
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.19344410,s,   193.44410,ms,  193444.100,us, FPS,   5.16945205
+times averaging,100,                  Frame,  0.10128297,s,   101.28297,ms,  101282.971,us, FPS,   9.87332806
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.37171660,s,   371.71660,ms,  371716.600,us, FPS,   2.69022153
+times averaging,100,                  Frame,  0.02913841,s,    29.13841,ms,   29138.413,us, FPS,  34.31895896
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.08833290,s,    88.33290,ms,   88332.900,us, FPS,  11.32081025
+times averaging,100,                  Frame,  0.03566027,s,    35.66027,ms,   35660.272,us, FPS,  28.04241089
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.42475790,s,   424.75790,ms,  424757.900,us, FPS,   2.35428229
+times averaging,100,                  Frame,  0.09380011,s,    93.80011,ms,   93800.113,us, FPS,  10.66096797
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.19302570,s,   193.02570,ms,  193025.700,us, FPS,   5.18065729
+times averaging,100,                  Frame,  0.10134816,s,   101.34816,ms,  101348.156,us, FPS,   9.86697775
+
+DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.37913350,s,   379.13350,ms,  379133.500,us, FPS,   2.63759335
+times averaging,100,                  Frame,  0.02871392,s,    28.71392,ms,   28713.919,us, FPS,  34.82631542
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06675580,s,    66.75580,ms,   66755.800,us, FPS,  14.97997178
+times averaging,100,                  Frame,  0.03870048,s,    38.70048,ms,   38700.479,us, FPS,  25.83947346
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.39499660,s,   394.99660,ms,  394996.600,us, FPS,   2.53166736
+times averaging,100,                  Frame,  0.07758460,s,    77.58460,ms,   77584.600,us, FPS,  12.88915584
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17497850,s,   174.97850,ms,  174978.500,us, FPS,   5.71498784
+times averaging,100,                  Frame,  0.07974906,s,    79.74906,ms,   79749.059,us, FPS,  12.53933291
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.36905240,s,   369.05240,ms,  369052.400,us, FPS,   2.70964232
+times averaging,100,                  Frame,  0.02897636,s,    28.97636,ms,   28976.364,us, FPS,  34.51088618
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL HD Graphics Intel(R) UHD Graphics 630 31.0.101.2125
+         warmup,  1,                  Frame,  0.08137620,s,    81.37620,ms,   81376.200,us, FPS,  12.28860527
+times averaging,100,                  Frame,  0.03555953,s,    35.55953,ms,   35559.525,us, FPS,  28.12186046
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.41258110,s,   412.58110,ms,  412581.100,us, FPS,   2.42376590
+times averaging,100,                  Frame,  0.07831440,s,    78.31440,ms,   78314.405,us, FPS,  12.76904294
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,  1,                  Frame,  0.17612010,s,   176.12010,ms,  176120.100,us, FPS,   5.67794363
+times averaging,100,                  Frame,  0.08012810,s,    80.12810,ms,   80128.100,us, FPS,  12.48001637
+
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.37939450,s,   379.39450,ms,  379394.500,us, FPS,   2.63577885
+times averaging,100,                  Frame,  0.02912164,s,    29.12164,ms,   29121.636,us, FPS,  34.33873015
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,  1,                  Frame,  0.06572090,s,    65.72090,ms,   65720.900,us, FPS,  15.21585979
+times averaging,100,                  Frame,  0.03868058,s,    38.68058,ms,   38680.582,us, FPS,  25.85276509
+

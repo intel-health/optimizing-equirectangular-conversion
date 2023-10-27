@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Flatten360Image.cpp">
+    <ClCompile Include="OptimizingEquirectangularConversion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ParseArgs.cpp">
@@ -89,7 +89,7 @@
     <ClInclude Include="SerialRemappingV1a.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Flatten360Image.h">
+    <ClInclude Include="OptimizingEquirectangularConversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TimingStats.hpp">

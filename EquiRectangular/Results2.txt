@@ -1,0 +1,46 @@
+Results from 100 iterations of equirectangular-to-rectlinear-master
+
+Debug mode - Original code
+Average for 100 frames   7.51577697s   7515.77697ms  7515776.973us   0.13305344 FPS
+
+Release mode - Original code
+Average for 100 frames   1.14592754s   1145.92755ms  1145927.545us   0.87265552 FPS
+
+Release mode - Cache Rot * K.inv()
+Average for 100 frames   0.56449626s    564.49626ms   564496.264us   1.77149091 FPS
+
+
+
+
+python RunEquirec2Perspec.py [Intel distribution of Python]
+Average for  100  frames  0.08876673799999998 s  88.76673799999999 ms  88766.73799999998 us  11.265480995820756  FPS
+
+py RunEquirec2Perspec.py
+Average for  100  frames  0.088532801 s  88.53280099999999 ms  88532.80099999999 us  11.295248638976192  FPS
+
+
+import os
+import cv2 
+import Equirec2Perspec as E2P 
+import time
+
+if __name__ == '__main__':
+    equ = E2P.Equirectangular('..\..\\..\\images\\IMG_20230629_082736_00_095.jpg')    # Load equirectangular image
+    
+    iterations = 100
+    start_time = time.perf_counter()
+    for i in range(0, iterations, 1):
+        #
+        # FOV unit is degree 
+        # theta is z-axis angle(right direction is positive, left direction is negative)
+        # phi is y-axis angle(up direction positive, down direction negative)
+        # height and width is output image dimension 
+        #
+        img = equ.GetPerspective(60, 0, 0, 540, 1080) # Specify parameters(FOV, theta, phi, height, width)
+    
+    end_time = time.perf_counter()
+    aveDuration = (end_time - start_time) / iterations
+    print("Average for ", iterations, " frames ", aveDuration, "s ", aveDuration * 1000, "ms ", aveDuration * 1000000, "us ", iterations / (end_time - start_time), " FPS")
+    
+    cv2.imshow("Flat View", img)
+    cv2.waitKeyEx(0)

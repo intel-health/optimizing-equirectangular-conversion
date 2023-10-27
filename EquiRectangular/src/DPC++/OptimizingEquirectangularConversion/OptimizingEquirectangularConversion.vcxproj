@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{5e043e92-a66c-4dd9-b7c8-749621cae338}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Flatten360Image</RootNamespace>
+    <RootNamespace>OptimizingEquirectangularConversion</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -100,7 +100,7 @@
     <ClCompile Include="SerialRemappingV1a.cpp" />
     <ClCompile Include="DpcppRemapping.cpp" />
     <ClCompile Include="BaseAlgorithm.cpp" />
-    <ClCompile Include="Flatten360Image.cpp" />
+    <ClCompile Include="OptimizingEquirectangularConversion.cpp" />
     <ClCompile Include="ParseArgs.cpp" />
     <ClCompile Include="SerialRemappingV1b.cpp" />
     <ClCompile Include="SerialRemappingV1c.cpp" />
@@ -117,7 +117,7 @@
     <ClInclude Include="DpcppRemappingV6.hpp" />
     <ClInclude Include="DpcppRemappingV7.hpp" />
     <ClInclude Include="Equi2Rect.hpp" />
-    <ClInclude Include="Flatten360Image.h" />
+    <ClInclude Include="OptimizingEquirectangularConversion.h" />
     <ClInclude Include="Point2D.hpp" />
     <ClInclude Include="SerialRemappingV1a.hpp" />
     <ClInclude Include="DpcppRemapping.hpp" />

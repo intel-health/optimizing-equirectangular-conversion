@@ -144,38 +144,17 @@ void DpcppRemapping::ComputeXYZCoords()
 	{
 
 		m_pQ->submit([&](sycl::handler& cgh) {
-			//cgh.parallel_for(sycl::range<2>(height, width),
-			//[=](sycl::id<2> item) {
-			//	Point3D *pElement = &pPoints[item[0] * width + item[1]];
+			cgh.parallel_for(sycl::range<2>(height, width),
+			[=](sycl::id<2> item) {
+				Point3D *pElement = &pPoints[item[0] * width + item[1]];
 
-			//	pElement->m_x = item[1] * invf + translatecx;
-			//	pElement->m_y = item[0] * invf + translatecy;
-			//	pElement->m_z = 1.0f;
-			//});
-			Point3D *pElement = &pPoints[0];
-			for (int y = 0; y < height; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					pElement->m_x = x * invf + translatecx;
-					pElement->m_y = y * invf + translatecy;
-					pElement->m_z = 1.0f;
-					pElement++;
-				}
-			}
+				pElement->m_x = item[1] * invf + translatecx;
+				pElement->m_y = item[0] * invf + translatecy;
+				pElement->m_z = 1.0f;
+			});
 		});
 		m_pQ->wait();
 
-		//for (int y = 0; y < m_parameters->m_heightOutput; y++)
-		//{
-		//	for (int x = 0; x < m_parameters->m_widthOutput; x++)
-		//	{
-		//		pElement->m_x = x * invf + translatecx;
-		//		pElement->m_y = y * invf + translatecy;
-		//		pElement->m_z = 1.0f;
-		//		pElement++;
-		//	}
-		//}
 		break;
 	}
 	}
