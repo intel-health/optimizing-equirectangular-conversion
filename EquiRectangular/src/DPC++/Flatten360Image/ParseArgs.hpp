@@ -104,6 +104,7 @@ typedef struct _SParameters {
 	// the given version number.  If this is set to "", then any of the versions
 	// will be considered depending on how the other parameters are set.
 	std::string m_driverVersion;
+	bool m_bShowFrames;
 
 	bool operator!=(const struct _SParameters& a) const
 	{

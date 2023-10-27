@@ -16,5 +16,8 @@ copy ..\..\images\sphere-view-0-0-0-60.jpg .
 copy ..\..\images\sphere-view-0-45-0-60.jpg .
 copy ..\..\images\sphere-view-0-74-0-60.jpg .
 copy ..\..\images\sphere-view-0-90-0-60.jpg .
+copy ..\..\images\author.jpg .
+copy ..\Extras\MakeZoomable.js .
+copy ..\Extras\BlogStyles.css .
 
 python -m http.server 8001

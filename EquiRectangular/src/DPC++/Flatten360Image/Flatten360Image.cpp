@@ -108,6 +108,9 @@ int main(int argc, char** argv) {
     bool bRunningVariant;
     bool bVariantValid;
     std::vector<std::string> summaryStats;
+    int origYaw = parameters.m_yaw;
+    int origPitch = parameters.m_pitch;
+    int origRoll = parameters.m_roll;
 
     if (parameters.m_algorithm > -1)
     {
@@ -239,6 +242,12 @@ int main(int argc, char** argv) {
                 {
                     pTimingStats->Reset();
                     description = pAlg->GetDescription();
+                    // Reset the perspective back to the inital values so each algorithm
+                    // works from the same baseline
+                    parameters.m_yaw = origYaw;
+                    parameters.m_pitch = origPitch;
+                    parameters.m_roll = origRoll;
+                    parameters.m_imageIndex = 0;
                     iteration = 0;
 
                     pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
@@ -308,6 +317,17 @@ int main(int argc, char** argv) {
                                     iteration++;
                                     if (!bInteractive)
                                     {
+                                        if (parameters.m_bShowFrames)
+                                        {
+                                            char windowText[1024];
+
+                                            sprintf(windowText, "Algorithm %d Flat View %s", algorithm, description.c_str());
+
+                                            cv::imshow(windowText, flatImg);
+                                            // Waiting for a key for 1 millisecond gives OpenCV a hint that it
+                                            // should show the frame
+                                            key = cv::waitKeyEx(1);
+                                        }
                                         parameters.m_yaw += parameters.m_deltaYaw;
                                         parameters.m_pitch += parameters.m_deltaPitch;
                                         parameters.m_roll += parameters.m_deltaRoll;
@@ -330,7 +350,8 @@ int main(int argc, char** argv) {
 
                                     cv::imshow(windowText, flatImg);
                                 }
-                                else
+
+                                if (!bInteractive)
                                 {
                                     pTimingStats->AddIterationResults(ETimingType::TIMING_TOTAL, totalTimeStart, totalTimeEnd);
                                 }

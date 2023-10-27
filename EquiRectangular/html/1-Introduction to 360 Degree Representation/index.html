@@ -8,12 +8,7 @@
     Introduction to 360 Degree Videos and Imaging
   </title>
   <script type="text/javascript" src="Equirectangular.js"></script>
-  <style>
-  table {
-    table-layout: fixed;
-    width: 100%;    
-  }
-  </style>  
+  <link rel="stylesheet" href="BlogStyles.css">
 </head>
 
 <body onLoad="displayFlattened([['globe-equirectangular.jpg', 'GlobeFlattenedImage', 'GlobeRawImage'], 
@@ -39,7 +34,7 @@ around the scene with the following keystrokes:
 <li>Alternatively, it is also possible to use the mouse to click and drag the image to change the right/left/up/down positioning and the mouse scroll wheel changes the field of view.</li>
 </ul>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <center>
 <canvas id="PhotoFlattenedImage" width="640" height="640" tabindex="1">
   Sorry, this browser does not support the HTML5 canvas element
@@ -74,7 +69,7 @@ fenced yard with the road extending directly to the left and right of the camera
 Further down in this post, additional visualization techniques are used to help understand why the road appears to get folded in half.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <canvas id="PhotoRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
@@ -134,7 +129,7 @@ For instance, the metadata for Figure 2 is:
 </textarea> 
 <p></p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <canvas id="GlobeRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
@@ -151,7 +146,7 @@ of the image converge at the two poles of the sphere.
 
 <p></p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <center>
 <canvas id="GlobeFlattenedImage" width="640" height="320" tabindex="2">
   Sorry, this browser does not support the HTML5 canvas element
@@ -175,7 +170,7 @@ The field of view "rectangle" outlines the top of the view with a blue line, the
 understand the orientation of the rectangle as it is moved around in the equirectangular layout as well as on the spherical layout.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 
 <table>
 <tr>
@@ -196,7 +191,7 @@ Figure 5: The Three Perspectives with Tilt = 0
 
 <p></p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <table>
 <tr>
   <td width="50%">
@@ -221,7 +216,7 @@ Notice how the area of holding the pixels that are used in the rectilinear image
 the north pole of the sphere.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <table>
 <tr>
   <td width="50%">
@@ -246,7 +241,7 @@ As the field of view is reaching the north pole of the sphere, the top line beco
 it splits out to both the right and the left on the equirectangular layout.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <table>
 <tr>
   <td width="50%">
@@ -286,7 +281,7 @@ are not particularily storage efficient given the amount of unused pixels (the b
 other either horizontally or vertically.  While the storage size is more efficient, visualizing how the cubemap folds into a cube is harder with these layouts.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <img src="globe-cubemap.jpg" style="max-width:100%"></img>
 <center>
 Figure 9: Example Cubemap Image Layout
@@ -298,7 +293,7 @@ Alternatively, Figure 10 displays the Cubemap showing a grid plotted every 10 de
 TL = Top Left, TR = Top Right, BL = Bottom Left, and BR = Bottom Right are also shown for orientation.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <img src="generated360image-cubemap.jpg" style="max-width:100%"></img>
 <center>
 Figure 10: Cubemap Labeled Faces
@@ -319,7 +314,7 @@ Similarly, lines greater than 45 degrees on the left make a U like shape when jo
 equirectangular image being wrapped around the sphere.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <canvas id="Generated360imageRawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
@@ -330,7 +325,7 @@ Figure 11: The equirectangular representation of data for Figure 12
 
 <p></p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <center>
 <canvas id="Generated360imageFlattenedImage" width="640" height="640" tabindex="3">
   Sorry, this browser does not support the HTML5 canvas element
@@ -345,7 +340,7 @@ Figure 13 makes the Cube face representation 50% transparent and overlays it on 
 in understanding how the 360 image coordinates correspond to the equirectangular mapping.  Figure 14 allows interacting with the overlay and looking around the scene.
 </p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <canvas id="ImageAndOverlay-RawImage" style="max-width:100%">
   Sorry, this browser does not support the HTML5 canvas element
 </canvas>
@@ -356,7 +351,7 @@ Figure 13: Raw Overlay of Cube Faces and Original Image
 
 <p></p>
 
-<div style="white-space: pre; line-height: 1; background: #C0C0C0; padding: 5;">
+<div class="Figure">
 <center>
 <canvas id="ImageAndOverlay-FlattenedImage" width="640" height="640" tabindex="3">
   Sorry, this browser does not support the HTML5 canvas element

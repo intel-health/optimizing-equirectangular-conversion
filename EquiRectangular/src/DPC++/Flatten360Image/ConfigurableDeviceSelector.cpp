@@ -45,7 +45,7 @@ void ConfigurableDeviceSelector::set_search(std::string type_preference, std::st
 	c_platform = platform;
 	c_device_name = device_name;
 	c_driver_version = driver_version;
-	std::cout << "Device search set to platform = " << c_platform << " device name = " << c_device_name << " driver_version = " << c_driver_version << std::endl;
+	std::cout << "Device search set to type = " << type_preference << " platform = " << c_platform << " device name = " << c_device_name << " driver_version = " << c_driver_version << std::endl;
 }
 
 // Pass the following function to the sycl::queue to use the criteria that were
@@ -57,35 +57,36 @@ int ConfigurableDeviceSelector::device_selector(const sycl::device& device)
 	std::string driver_version = device.get_info<sycl::info::device::driver_version>();
 	int retVal = -2;
 
-	if (c_platform != "" || c_device_name != "" || c_driver_version != "")
+	// If a type preference list was provided, make sure the device being tested has
+	// that type.
+	if (!c_type_preference.empty())
 	{
-		if (platform_name.find(c_platform) != std::string::npos &&
-			device_name.find(c_device_name) != std::string::npos &&
-			driver_version.find(c_driver_version) != std::string::npos)
+		auto iter = c_type_preference.find(get_device_type_string(device));
+		if (iter != c_type_preference.end())
 		{
-			{
-				retVal = 100000;
-			}
+			// It does so use the rank that is associated with the matched preference.
+			retVal += iter->second;
 		}
 		else
 		{
 			retVal = -1;
 		}
 	}
-	else
-	{
-		retVal = 0;
-	}
-	// If the above filter specifically says (retVal = -1) to skip this device,
-	// then we are done.  Else run the type_preference filtering.
+
+	// If the previous code sets retVal to -1, then we do not want to select the device; otherwise,
+	// see if the platform, device, or driver version has been set.  If so, make sure the device
+	// matches; otherwise, we don't want to select it.
 	if (retVal != -1)
 	{
-		if (!c_type_preference.empty())
+		if (c_platform != "" || c_device_name != "" || c_driver_version != "")
 		{
-			auto iter = c_type_preference.find(get_device_type_string(device));
-			if (iter != c_type_preference.end())
+			if (platform_name.find(c_platform) != std::string::npos &&
+				device_name.find(c_device_name) != std::string::npos &&
+				driver_version.find(c_driver_version) != std::string::npos)
 			{
-				retVal += iter->second;
+				{
+					retVal += 100000;
+				}
 			}
 			else
 			{
@@ -94,9 +95,9 @@ int ConfigurableDeviceSelector::device_selector(const sycl::device& device)
 		}
 	}
 
-	// Select higher compute units over lower ones
 	if (retVal >= 0)
 	{
+		// Select higher compute units over lower ones
 		retVal += device.get_info<sycl::info::device::max_compute_units>();
 		// Give preference to newer drivers (this assumes that driver_versions
 		// can be compared with strcmp and newer versions will be >).

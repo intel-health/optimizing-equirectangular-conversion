@@ -1,0 +1,716 @@
+<!-- Copyright (C) 2023 Intel Corporation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+<html>
+
+<head>
+  <title>
+    Execution Framework and Serial Code Optimizations
+  </title>
+  <script type="text/javascript" src="MakeZoomable.js"></script>
+  <link rel="stylesheet" href="BlogStyles.css">
+</head>
+
+<body onLoad="enableZoom()">
+
+<h1>Execution Framework and Serial Code Optimizations</h1>
+
+<p>
+The previous blog, <a href="TODO insert URL here">Existing Open Source for 360 Degree Projection</a>, revealed that different implementations for converting an equirectangular image
+into rectilinear view can take different amounts of time.  This blog post describes a framework that enables exploring of different techniques to optimize existing
+open source options and determining how much faster an optimized algorithm can run and any tradeoffs needed for those optimizations.
+</p>
+
+<h2>Introducing a Code Framework for 360 Equirectangular Images</h2>
+
+<p>
+In order to test different algorithms for converting from an equirectangular to rectilinear image, the open source code generally has the following elements with some being optional
+when testing how fast a specific algorithm functions:
+<ul>
+<li>Accept viewing parameters such as yaw, pitch, roll, viewport size, and algorithm(s) to be used when extracting an image</li>
+<li>For each algorithm
+<ul>
+<li>Initialize the algorithm</li>
+<li>For N iterations</li>
+<ul>
+<li>Calculate the pixel addresses to extract from the equirectangular image</li>
+<li>Extract the pixel color from each of the addresses</li>
+<li>Optional: Display the extracted image</li>
+<li>Optional: Update viewing parameters for the next extraction either by automatically updating values or manually accepting input from the operator</li>
+</ul>
+<li>End For N iterations</li>
+<li>Report timing information for the algorithm iterations</li>
+</ul>
+<li>End For each algorithm</li>
+<li>Report summary statistics for the run</li>
+</ul>
+</p>
+
+<p>
+The code found in the github repository <a href="https://github.com/intel-health/TODO-getfinallocation">Flatten 360 Image</a> implements the elements described above with some enhancements.  For instance,
+some of the algorithms being tested take longer during the first iteration due to a need to compile a kernel or pass the kernel to an accelerator in the system such as a GPU.  In cases such as
+video conversion, this "warmup iteration" happens at the very beginning and has a minor effect on the overall experience; however, for cases where the extraction happens on a single frame, 
+this warmup time may be significant.  To help distinguish between these two situations, the framework separates out the first iteration as a "warmup iteration" and then takes the average 
+of the remaining iterations.  This allows the operator to understand how the algorithm will perform for either single frames or changing frames which could either be a video stream 
+or changing as the operator moves the viewport around the scene.
+</p>
+
+<p>
+The code that implements the psuedocode described above can be found in Flatten360Image.cpp.  This file uses ParseArg.cpp to parse the command line parameters.  Running the executable with
+the command line flag --help, -h, or -? prints out the full list of available flags and their default values.  These can be used to configure the run and specify the algorithm(s) to use,
+the initial viewing direction, the amount to change that direction with each iteration, the images to use, and so on.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">Flatten360Image.exe -h
+</span><span class="ResultsLine">Usage: Flatten360Image.exe [flags]
+Where: flags can be zero or more of the following (all flags are case insensitive):
+--algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes
+    precedence over --startAlgorithm and --endAlgorithm.  Defaults to -1.
+    -1 = execute algorithms from --startAlgorithm to --endAlgorithm.
+     0 = Algorithm from https://github.com/rfn123/equirectangular-to-rectlinear/blob/master/Equi2Rect.cpp.
+     1 = Conversion to C++ of the Python algorithm from
+         https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py
+     2 = Changed 1 to access m_pXYZPoints by moving a pointer instead of array indexing each time.
+     3 = Changed 2 to cache m_rotationMatrix instead of array indexing each time.
+     4 = Single loop point by point conversion from equirectangular to flat.
+     5 = Computes a Remapping algorithm using oneAPI's DPC++.
+     6 = Single kernel vs 3 kernels using oneAPI's DPC++.
+     7 = Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group.
+     8 = Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter.
+     9 = Algorithm 6 and optimized ExtractFrame using DPC++.
+    10 = Algorithm 9 USM but just taking the truncated pixel point.
+    11 = Algorithm 10 USM but on CPU don't copy memory.
+--deltaImage is a flag to indicate that the image should be changed between each iteration to
+    simulate a video stream.
+--deltaPitch=N where N is the amount of pitch to add each iteration (up or down).  This can run from
+    -90 to 90 integer degrees.  The negative values are down and positive are up.  Default is 0
+--deltaRoll=N where N is the amount of roll to add each iteration.  This can run from -360 to 360 integer degrees.
+    Default is 0
+--deltaYaw=N where N is the amount of yaw to add each iteration.  This can run from -360 to 360 integer degrees.
+    Default is 0.
+--deviceName=value where value is a string to match against device names to
+    select the best device to run the code on.  Other options include:
+      all - to run on all devices or
+      list - to list device options.  Only used for DPC++ algorithms.
+    Defaults to empty string (select any)
+--driverVersion=value where value is a version number to select.  Only used for
+    DPC++ algorithms.  Defaults to empty string (select any)
+--endAlgorithm=N where N denotes the last algorithm to run.  Use -1 to run to end of all algorithms.
+    Defaults to -1--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.
+--heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.
+--help|-h|-? means to display the usage message
+--img0=filePath where filePath is the path to an equirectangular image to load for the first frame.
+    Defaults to ..\..\..\images\IMG_20230629_082736_00_095.jpg.
+--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.
+    Defaults to ..\..\..\images\ImageAndOverlay - equirectangular.jpg.
+--iterations=N where N is the number of iterations.  Defaults to 0 (interactive)
+--platformName=value where value is a string to match against platform names.
+    Other options include:
+      all - to run on all platforms or
+      list - to list the platforms.
+    Only used for DPC++ algorithms.  Defaults to empty string (select any)
+--pitch=N where N is the pitch of the viewer's perspective (up or down).  This can run from
+    -90 to 90 integer degrees.  The negative values are down and positive are up.  0 is straight ahead.  Default is 0
+--roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.  The rotation is counter
+    clockwise so 90 integer degrees will lift the right side of the 'camera' up to be on top.  180 will flip the
+     'camera' upside down.  270 will place the left side of the camera on top.  Default is 0
+--startAlgorithm=N where N defines the first algorithm number to run and then all algorithms up to and including
+    --endAlgorithm will be run in succession.  Defaults to 0.
+--showFrames indicates each calculated frame should be shown.  Defaults to true for interactive mode, false otherwise.
+--typePreference=type1;type2;... where the types can be CPU, GPU, or
+    ACC (for Accelerator such as FPGA.  type1 is highest preference, then type2, etc.
+--widthOutput=N where N is the number of pixels width the flattened image will be.  Default is 1080.
+--yaw=N where N defines the yaw of the viewer's perspective (left or right angle).  This can run from
+    -180 to 180 integer degrees.  Negative values are to the left of center and positive to the right.  0 is
+    straight ahead (center of equirectangular image).  Default is 0.
+</span>
+</div>
+</code>
+
+<p>
+The file TimingStats.cpp contains a class which can be called periodically as the code executes in order to capture the amount of time different steps in the algorithm take execute.
+This class manages the warmup times, summing and averaging multiple iterations after warm up, and reporting out the information.
+</p>
+
+<p>
+The framework includes a BaseAlgorithm.cpp that defines an abstract base class that has pure virtual functions indicating what the inheriting classes must implement so the framework can
+call the algorithm implementations.  Aside from the constructor and destructor, the base class has a function for the following:
+<ul>
+<li> FrameCalculations - determine the pixel addresses for the frame</li>
+<li> ExtractFrameImage - make a copy of the required pixels</li>
+<li> GetDebugImage - return the equirectangular image with an outline of the frame that was calculated</li>
+<li> GetDescription - provide a brief description of the algorithm</li>
+<li> StartVariant - informs the algorithm to move to the next variation since some of the algorithms can be run in multiple ways (e.g., on CPU or on GPU)</li>
+<li> StopVariant - informs the algorithm that the current variant is completing.  This allows variant cleanup such as releasing memory allocations</li>
+</ul>
+</p>
+
+<p>
+The majority of the other files in the framework contain classes that derive from the base class above and implement various algorithms for extracting a rectilinear image from
+an equirectangular image.  The following sections of this blog describe the algorithms.
+</p>
+<h2>Running the Framework in Interactive Mode</h2>
+
+<p>
+In order to assist with debugging and checking implemented algorithms for correct behaviors, the framework supports an interactive mode.  Placing the flag --iterations=0 on the command
+line launches in interactive mode.  The framework initializes according to all other command line flags, runs the first algorithm, and then presents the rectilinear image in
+a window.  The person running the code can interact using that window to manually change many of the parameters and the displayed image will update accordingly.  The framework
+supports changing the yaw, pitch, and roll.  To provide maximum control, there is an internal "delta" value that determines how many degrees to move in a selected direction.  This
+value is initialized to 10, but can be altered using keystrokes described below.
+The accepted keys
+include:
+<ul>
+<li>
+[#]Right arrow - add "delta" to the current yaw setting.  Optionally, if a positive or negative number is entered prior to hitting the right arrow, the "delta"
+value is changed to the entered number and then applied when the right arrow is entered.
+</li>
+<li>Left arrow - similar to right arrow except the "delta" value is subtracted from the yaw.</li>
+<li>Up arrow - similar to right arrow except the "delta" value is added to the pitch.</li>
+<li>Down arrow - similar to right arrow except the "delta" value is subtracted from the pitch.</li>
+<li>PgUp - similar to right arrow except the "delta" value is subtracted from the roll.</li>
+<li>PgDn - similar to right arrow except the "delta" value is added to the roll.</li>
+<li>End - similar to right arrow except the "delta" value is subtracted from the roll.</li>
+<li>Home - similar to right arrow except the "delta" value is added to the roll.</li>
+<li>* - similar to right arrow except the "delta" is subtracted from the field of view (fov).  The image zooms in.</li>
+<li>/ - similar to right arrow except the "delta" is added to the field of view (fov).  The image zooms out.</li>
+<li>f - the image being displayed is changed to the other image (e.g., img0 to img1 or img1 to img0).</li>
+<li>a - change the algorithm.  Enter a number from 0 - 11 before the a key to jump to that algorithm.</li>
+<li>p - change the pitch to a given value.  Enter a number before the p key to jump to that pitch.</li>
+<li>r - change the roll to a given value.  Enter a number from 0 - 11 before the r key to jump to that roll.</li>
+<li>y - change the yaw to a given value.  Enter a number from 0 - 11 before the y key to jump to that yaw.</li>
+<li>s - saves the currently displayed image to the current directory.</li>
+<li>d - a debug window opens and for many algorithms the fov rectangle is shown superimposed on the underlying image.</li>
+<li>q or Esc - exit the current variant of the algorithm and move on to the next.</li>
+</ul>
+
+<h2>Algorithm 0</h2>
+
+<p>
+The first algorithm utilizes the concepts from https://github.com/rfn123/equirectangular-to-rectlinear/blob/master/Equi2Rect.cpp and folds them into a derived class for the framework.
+A code execution returns the output shown below.  The first line of the output shows the command that was used to produce the subsequent output.  The --algorithm=0 selects algorithm
+zero to be used during the run.  THe --iterations tells the program to run 101 total iterations with the first being a warmup and the remaining one hundred being for averaging the results.
+The --yaw, --pitch, and --roll values define the initial viewport direction.  The --deltaYaw tells how many degrees to add to the viewport viewing direction with each new iteration so
+iteration two will have a yaw of the initial 10 plus another 10 so it will point at 20 degrees to the right of center.  The next iteration will be 30 degrees and so on.
+The --typePreference selects the processor to use for doing the calculations; however, note that for any algorithm that is not using Data Parallel C++, this flag is ignored.  The final
+--img flags select the images to load.
+</p>
+
+<p>
+The framework provides the ability to time different portions of a code run.  The warmup rows represent results from the first run of
+the algorithm.  Sometimes this takes longer than subsequent runs due to allocating and initializing memory, selecting and compiling the correct kernel to run (discussed later), and
+any other startup tasks.
+</p>
+
+<p>
+The "times averaging" rows report the average of the remaining N runs, in this case N = 100.  By running multiple iterations, it smooths out the results since
+it is possible that a single run may get swapped out in the middle of the calculation or take a bit longer than others as it executes.  Generally speaking, averaging a sufficiently
+large number of iterations makes the results easier to compare and less susceptible to anomolies.
+</p>
+
+<p>
+The "lap averaging" rows combine the warmup and times averaging to get the total picture of a run from start to finish across the N+1 iterations.  The one exception is the lap averaging
+Total row where the iteration count is 1.  That row represents the duration of the entire execution of the program.  The iteration count is one since it represents one iteration of the program.
+</p>
+
+<p>
+The summary lines are repeats of the warmup and times averaging rows for summarizing the results of processing a frame of data.  They are repeated for convenience so the person executing
+the code can quickly see the frame per second (FPS) results of the algorithm.
+<p>
+
+<p>
+Notice that all rows are comma separated variables (CSV).  This makes it easy to copy/paste the results into a program like Excel to do further analysis.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">Loading Image0
+</span><span class="ResultsLine">Loading Image1
+</span><span class="ResultsLine">Images loaded.
+</span><span class="ResultsLine">Algorithm description: V1 Equi2Rect reprojection.
+</span><span class="ResultsLine">         warmup,  1,   Class initialization,  0.00062570,s,     0.62570,ms,     625.700,us,
+</span><span class="ResultsLine">         warmup,  1, Variant initialization,  0.00000640,s,     0.00640,ms,       6.400,us,
+</span><span class="ResultsLine">         warmup,  1,     Frame Calculations,  0.00010180,s,     0.10180,ms,     101.800,us,
+</span><span class="ResultsLine">         warmup,  1,       Image extraction,  1.08168020,s,  1081.68020,ms, 1081680.200,us,
+</span><span class="ResultsLine">         warmup,  1,               frame(s),  1.08178460,s,  1081.78460,ms, 1081784.600,us, FPS,   0.92439844
+</span><span class="ResultsLine">times averaging,100,     Frame Calculations,  0.00000509,s,     0.00509,ms,       5.093,us,
+</span><span class="ResultsLine">times averaging,100,       Image extraction,  1.07800978,s,  1078.00978,ms, 1078009.780,us,
+</span><span class="ResultsLine">times averaging,100,               frame(s),  1.07801616,s,  1078.01616,ms, 1078016.160,us, FPS,   0.92762988
+</span><span class="ResultsLine">  lap averaging,101,     Frame Calculations,  0.00000605,s,     0.00605,ms,       6.050,us,
+</span><span class="ResultsLine">  lap averaging,101,       Image extraction,  1.07804612,s,  1078.04612,ms, 1078046.121,us,
+</span><span class="ResultsLine">  lap averaging,101,               frame(s),  1.07805347,s,  1078.05347,ms, 1078053.471,us, FPS,   0.92759777
+</span><span class="ResultsLine">  lap averaging,  1,                  Total,108.88348860,s,108883.48860,ms,108883488.600,us,
+</span><span class="ResultsLine">All done!  Summary of all runs:
+</span><span class="ResultsLine">V1 Equi2Rect reprojection.
+</span><span class="ResultsLine">         warmup,  1,               frame(s),  1.08178460,s,  1081.78460,ms, 1081784.600,us, FPS,   0.92439844
+</span><span class="ResultsLine">times averaging,100,               frame(s),  1.07801616,s,  1078.01616,ms, 1078016.160,us, <span class="ResultsHighlight">FPS,   0.92762988</span>
+</span>
+</div>
+</code>
+
+<p>
+As shown above, the framework supplies information about various stages of processing an image.  The Class initializtion times record the amount of time it takes to instantiate
+the class that implements a particular algorithm.
+</p>
+
+<p>
+Within the framework, each class implementing an algorithm may have different variants.  Think of these as minor variations on an algorithm that are being tested to see which
+is more efficient.  For instance, variations may store data in memory differently such as array of structures, structure of arrays, row / column order, column / row order, and so on.
+To support these variations, after class instantition, the StartVariant is called for each variation.  The Variant initializations reports the amount of time it takes to do this initialization.
+</p>
+
+<p>
+The Frame Calculations represent how long the algorithm spends in calculating the frame or the pixel locations to extract from the equirectangular image to create a rectilinear view
+for a given viewing port.  In some cases, as is the case above, the algorithm does not pre-compute the frame information and, thus, the length of time is short.  But as shown later,
+other algorithms do pre-compute the frame information and may cache this information to optimize for video streams or other cases where the viewing direction does not change, but the
+underlying equirectangular image does change.
+</p>
+
+<p>
+The Image extraction tells the amount of time it takes the algorithm to copy all the appropriate pixels from the equirectangular image into the new rectilinear image.
+</p>
+
+<p>
+The frame(s) row reports how long it takes to do all the work to extract a frame.  This row also reports the maximum frame per second rate that could be achieved by this algorithm
+assuming that nothing else was happening in the overall workflow.  Obviously, this is unrealistic in an actual workflow since the extracted image would need to be displayed to the
+person using the program, but it gives a well define metric to use when comparing the efficiency of one algorithm versus another.
+</p>
+
+<p>
+The same Intel&reg; i9-9900k machine was used to execute the program as was used in the <a href="TODO link to blog 2">previous blog</a> that introduced this code.  The yellow highlighted
+FPS (0.92762988) is approximately the same as the previous standalone results (0.89846216), so incorporating the code into the framework did not introduce substantial overhead.
+</p>
+
+<h2>Algorithm 1</h2>
+
+<p>
+The second algorithm ports the concepts from the Python code found in https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py into a derived class for this framework.
+In this case, two variations were created to test whether row / column or column / row layout is better.  Thus, the results shown below report on both variations.  The row/column layout
+is faster by about 8 FPS.  This is primarily due to the fact that OpenCV represents images in row/column format thus storing results in column/row format in the algorithm forces an
+additional step of transposing from column/row to row/column for the extraction phase.
+</p>
+
+<p>
+For this algorithm, extra code was added to report on the amount of time the three key function calls take (Create XYZ Coords, Create Lon Lat Coords, and Create XY Coords) as well as
+the extra Create Map step required to transpose the map.  As can be seen, the Create Map step accounts for 1.8 milliseconds on average, and this step along accounts for the majority
+of the slowdown (i.e., if we take the overall frame time (17.70360) and subtract the Create Map time (1.84352), the frame time would take 15.86008 which is similar to the row/column
+frame time of 15.42411 milliseconds).
+</p>
+
+<p>
+Comparing the FPS results below against the original Python results shows the C++ implementation to be about 5.5 times faster (i.e., 64.83354991 / 11.821199533998858).
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">Loading Image0
+Loading Image1
+Images loaded.
+Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,   Class initialization,  0.00002380,s,     0.02380,ms,      23.800,us,
+         warmup,  1, Variant initialization,  0.00007300,s,     0.07300,ms,      73.000,us,
+         warmup,  1,      Create XYZ Coords,  0.00248180,s,     2.48180,ms,    2481.800,us,
+         warmup,  1,  Create Lon Lat Coords,  0.01253490,s,    12.53490,ms,   12534.900,us,
+         warmup,  1,       Create XY Coords,  0.00207160,s,     2.07160,ms,    2071.600,us,
+         warmup,  1,     Frame Calculations,  0.01709680,s,    17.09680,ms,   17096.800,us,
+         warmup,  1,                  Remap,  0.01028550,s,    10.28550,ms,   10285.500,us,
+         warmup,  1,       Image extraction,  0.01028640,s,    10.28640,ms,   10286.400,us,
+         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  36.51434101
+times averaging,100,      Create XYZ Coords,  0.00055944,s,     0.55944,ms,     559.437,us,
+times averaging,100,  Create Lon Lat Coords,  0.01125354,s,    11.25354,ms,   11253.539,us,
+times averaging,100,       Create XY Coords,  0.00068595,s,     0.68595,ms,     685.953,us,
+times averaging,100,     Frame Calculations,  0.01249949,s,    12.49949,ms,   12499.485,us,
+times averaging,100,                  Remap,  0.00274433,s,     2.74433,ms,    2744.326,us,
+times averaging,100,       Image extraction,  0.00292323,s,     2.92323,ms,    2923.234,us,
+times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  64.83354991
+  lap averaging,101,      Create XYZ Coords,  0.00057847,s,     0.57847,ms,     578.470,us,
+  lap averaging,101,  Create Lon Lat Coords,  0.01126623,s,    11.26623,ms,   11266.226,us,
+  lap averaging,101,       Create XY Coords,  0.00069967,s,     0.69967,ms,     699.672,us,
+  lap averaging,101,     Frame Calculations,  0.01254500,s,    12.54500,ms,   12545.003,us,
+  lap averaging,101,                  Remap,  0.00281899,s,     2.81899,ms,    2818.991,us,
+  lap averaging,101,       Image extraction,  0.00299614,s,     2.99614,ms,    2996.137,us,
+  lap averaging,101,               frame(s),  0.01554255,s,    15.54255,ms,   15542.552,us, FPS,  64.33949646
+  lap averaging,  1,                  Total,  1.56987770,s,  1569.87770,ms, 1569877.700,us,
+Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,   Class initialization,  0.00002380,s,     0.02380,ms,      23.800,us,
+         warmup,  1, Variant initialization,  0.00006350,s,     0.06350,ms,      63.500,us,
+         warmup,  1,      Create XYZ Coords,  0.00216010,s,     2.16010,ms,    2160.100,us,
+         warmup,  1,  Create Lon Lat Coords,  0.01260240,s,    12.60240,ms,   12602.400,us,
+         warmup,  1,       Create XY Coords,  0.00204510,s,     2.04510,ms,    2045.100,us,
+         warmup,  1,     Frame Calculations,  0.01680810,s,    16.80810,ms,   16808.100,us,
+         warmup,  1,             Create Map,  0.00228710,s,     2.28710,ms,    2287.100,us,
+         warmup,  1,                  Remap,  0.00322880,s,     3.22880,ms,    3228.800,us,
+         warmup,  1,       Image extraction,  0.00564330,s,     5.64330,ms,    5643.300,us,
+         warmup,  1,               frame(s),  0.02245330,s,    22.45330,ms,   22453.300,us, FPS,  44.53688322
+times averaging,100,      Create XYZ Coords,  0.00054138,s,     0.54138,ms,     541.376,us,
+times averaging,100,  Create Lon Lat Coords,  0.01130559,s,    11.30559,ms,   11305.585,us,
+times averaging,100,       Create XY Coords,  0.00070777,s,     0.70777,ms,     707.766,us,
+times averaging,100,     Frame Calculations,  0.01255526,s,    12.55526,ms,   12555.263,us,
+times averaging,100,             Create Map,  0.00184352,s,     1.84352,ms,    1843.518,us,
+times averaging,100,                  Remap,  0.00317580,s,     3.17580,ms,    3175.804,us,
+times averaging,100,       Image extraction,  0.00514685,s,     5.14685,ms,    5146.848,us,
+times averaging,100,               frame(s),  0.01770360,s,    17.70360,ms,   17703.600,us, FPS,  56.48568653
+  lap averaging,101,      Create XYZ Coords,  0.00055740,s,     0.55740,ms,     557.403,us,
+  lap averaging,101,  Create Lon Lat Coords,  0.01131842,s,    11.31842,ms,   11318.425,us,
+  lap averaging,101,       Create XY Coords,  0.00072101,s,     0.72101,ms,     721.007,us,
+  lap averaging,101,     Frame Calculations,  0.01259737,s,    12.59737,ms,   12597.370,us,
+  lap averaging,101,             Create Map,  0.00184791,s,     1.84791,ms,    1847.910,us,
+  lap averaging,101,                  Remap,  0.00317633,s,     3.17633,ms,    3176.329,us,
+  lap averaging,101,       Image extraction,  0.00515176,s,     5.15176,ms,    5151.763,us,
+  lap averaging,101,               frame(s),  0.01775063,s,    17.75063,ms,   17750.627,us, FPS,  56.33603901
+  lap averaging,  1,                  Total,  1.79283790,s,  1792.83790,ms, 1792837.900,us,
+All done!  Summary of all runs:
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  36.51434101
+times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  <span class="ResultsHighlight">64.83354991</span>
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,               frame(s),  0.02245330,s,    22.45330,ms,   22453.300,us, FPS,  44.53688322
+times averaging,100,               frame(s),  0.01770360,s,    17.70360,ms,   17703.600,us, FPS,  <span class="ResultsHighlight">56.48568653</span>
+</span>
+</div>
+</code>
+
+<p>
+Since Algorithm 1 pre-computes and stores the pixel address information for a given viewing direction, this information can be used to substantially accelerate image
+extraction for subsequent frames as long as the viewing direction does not change.  For instance, if the underlying frames come from a video or a person is
+viewing a series of images and wishes to extract the same viewing location from each, then this algorithm trades memory usage for speed.
+</p>
+
+<p>
+In the output listed below, the --deltaYaw=10 was removed from the command line and --deltaImage was added.  The --deltaImage causes the framework to alternate each
+extraction between --img0 and --img1 in order to simulate video or multiple stills with the same viewing direction.  As highlighted below, this increases
+the FPS rate to 346.56867553 which is about 29 times faster than the original Python extraction speed for this specific usage scenario (i.e., 346.56867553 / 11.821199533998858).
+</p>
+
+<p>
+Notice that the warmup iteration must include the Frame Calculations since that is where the pixel address are calculated, but for all the "times averaging" rows the time spent is 
+miniscule (i.e., a function call and a set of comparisons to ensure the viewing direction has not changed).  If nothing has changed, then the already cached frame extraction coordinates
+can be reused.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">Loading Image0
+Loading Image1
+Images loaded.
+Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,   Class initialization,  0.00000480,s,     0.00480,ms,       4.800,us,
+         warmup,  1, Variant initialization,  0.00006750,s,     0.06750,ms,      67.500,us,
+         warmup,  1,      Create XYZ Coords,  0.00221850,s,     2.21850,ms,    2218.500,us,
+         warmup,  1,  Create Lon Lat Coords,  0.01250470,s,    12.50470,ms,   12504.700,us,
+         warmup,  1,       Create XY Coords,  0.00199550,s,     1.99550,ms,    1995.500,us,
+         warmup,  1,     Frame Calculations,  0.01672040,s,    16.72040,ms,   16720.400,us,
+         warmup,  1,                  Remap,  0.00959870,s,     9.59870,ms,    9598.700,us,
+         warmup,  1,       Image extraction,  0.00959910,s,     9.59910,ms,    9599.100,us,
+         warmup,  1,               frame(s),  0.02632230,s,    26.32230,ms,   26322.300,us, FPS,  37.99060113
+         warmup,  1,                  Total,  0.31494070,s,   314.94070,ms,  314940.700,us,
+times averaging,100,     Frame Calculations,  0.00000021,s,     0.00021,ms,       0.208,us,
+times averaging,100,                  Remap,  0.00273271,s,     2.73271,ms,    2732.707,us,
+times averaging,100,       Image extraction,  0.00288419,s,     2.88419,ms,    2884.190,us,
+times averaging,100,               frame(s),  0.00288543,s,     2.88543,ms,    2885.431,us, FPS, 346.56867553
+  lap averaging,  1,      Create XYZ Coords,  0.00221850,s,     2.21850,ms,    2218.500,us,
+  lap averaging,  1,  Create Lon Lat Coords,  0.01250470,s,    12.50470,ms,   12504.700,us,
+  lap averaging,  1,       Create XY Coords,  0.00199550,s,     1.99550,ms,    1995.500,us,
+  lap averaging,101,     Frame Calculations,  0.00016575,s,     0.16575,ms,     165.754,us,
+  lap averaging,101,                  Remap,  0.00280069,s,     2.80069,ms,    2800.687,us,
+  lap averaging,101,       Image extraction,  0.00295067,s,     2.95067,ms,    2950.674,us,
+  lap averaging,101,               frame(s),  0.00311748,s,     3.11748,ms,    3117.479,us, FPS, 320.77198701
+  lap averaging,  1,                  Total,  0.31494070,s,   314.94070,ms,  314940.700,us,
+Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,   Class initialization,  0.00000480,s,     0.00480,ms,       4.800,us,
+         warmup,  1, Variant initialization,  0.00004250,s,     0.04250,ms,      42.500,us,
+         warmup,  1,      Create XYZ Coords,  0.00222650,s,     2.22650,ms,    2226.500,us,
+         warmup,  1,  Create Lon Lat Coords,  0.01246930,s,    12.46930,ms,   12469.300,us,
+         warmup,  1,       Create XY Coords,  0.00195770,s,     1.95770,ms,    1957.700,us,
+         warmup,  1,     Frame Calculations,  0.01665400,s,    16.65400,ms,   16654.000,us,
+         warmup,  1,             Create Map,  0.00229950,s,     2.29950,ms,    2299.500,us,
+         warmup,  1,                  Remap,  0.00314090,s,     3.14090,ms,    3140.900,us,
+         warmup,  1,       Image extraction,  0.00556730,s,     5.56730,ms,    5567.300,us,
+         warmup,  1,               frame(s),  0.02222290,s,    22.22290,ms,   22222.900,us, FPS,  44.99862754
+         warmup,  1,                  Total,  0.53160210,s,   531.60210,ms,  531602.100,us,
+times averaging,100,     Frame Calculations,  0.00000020,s,     0.00020,ms,       0.202,us,
+times averaging,100,             Create Map,  0.00192384,s,     1.92384,ms,    1923.843,us,
+times averaging,100,                  Remap,  0.00304748,s,     3.04748,ms,    3047.483,us,
+times averaging,100,       Image extraction,  0.00509229,s,     5.09229,ms,    5092.295,us,
+times averaging,100,               frame(s),  0.00509362,s,     5.09362,ms,    5093.616,us, FPS, 196.32418306
+  lap averaging,  1,      Create XYZ Coords,  0.00222650,s,     2.22650,ms,    2226.500,us,
+  lap averaging,  1,  Create Lon Lat Coords,  0.01246930,s,    12.46930,ms,   12469.300,us,
+  lap averaging,  1,       Create XY Coords,  0.00195770,s,     1.95770,ms,    1957.700,us,
+  lap averaging,101,     Frame Calculations,  0.00016509,s,     0.16509,ms,     165.091,us,
+  lap averaging,101,             Create Map,  0.00192756,s,     1.92756,ms,    1927.562,us,
+  lap averaging,101,                  Remap,  0.00304841,s,     3.04841,ms,    3048.408,us,
+  lap averaging,101,       Image extraction,  0.00509700,s,     5.09700,ms,    5096.998,us,
+  lap averaging,101,               frame(s),  0.00526321,s,     5.26321,ms,    5263.213,us, FPS, 189.99801537
+  lap averaging,  1,                  Total,  0.53160210,s,   531.60210,ms,  531602.100,us,
+All done!  Summary of all runs:
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
+         warmup,  1,               frame(s),  0.02632230,s,    26.32230,ms,   26322.300,us, FPS,  37.99060113
+times averaging,100,               frame(s),  0.00288543,s,     2.88543,ms,    2885.431,us, FPS, <span class="ResultsHighlight">346.56867553</span>
+
+V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
+         warmup,  1,               frame(s),  0.02222290,s,    22.22290,ms,   22222.900,us, FPS,  44.99862754
+times averaging,100,               frame(s),  0.00509362,s,     5.09362,ms,    5093.616,us, FPS, 196.32418306
+</span>
+</div>
+</code>
+
+<h2>Algorithm 2</h2>
+
+<p>
+Algorithm 2 contains a minor modification of the Algorithm 1 code.  Algorithm 1 utilizes array indexing as shown below to access the pixel values.
+</p>
+
+<code>
+<div class="CodeBlock">
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_heightOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc11">Point3D</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">pRow</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">m_pXYZPoints</span><span class="sc10">[</span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">];</span><span class="sc0">
+
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc11">pRow</span><span class="sc10">[</span><span class="sc11">x</span><span class="sc10">].</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecx</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pRow</span><span class="sc10">[</span><span class="sc11">x</span><span class="sc10">].</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecy</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pRow</span><span class="sc10">[</span><span class="sc11">x</span><span class="sc10">].</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1.0f</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</span>
+</div>
+</code>
+
+<p>
+As shown below, Algorithm 2 replaces array indexing with code that gets the first pixel location and then increments the pointer once at the end of each loop versus computing the [x] offset three times
+during the loop.
+</p>
+
+<code>
+<div class="CodeBlock">
+<span class="sc0">        </span><span class="sc11">Point3D</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pElement</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">m_pXYZPoints</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">];</span><span class="sc0">
+
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_heightOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecx</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">invf</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">translatecy</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1.0f</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pElement</span><span class="sc10">++;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</div>
+</code>
+
+<p>
+However, Algorithm 2 (64.87905830 FPS) performs about the same as Algorithm 1 (64.83354991 FPS).  See output below from Algorithm 2 (only the summary lines are presented for brevity).  
+Either the multiple additions from Algorithm 1 computing the array index offset are inconsequential or the compiler optimizes this code properly.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=2 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+V1b = Changed V1a to access m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,               frame(s),  0.02682570,s,    26.82570,ms,   26825.700,us, FPS,  37.27768520
+times averaging,100,               frame(s),  0.01541329,s,    15.41329,ms,   15413.294,us, FPS,  <span class="ResultsHighlight">64.87905830</span>
+
+V1b = Changed V1a to access m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,  1,               frame(s),  0.02242470,s,    22.42470,ms,   22424.700,us, FPS,  44.59368464
+times averaging,100,               frame(s),  0.01766683,s,    17.66683,ms,   17666.832,us, FPS,  56.60324386
+</span>
+</div>
+</code>
+
+<h2>Algorithm 3</h2>
+
+<p>
+Algorithm 3 resulted from exploring the code using the Intel&reg; Advisor tool which runs the executable and monitors the code's behavior.  Advisor has several profile settings
+to provide: 1) a general survey, 2) characterization of trip counts, FLOPs, and call stacks, 3) memory access patterns, and/or 4) dependencies.  Advisor can profile an execution
+without making any modifications to the code; however, it also supports an API that allows a programmer to inform Advisor about code sections to profile.
+</p>
+
+<p>
+The Intel&reg; oneAPI Base Toolkit 
+(<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html</a>) 
+includes Advisor.  Alternatively, a standalone version is available at 
+<a href="https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#advisor">https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#advisor</a>.
+Regardless of the selected download, the tool is free.
+</p>
+
+<p>
+Figure 1 below shows a screen capture from Advisor after profiling Algorithm 1 in Debug Mode.  The upper part of the figure contains the Roofline analysis.  There are three regions shown in different
+shades of pink: 1) Memory bound functions and loops on the left, 2) Bound by computer and memory roofs in the center, and 3) Compute bound on the right.  Functions and loops falling in the Memory
+region are throttled due to requiring memory access and the CPU remains capable of processing more data than can be provided by the memory accesses.  The central zone shows functions that may be
+capped by memory accesses or by compute speed depending on which memory type of memory is being accessed (DRAM, L1, L2, or L3 cache) and which instruction sets are being utilized (Scaler Add,
+Vecotr Add, or Fused Multiply Add (FMA)).  The Compute bound zone receives plenty of data from appropriate memory sources and the CPU computational capabilities are the bottleneck.
+</p>
+
+<p>
+Within the Roofline plot, each circle represents one of the loops or functions shown in the lower portion of the application.  Advisor categorizes each as: 1) Green if the code is not called 
+a lot or if it is not taking a lot of processing time (i.e., the effort the optimize any of these will not result in large reductions in the time taken to compute an answer), 2) Yellow dots represent
+code that merits taking a look at, but the gains will be lower than the red dots, 3) Red dots showcase code that would provide the maximum return on investment since optimizing those elements
+provides the largest processing gains, if successful.
+</p>
+
+<p>
+The large red dot that has been selected in the figure below repreents calls to cv::Mat::at which accesses elements within a 2D matrix.  Advisor explains that the performance is currently 
+at 3.5 GigaOPS.  If the function could utilize more data from the L3 cache, it could execute at a maximum of 29.87 GigaOPS; whereas, if L1 cache could be utilized, it would jump up to 
+186.4 GigaOPS.  Notice that the scale of both axis of the Roofline graph are logrithmic so moving further up or right makes significant gains.
+</p>
+
+<div class="Figure">
+<img class="zoomable" src="Advisor-Alg1.jpg" style="max-width:100%"></img>
+<center>
+Figure 1: Intel&reg; Advisor Roofline for Algorithm 1 Debug Mode
+</center>
+</div>
+
+<p>
+One option would be to investigate improving the performance of the at function; however, that code resides in the OpenCV code base so making changes there would be harder.  Thus,
+for this coding effort the code was reviewed to see if the number of calls to the at function could be reduced.  Within Algorithm 1 (and 2), the code calling the at function looks like 
+the following.  Since the 9 calls to at are inside a double loop, each one is called m_heightOutput * m_widthOutput times.  The code run through Advisor was configured to have the width
+at 1080 and height at 540 resulting in 1080 * 540 * 9 = 5,248,800 calls to at.  
+</p>
+
+<code>
+<div class="CodeBlock">
+<span class="sc0">        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_heightOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc2">// Calculate xyz * R
+</span><span class="sc0">                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc11">norm</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">sqrt</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">atan2</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">asin</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc11">pXYZElement</span><span class="sc10">++;</span><span class="sc0">
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">++;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</span>
+</div>
+</code>
+
+<p>
+Given the m_rotationMatrix does not change values during the execution of ConvertXYZToLonLat function, the
+solution implemented in Algorithm 3 pulls those 9 calls to at outside the loops and gathers the 9 values in local variables a single time before the loops.
+This results in the following code snippet.
+</p>
+
+<code>
+<div class="CodeBlock">
+<span class="sc0">    </span><span class="sc2">// Optimization, pull the values out of the rotational matrix.  This can
+</span><span class="sc0">    </span><span class="sc2">// bring a ~2x speed improvement for this function.
+</span><span class="sc0">    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m00</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m01</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m02</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m10</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m11</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m12</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m20</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m21</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">m22</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">m_rotationMatrix</span><span class="sc10">.</span><span class="sc11">at</span><span class="sc10">&lt;</span><span class="sc16">float</span><span class="sc10">&gt;(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc10">...</span><span class="sc0">
+
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_heightOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">m_parameters</span><span class="sc10">-&gt;</span><span class="sc11">m_widthOutput</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc2">// Calculate xyz * R
+</span><span class="sc0">                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc16">float</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m00</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m01</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m02</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m10</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m11</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m12</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">eX</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m20</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eY</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m21</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">eZ</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">m22</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc11">norm</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">sqrt</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">atan2</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_x</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_z</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">asin</span><span class="sc10">(</span><span class="sc11">pXYZElement</span><span class="sc10">-&gt;</span><span class="sc11">m_y</span><span class="sc0"> </span><span class="sc10">/</span><span class="sc0"> </span><span class="sc11">norm</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc11">pXYZElement</span><span class="sc10">++;</span><span class="sc0">
+                </span><span class="sc11">pLonLatElement</span><span class="sc10">++;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</span>
+</div>
+</code>
+
+<p>
+This code change results in an approximately 2x improvement over Algorithm 1 (i.e., 138.91914239 / 64.87905830 = 2.14).
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=3 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
+         warmup,  1,               frame(s),  0.02344410,s,    23.44410,ms,   23444.100,us, FPS,  42.65465512
+times averaging,100,               frame(s),  0.00719843,s,     7.19843,ms,    7198.432,us, FPS, <span class="ResultsHighlight">138.91914239</span>
+</span>
+</div>
+</code>
+
+<h2>Algorithm 4</h2>
+
+<p>
+Algorithm 4 optimizes Algorithm 3 by refactoring the FrameCalculations to combine the three separate calls to ComputeXYZCoords, ComputeLonLatCoords, and ComputeXYCoords into a single
+function.  Each of the three functions had internal double loops and the computed values from each of those loops were used in subsequent loops.  By combining everything into a single
+function, the data computations tend to stay in registers or cache memory.  Determining why each step in the function occurs may be slightly more difficult, but that can be releived by
+good code comments.  As shown below, these code changes result in about a 20% improvment in speed (165.00667204 / 138.91914239 = 1.187789).
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++\x64\Release\Flatten360Image.exe --algorithm=4 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
+         warmup,  1,               frame(s),  0.01448670,s,    14.48670,ms,   14486.700,us, FPS,  69.02883334
+times averaging,100,               frame(s),  0.00606036,s,     6.06036,ms,    6060.361,us, FPS, <span class="ResultsHighlight">165.00667204</span>
+</span>
+</div>
+</code>
+
+<h2>Summary</h2>
+
+<p>
+This blog discussed techniques to increase the frames per second throughput.  The combined improvments resulted in moving from 0.92762988 FPS to 165.00667204 FPS a 177 times improvement.
+In the next blog further improvements will be explored by converting the code from single thread processing to parallel processing.
+</p>
+
+<h2>
+About the Author
+</h2>
+
+<table>
+<tr>
+<td width="130">
+<img src="author.jpg"></img>
+</td>
+<td>
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
+</td>
+</tr>
+</table>
+
+</body>
+</head>

@@ -53,7 +53,7 @@ void TimingStats::AddIterationResults(ETimingType timingType, std::chrono::high_
 {
 	std::chrono::duration<double> duration = std::chrono::duration<double>(endTime - startTime);
 
-	if (m_durationWarmup[timingType] == std::chrono::duration<double>::zero())
+	if (timingType != TIMING_TOTAL && (m_durationWarmup[timingType] == std::chrono::duration<double>::zero()))
 	{
 		m_durationWarmup[timingType] = duration;
 	}

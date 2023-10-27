@@ -41,6 +41,7 @@ void InitializeParameters(SParameters * parameters)
     strcpy_s(parameters->m_imgFilename[1], "..\\..\\..\\images\\ImageAndOverlay-equirectangular.jpg");
     // m_iterations = 0 means interactive
     parameters->m_iterations = 0;
+    parameters->m_bShowFrames = false;
     for (int i = 0; i < 3; i++)
     {
         parameters->m_offsets[i] = 0;
@@ -118,6 +119,10 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
             else if (_strnicmp("deltaImage", flagStart, flagLength) == 0)
             {
                 parameters->m_deltaImage = true;
+            }
+            else if (_strnicmp("showFrames", flagStart, flagLength) == 0)
+            {
+                parameters->m_bShowFrames = true;
             }
             else
             {
@@ -260,6 +265,10 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("iterations", flagStart, flagLength) == 0)
                     {
                         parameters->m_iterations = atoi(valueStart);
+                        if (parameters->m_iterations <= 1)
+                        {
+                            parameters->m_bShowFrames = true;
+                        }
                     }
                     else if (_strnicmp("typePreference", flagStart, flagLength) == 0)
                     {
@@ -298,49 +307,61 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("Usage: %s [flags]\n", pProgramName);
     printf("Where: flags can be zero or more of the following (all flags are case insensitive):\n");
     printf("--algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes\n");
-    printf("   precedence over --startAlgorithm and --endAlgorithm.  Defaults to - 1.\n");
-    printf("   -1 = execute algorithms from --startAlgorithm to --endAlgorithm.\n");
-    printf("    0 = serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.\n");
-    printf("    1 = serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.\n");
-    printf("    2 = serial point by point conversion from equirectangular to flat.  Memory structure of arrays layout.\n");
-    printf("    3 = parallel conversion from equirectangular to flat.  Memory array of structure row/column layout.\n");
-    printf("    4 = parallel conversion from equirectangular to flat.  Memory array of structure column/row layout.\n");
-    printf("    5 = parallel conversion from equirectangular to flat.  Memory structure of arrays layout.\n");
-    printf("    6 = DPC++ conversion from equirectangular to flat.\n");
+    printf("    precedence over --startAlgorithm and --endAlgorithm.  Defaults to -1.\n");
+    printf("    -1 = execute algorithms from --startAlgorithm to --endAlgorithm.\n");
+    printf("     0 = Algorithm from https://github.com/rfn123/equirectangular-to-rectlinear/blob/master/Equi2Rect.cpp.\n");
+    printf("     1 = Conversion to C++ of the Python algorithm from\n");
+    printf("         https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py\n");
+    printf("     2 = Changed 1 to access m_pXYZPoints by moving a pointer instead of array indexing each time.\n");
+    printf("     3 = Changed 2 to cache m_rotationMatrix instead of array indexing each time.\n");
+    printf("     4 = Single loop point by point conversion from equirectangular to flat.\n");
+    printf("     5 = Computes a Remapping algorithm using oneAPI's DPC++.\n");
+    printf("     6 = Single kernel vs 3 kernels using oneAPI's DPC++.\n");
+    printf("     7 = Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group.\n");
+    printf("     8 = Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter.\n");
+    printf("     9 = Algorithm 6 and optimized ExtractFrame using DPC++.\n");
+    printf("    10 = Algorithm 9 USM but just taking the truncated pixel point.\n");
+    printf("    11 = Algorithm 10 USM but on CPU don't copy memory.\n");
     printf("--deltaImage is a flag to indicate that the image should be changed between each iteration to\n");
     printf("    simulate a video stream.\n");
     printf("--deltaPitch=N where N is the amount of pitch to add each iteration (up or down).  This can run from\n");
     printf("    -90 to 90 integer degrees.  The negative values are down and positive are up.  Default is 0\n");
-    printf("--deltaRoll=N where N is the amount of roll to add each iteration.  This can run from -360 to 360 degrees.\n");
+    printf("--deltaRoll=N where N is the amount of roll to add each iteration.  This can run from -360 to 360 integer degrees.\n");
     printf("    Default is 0\n");
-    printf("--deltaYaw=N where N is the amount of yaw to add each iteration.  This can run from -360 to 360 degrees.\n");
+    printf("--deltaYaw=N where N is the amount of yaw to add each iteration.  This can run from -360 to 360 integer degrees.\n");
     printf("    Default is 0.\n");
-    printf("--deviceName=value where value is a string to match against device names to");
-    printf("   select the best device to run the code on.  Other options include all to\n");
-    printf("   run on all devices or list to list device options.  Only used for DPC++ algorithms.\n");
-    printf("   Defaults to empty string (select any)\n");
+    printf("--deviceName=value where value is a string to match against device names to\n");
+    printf("    select the best device to run the code on.  Other options include:\n");
+    printf("      all - to run on all devices or\n");
+    printf("      list - to list device options.  Only used for DPC++ algorithms.\n");
+    printf("    Defaults to empty string (select any)\n");
     printf("--driverVersion=value where value is a version number to select.  Only used for\n");
-    printf("   DPC++ algorithms.  Defaults to empty string (select any)\n");
+    printf("    DPC++ algorithms.  Defaults to empty string (select any)\n");
     printf("--endAlgorithm=N where N denotes the last algorithm to run.  Use -1 to run to end of all algorithms.\n");
     printf("    Defaults to -1");
     printf("--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.\n");
     printf("--heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.\n");
     printf("--help|-h|-? means to display the usage message\n");
-    printf("--img0=filePath where filePath is the path to an equirectangular image to load for the first frame.  Default ..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg.\n");
-    printf("--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.  Default ..\\..\\..\\images\\ImageAndOverlay-equirectangular.jpg.\n");
-    printf("--iterations=N where N is the number of iterations.  Defaults to -1 if --algorithm=-1; otherwise 0 (interactive)\n");
+    printf("--img0=filePath where filePath is the path to an equirectangular image to load for the first frame.\n");
+    printf("    Defaults to ..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg.\n");
+    printf("--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.\n");
+    printf("    Defaults to ..\\..\\..\\images\\ImageAndOverlay - equirectangular.jpg.\n");
+    printf("--iterations=N where N is the number of iterations.  Defaults to 0 (interactive)\n");
     printf("--platformName=value where value is a string to match against platform names.\n");
-    printf("   Other options include all to run on all platforms or list to list the platforms.\n");
-    printf("   Only used for DPC++ algorithms.  Defaults to empty string (select any)\n");
+    printf("    Other options include:\n");
+    printf("      all - to run on all platforms or\n");
+    printf("      list - to list the platforms.\n");
+    printf("    Only used for DPC++ algorithms.  Defaults to empty string (select any)\n");
     printf("--pitch=N where N is the pitch of the viewer's perspective (up or down).  This can run from\n");
     printf("    -90 to 90 integer degrees.  The negative values are down and positive are up.  0 is straight ahead.  Default is 0\n");
-    printf("--roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.  The rotation is counter clockwise\n");
-    printf("    so 90 integer degrees will lift the right side of the 'camera' up to be on top.  180 will flip the 'camera'\n");
-    printf("    upside down.  270 will place the left side of the camera on top.  Default is 0\n");
+    printf("--roll=N where N defines how level the camera is.  This can run from 0 to 360 degrees.  The rotation is counter\n");
+    printf("    clockwise so 90 integer degrees will lift the right side of the 'camera' up to be on top.  180 will flip the\n");
+    printf("     'camera' upside down.  270 will place the left side of the camera on top.  Default is 0\n");
     printf("--startAlgorithm=N where N defines the first algorithm number to run and then all algorithms up to and including\n");
     printf("    --endAlgorithm will be run in succession.  Defaults to 0.\n");
+    printf("--showFrames indicates each calculated frame should be shown.  Defaults to true for interactive mode, false otherwise.\n");
     printf("--typePreference=type1;type2;... where the types can be CPU, GPU, or \n");
-    printf("    ACC (for Accelerator such as FPGA.  The first item is highest preference.\n");
+    printf("    ACC (for Accelerator such as FPGA.  type1 is highest preference, then type2, etc.\n");
     printf("--widthOutput=N where N is the number of pixels width the flattened image will be.  Default is 1080.\n");
     printf("--yaw=N where N defines the yaw of the viewer's perspective (left or right angle).  This can run from\n");
     printf("    -180 to 180 integer degrees.  Negative values are to the left of center and positive to the right.  0 is\n");

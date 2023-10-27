@@ -54,10 +54,10 @@ std::string SerialRemappingV1c::GetDescription()
 	switch (m_storageOrder)
 	{
 	case STORE_ROW_COL:
-		return "V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.";
+		return "V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.";
 		break;
 	case STORE_COL_ROW:
-		return "V1c = Changed V1b but cached m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.";
+		return "V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.";
 		break;
 	}
 
@@ -176,8 +176,8 @@ void SerialRemappingV1c::ConvertXYZToLonLat()
 	Point3D* pXYZElement = &m_pXYZPoints[0];
 	Point2D* pLonLatElement = &m_pLonLatPoints[0];
 	float norm;
-	// Optimization, pull the values out of the rotational matrix if CACHE_ROTATION_ELEMENTS is defined.  This can
-	// bring a ~3x speed improvement for this function.
+	// Optimization, pull the values out of the rotational matrix.  This can
+	// bring a ~2x speed improvement for this function.
 	float m00 = m_rotationMatrix.at<float>(0, 0);
 	float m01 = m_rotationMatrix.at<float>(0, 1);
 	float m02 = m_rotationMatrix.at<float>(0, 2);
