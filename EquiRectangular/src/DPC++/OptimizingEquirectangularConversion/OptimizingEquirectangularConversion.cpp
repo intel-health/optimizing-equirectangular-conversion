@@ -230,309 +230,311 @@ int main(int argc, char** argv) {
                 break;
             }
 
-            initEndTime = std::chrono::high_resolution_clock::now();
-
-            bVariantValid = true;
-            while (bVariantValid)
+            if (pAlg != NULL)
             {
-                variantInitStartTime = std::chrono::high_resolution_clock::now();
-                bVariantValid = pAlg->StartVariant();
+                initEndTime = std::chrono::high_resolution_clock::now();
 
-                if (bVariantValid)
+                bVariantValid = true;
+                while (bVariantValid)
                 {
-                    pTimingStats->Reset();
-                    description = pAlg->GetDescription();
-                    // Reset the perspective back to the inital values so each algorithm
-                    // works from the same baseline
-                    parameters.m_yaw = origYaw;
-                    parameters.m_pitch = origPitch;
-                    parameters.m_roll = origRoll;
-                    parameters.m_imageIndex = 0;
-                    iteration = 0;
+                    variantInitStartTime = std::chrono::high_resolution_clock::now();
+                    bVariantValid = pAlg->StartVariant();
 
-                    pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
-                    pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::high_resolution_clock::now());
-                    bRunningVariant = true;
-                    totalTimeStart = std::chrono::high_resolution_clock::now();
-                    while (bRunningVariant)
+                    if (bVariantValid)
                     {
-                        pTimingStats->ResetLap();
-#ifdef VTUNE_API
-                        // We only care about profiling the specific calculations so resume VTune data collection
-                        // here and then pause after our iterations.  The user should start VTune paused to ignore
-                        // tracing the above code as well.
-                        __itt_resume();
-#endif
-                        try
+                        pTimingStats->Reset();
+                        description = pAlg->GetDescription();
+                        // Reset the perspective back to the inital values so each algorithm
+                        // works from the same baseline
+                        parameters.m_yaw = origYaw;
+                        parameters.m_pitch = origPitch;
+                        parameters.m_roll = origRoll;
+                        parameters.m_imageIndex = 0;
+                        iteration = 0;
+
+                        pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
+                        pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::high_resolution_clock::now());
+                        bRunningVariant = true;
+                        totalTimeStart = std::chrono::high_resolution_clock::now();
+                        while (bRunningVariant)
                         {
-                            if (bDoIterations)
+                            pTimingStats->ResetLap();
+#ifdef VTUNE_API
+                            // We only care about profiling the specific calculations so resume VTune data collection
+                            // here and then pause after our iterations.  The user should start VTune paused to ignore
+                            // tracing the above code as well.
+                            __itt_resume();
+#endif
+                            try
                             {
-                                do
+                                if (bDoIterations)
                                 {
-                                    if (parameters.m_pitch > 90)
+                                    do
                                     {
-                                        parameters.m_pitch = 90;
-                                    }
-                                    else if (parameters.m_pitch < -90)
+                                        if (parameters.m_pitch > 90)
+                                        {
+                                            parameters.m_pitch = 90;
+                                        }
+                                        else if (parameters.m_pitch < -90)
+                                        {
+                                            parameters.m_pitch = -90;
+                                        }
+                                        if (parameters.m_fov < 10)
+                                        {
+                                            parameters.m_fov = 10;
+                                        }
+                                        else if (parameters.m_fov > 120)
+                                        {
+                                            parameters.m_fov = 120;
+                                        }
+                                        if (parameters.m_yaw > 180)
+                                        {
+                                            // Wrap around to the other side of the 360 view
+                                            parameters.m_yaw = (-180 + parameters.m_yaw) % 360 - 180;
+                                        }
+                                        else if (parameters.m_yaw < -180)
+                                        {
+                                            parameters.m_yaw = (180 + parameters.m_yaw) % 360 + 180;
+                                        }
+                                        if (parameters.m_roll < 0)
+                                        {
+                                            parameters.m_roll = 360 + (parameters.m_roll % -360);
+                                        }
+                                        else if (parameters.m_roll >= 360)
+                                        {
+                                            parameters.m_roll = parameters.m_roll % 360;
+                                        }
+
+                                        bool bParametersChanged = prevParameters != parameters;
+
+                                        frameStartTime = std::chrono::high_resolution_clock::now();
+                                        pAlg->FrameCalculations(bParametersChanged);
+                                        pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::high_resolution_clock::now());
+                                        prevParameters = parameters;
+                                        extractionStartTime = std::chrono::high_resolution_clock::now();
+                                        flatImg = pAlg->ExtractFrameImage();
+                                        frameEndTime = std::chrono::high_resolution_clock::now();
+                                        pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, extractionStartTime, frameEndTime);
+                                        pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, frameStartTime, frameEndTime, bInteractive);
+                                        iteration++;
+                                        if (!bInteractive)
+                                        {
+                                            if (parameters.m_bShowFrames)
+                                            {
+                                                char windowText[1024];
+
+                                                sprintf(windowText, "Algorithm %d Flat View %s", algorithm, description.c_str());
+
+                                                cv::imshow(windowText, flatImg);
+                                                // Waiting for a key for 1 millisecond gives OpenCV a hint that it
+                                                // should show the frame
+                                                key = cv::waitKeyEx(1);
+                                            }
+                                            parameters.m_yaw += parameters.m_deltaYaw;
+                                            parameters.m_pitch += parameters.m_deltaPitch;
+                                            parameters.m_roll += parameters.m_deltaRoll;
+                                            if (parameters.m_deltaImage)
+                                            {
+                                                parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
+                                            }
+                                        }
+                                    } while (iteration < parameters.m_iterations);
+#ifdef VTUNE_API
+                                    __itt_pause();
+#endif
+                                    totalTimeEnd = std::chrono::high_resolution_clock::now();
+
+                                    if (bInteractive)
                                     {
-                                        parameters.m_pitch = -90;
-                                    }
-                                    if (parameters.m_fov < 10)
-                                    {
-                                        parameters.m_fov = 10;
-                                    }
-                                    else if (parameters.m_fov > 120)
-                                    {
-                                        parameters.m_fov = 120;
-                                    }
-                                    if (parameters.m_yaw > 180)
-                                    {
-                                        // Wrap around to the other side of the 360 view
-                                        parameters.m_yaw = (-180 + parameters.m_yaw) % 360 - 180;
-                                    }
-                                    else if (parameters.m_yaw < -180)
-                                    {
-                                        parameters.m_yaw = (180 + parameters.m_yaw) % 360 + 180;
-                                    }
-                                    if (parameters.m_roll < 0)
-                                    {
-                                        parameters.m_roll = 360 + (parameters.m_roll % -360);
-                                    }
-                                    else if (parameters.m_roll >= 360)
-                                    {
-                                        parameters.m_roll = parameters.m_roll % 360;
+                                        char windowText[1024];
+
+                                        sprintf(windowText, "Algorithm %d Flat View %s", algorithm, description.c_str());
+
+                                        cv::imshow(windowText, flatImg);
                                     }
 
-                                    bool bParametersChanged = prevParameters != parameters;
-
-                                    frameStartTime = std::chrono::high_resolution_clock::now();
-                                    pAlg->FrameCalculations(bParametersChanged);
-                                    pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, frameStartTime, std::chrono::high_resolution_clock::now());
-                                    prevParameters = parameters;
-                                    extractionStartTime = std::chrono::high_resolution_clock::now();
-                                    flatImg = pAlg->ExtractFrameImage();
-                                    frameEndTime = std::chrono::high_resolution_clock::now();
-                                    pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, extractionStartTime, frameEndTime);
-                                    pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, frameStartTime, frameEndTime, bInteractive);
-                                    iteration++;
                                     if (!bInteractive)
                                     {
-                                        if (parameters.m_bShowFrames)
-                                        {
-                                            char windowText[1024];
-
-                                            sprintf(windowText, "Algorithm %d Flat View %s", algorithm, description.c_str());
-
-                                            cv::imshow(windowText, flatImg);
-                                            // Waiting for a key for 1 millisecond gives OpenCV a hint that it
-                                            // should show the frame
-                                            key = cv::waitKeyEx(1);
-                                        }
-                                        parameters.m_yaw += parameters.m_deltaYaw;
-                                        parameters.m_pitch += parameters.m_deltaPitch;
-                                        parameters.m_roll += parameters.m_deltaRoll;
-                                        if (parameters.m_deltaImage)
-                                        {
-                                            parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
-                                        }
+                                        pTimingStats->AddIterationResults(ETimingType::TIMING_TOTAL, totalTimeStart, totalTimeEnd);
                                     }
-                                } while (iteration < parameters.m_iterations);
-#ifdef VTUNE_API
-                                __itt_pause();
-#endif
-                                totalTimeEnd = std::chrono::high_resolution_clock::now();
 
-                                if (bInteractive)
-                                {
-                                    char windowText[1024];
+                                    printf("Algorithm description: %s\n", description.c_str());
+                                    pTimingStats->ReportTimes(true);
 
-                                    sprintf(windowText, "Algorithm %d Flat View %s", algorithm, description.c_str());
-
-                                    cv::imshow(windowText, flatImg);
                                 }
-
-                                if (!bInteractive)
-                                {
-                                    pTimingStats->AddIterationResults(ETimingType::TIMING_TOTAL, totalTimeStart, totalTimeEnd);
-                                }
-
-                                printf("Algorithm description: %s\n", description.c_str());
-                                pTimingStats->ReportTimes(true);
+                            }
+                            catch (cl::sycl::exception const &e) {
+                                std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
 
                             }
-                        }
-                        catch (cl::sycl::exception const &e) {
-                            std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
-                            
-                        }
-                        catch (std::exception const &e) {
-                            // catch the exception from devices that are not supported.
-                            std::cout << "Exception caught during main loop." << std::endl;
-                            std::cout << e.what() << std::endl;
-                        }
-
-                        bDoIterations = true;
-
-                        if (bDebug)
-                        {
-                            // When debugging, we want to show the original image with an outline of the Region of Interest
-                            // The color is BGR format
-                            debugImg = pAlg->GetDebugImage();
-
-                            cv::namedWindow("Debug View", cv::WINDOW_NORMAL);
-                            cv::imshow("Debug View", debugImg);
-                        }
-                        if (bInteractive)
-                        {
-                            key = cv::waitKeyEx(0);
-
-                            if (key >= 48 && key <= 57)
-                            {
-                                if (bEnteringData)
-                                {
-                                    delta = sign * (abs(delta) * 10 + (key - 48));
-                                }
-                                else
-                                {
-                                    bEnteringData = true;
-                                    prevDelta = delta;
-                                    delta = sign * (key - 48);
-                                }
-                                bDoIterations = false;
+                            catch (std::exception const &e) {
+                                // catch the exception from devices that are not supported.
+                                std::cout << "Exception caught during main loop." << std::endl;
+                                std::cout << e.what() << std::endl;
                             }
-                            else if (key == 45)             // Minus key (-)
+
+                            bDoIterations = true;
+
+                            if (bDebug)
                             {
-                                delta = 0;
-                                sign = -1;
-                                bDoIterations = false;
+                                // When debugging, we want to show the original image with an outline of the Region of Interest
+                                // The color is BGR format
+                                debugImg = pAlg->GetDebugImage();
+
+                                cv::namedWindow("Debug View", cv::WINDOW_NORMAL);
+                                cv::imshow("Debug View", debugImg);
                             }
-                            else
+                            if (bInteractive)
                             {
-                                bEnteringData = false;
-                                sign = 1;
-                                if (key == 2555904)         // Right arrow key
+                                key = cv::waitKeyEx(0);
+
+                                if (key >= 48 && key <= 57)
                                 {
-                                    parameters.m_yaw += delta;
-                                }
-                                else if (key == 2424832)    // Left arrow key
-                                {
-                                    parameters.m_yaw -= delta;
-                                }
-                                else if (key == 2621440)    // Down arrow key
-                                {
-                                    parameters.m_pitch -= delta;
-                                }
-                                else if (key == 2490368)    // Up arrow key
-                                {
-                                    parameters.m_pitch += delta;
-                                }
-                                else if (key == 2162688)    // Page Up key (roll right upwards)
-                                {
-                                    parameters.m_roll -= delta;
-                                }
-                                else if (key == 2228224)    // Page Down key (roll right downwards)
-                                {
-                                    parameters.m_roll += delta;
-                                }
-                                else if (key == 2359296)    // Home key (roll left upwards)
-                                {
-                                    parameters.m_roll += delta;
-                                }
-                                else if (key == 2293760)    // End key (roll left downwards)
-                                {
-                                    parameters.m_roll -= delta;
-                                }
-                                else if (key == 42)         // * key
-                                {
-                                    parameters.m_fov -= delta;
-                                }
-                                else if (key == 47)         // / key
-                                {
-                                    parameters.m_fov += delta;
-                                }
-                                else if (key == 100)        // d key (toggle debug mode)
-                                {
-                                    bDebug = !bDebug;
-                                    if (!bDebug)
+                                    if (bEnteringData)
                                     {
-                                        cv::destroyWindow("Debug View");
+                                        delta = sign * (abs(delta) * 10 + (key - 48));
+                                    }
+                                    else
+                                    {
+                                        bEnteringData = true;
+                                        prevDelta = delta;
+                                        delta = sign * (key - 48);
                                     }
                                     bDoIterations = false;
                                 }
-                                else if (key == 102)        // f key (change frame)
+                                else if (key == 45)             // Minus key (-)
                                 {
-                                    parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
-                                }
-                                else if (key == 97)         // a key (algorithm selection)
-                                {
-                                    // Adjust the variables so we drop out of both while loops and
-                                    // come back into the for loop with the correct algorithm
-                                    algorithm = delta - 1;
-                                    endAlgorithm = delta;
-                                    bVariantValid = false;
-                                    bRunningVariant = false;
-                                    // Treat delta as temporary and restore the previous delta value
-                                    delta = prevDelta;
-                                }
-                                else if (key == 112)        // p key (set pitch to temporary delta)
-                                {
-                                    parameters.m_pitch = delta;
-                                    // Treat delta as temporary and restore the previous delta value
-                                    delta = prevDelta;
-                                }
-                                else if (key == 114)        // r key (set roll to temporary delta)
-                                {
-                                    parameters.m_roll = delta;
-                                    // Treat delta as temporary and restore the previous delta value
-                                    delta = prevDelta;
-                                }
-                                else if (key == 121)        // y key (set yaw to temporary delta)
-                                {
-                                    parameters.m_yaw = delta;
-                                    // Treat delta as temporary and restore the previous delta value
-                                    delta = prevDelta;
-                                }
-                                else if (key == 115)                // s key for saving images
-                                {
-                                    char filename[1024];
-
-                                    // Save out the different images
-                                    sprintf(filename, "flat-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
-                                    cv::imwrite(filename, flatImg);
-                                    if (bDebug)
-                                    {
-                                        sprintf(filename, "full-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
-                                        cv::imwrite(filename, debugImg);
-                                    }
-
-                                }
-                                else if (key == 27 || key == 113)   // Esc or q key to quit
-                                {
-                                    // Stop running the variant and move on
-                                    bRunningVariant = false;
+                                    delta = 0;
+                                    sign = -1;
+                                    bDoIterations = false;
                                 }
                                 else
                                 {
-                                    printf("Unassigned keystroke = %d\n", key);
+                                    bEnteringData = false;
+                                    sign = 1;
+                                    if (key == 2555904)         // Right arrow key
+                                    {
+                                        parameters.m_yaw += delta;
+                                    }
+                                    else if (key == 2424832)    // Left arrow key
+                                    {
+                                        parameters.m_yaw -= delta;
+                                    }
+                                    else if (key == 2621440)    // Down arrow key
+                                    {
+                                        parameters.m_pitch -= delta;
+                                    }
+                                    else if (key == 2490368)    // Up arrow key
+                                    {
+                                        parameters.m_pitch += delta;
+                                    }
+                                    else if (key == 2162688)    // Page Up key (roll right upwards)
+                                    {
+                                        parameters.m_roll -= delta;
+                                    }
+                                    else if (key == 2228224)    // Page Down key (roll right downwards)
+                                    {
+                                        parameters.m_roll += delta;
+                                    }
+                                    else if (key == 2359296)    // Home key (roll left upwards)
+                                    {
+                                        parameters.m_roll += delta;
+                                    }
+                                    else if (key == 2293760)    // End key (roll left downwards)
+                                    {
+                                        parameters.m_roll -= delta;
+                                    }
+                                    else if (key == 42)         // * key
+                                    {
+                                        parameters.m_fov -= delta;
+                                    }
+                                    else if (key == 47)         // / key
+                                    {
+                                        parameters.m_fov += delta;
+                                    }
+                                    else if (key == 100)        // d key (toggle debug mode)
+                                    {
+                                        bDebug = !bDebug;
+                                        if (!bDebug)
+                                        {
+                                            cv::destroyWindow("Debug View");
+                                        }
+                                        bDoIterations = false;
+                                    }
+                                    else if (key == 102)        // f key (change frame)
+                                    {
+                                        parameters.m_imageIndex = (parameters.m_imageIndex + 1) % 2;
+                                    }
+                                    else if (key == 97)         // a key (algorithm selection)
+                                    {
+                                        // Adjust the variables so we drop out of both while loops and
+                                        // come back into the for loop with the correct algorithm
+                                        algorithm = delta - 1;
+                                        endAlgorithm = delta;
+                                        bVariantValid = false;
+                                        bRunningVariant = false;
+                                        // Treat delta as temporary and restore the previous delta value
+                                        delta = prevDelta;
+                                    }
+                                    else if (key == 112)        // p key (set pitch to temporary delta)
+                                    {
+                                        parameters.m_pitch = delta;
+                                        // Treat delta as temporary and restore the previous delta value
+                                        delta = prevDelta;
+                                    }
+                                    else if (key == 114)        // r key (set roll to temporary delta)
+                                    {
+                                        parameters.m_roll = delta;
+                                        // Treat delta as temporary and restore the previous delta value
+                                        delta = prevDelta;
+                                    }
+                                    else if (key == 121)        // y key (set yaw to temporary delta)
+                                    {
+                                        parameters.m_yaw = delta;
+                                        // Treat delta as temporary and restore the previous delta value
+                                        delta = prevDelta;
+                                    }
+                                    else if (key == 115)                // s key for saving images
+                                    {
+                                        char filename[1024];
+
+                                        // Save out the different images
+                                        sprintf(filename, "flat-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                        cv::imwrite(filename, flatImg);
+                                        if (bDebug)
+                                        {
+                                            sprintf(filename, "full-view-%d-%d-%d-%d.jpg", parameters.m_yaw, parameters.m_pitch, parameters.m_roll, parameters.m_fov);
+                                            cv::imwrite(filename, debugImg);
+                                        }
+
+                                    }
+                                    else if (key == 27 || key == 113)   // Esc or q key to quit
+                                    {
+                                        // Stop running the variant and move on
+                                        bRunningVariant = false;
+                                    }
+                                    else
+                                    {
+                                        printf("Unassigned keystroke = %d\n", key);
+                                    }
+                                    prevDelta = delta;
                                 }
-                                prevDelta = delta;
+                            }
+                            else
+                            {
+                                bRunningVariant = false;
                             }
                         }
-                        else
-                        {
-                            bRunningVariant = false;
-                        }
+
+                        variantInitStopTime = std::chrono::high_resolution_clock::now();
+                        pAlg->StopVariant();
+                        pTimingStats->AddIterationResults(ETimingType::VARIANT_TERMINATION, variantInitStopTime, std::chrono::high_resolution_clock::now());
+                        summaryStats.push_back(description + "\n" + pTimingStats->SummaryStats(false));
                     }
-
-                    variantInitStopTime = std::chrono::high_resolution_clock::now();
-                    pAlg->StopVariant();
-                    pTimingStats->AddIterationResults(ETimingType::VARIANT_TERMINATION, variantInitStopTime, std::chrono::high_resolution_clock::now());
-                    summaryStats.push_back(description + "\n" + pTimingStats->SummaryStats(false));
                 }
+                delete pAlg;
+                pAlg = NULL;
             }
-
-            delete pAlg;
-            pAlg = NULL;
             algorithm++;
         }
     }
