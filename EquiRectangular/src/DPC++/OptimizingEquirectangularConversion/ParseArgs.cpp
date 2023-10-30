@@ -338,7 +338,7 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("--driverVersion=value where value is a version number to select.  Only used for\n");
     printf("    DPC++ algorithms.  Defaults to empty string (select any)\n");
     printf("--endAlgorithm=N where N denotes the last algorithm to run.  Use -1 to run to end of all algorithms.\n");
-    printf("    Defaults to -1");
+    printf("    Defaults to -1\n");
     printf("--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.\n");
     printf("--heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.\n");
     printf("--help|-h|-? means to display the usage message\n");

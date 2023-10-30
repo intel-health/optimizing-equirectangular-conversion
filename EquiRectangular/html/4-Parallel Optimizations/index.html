@@ -20,7 +20,7 @@ The previous blog, <a href="TODO insert URL here">Execution Framework and Serial
 from an equirectangular image.  This blog explores converting the code from serial processing to parallel processing to optimize the extraction further.
 </p>
 
-<h2>Introduction to Intel&reg; oneAPI Base Toolkit (Base Kit)<h2>
+<h2>Introduction to Intel&reg; oneAPI Base Toolkit (Base Kit)</h2>
 
 <p>
 The Khronos group created an industry standard specification called SYCL (pronounced Sickle) which allows programmers to express data parallelism and reuse code across multiple hardware
@@ -132,8 +132,8 @@ anywhere within the driver_version, it is considered a match.
 
 <p>
 The OptimizingEquirectangularConversion.exe framework calls the ConfigurableDeviceSelector by passing the values from the --typePreference, --platformName,
---deviceName, and --driverVersion directly to the set_search function with two execptions.  First, if the platformName or deviceName equal all, then the code
-steps through all the platforms and/or devices in an attempt to execute the code there.  Second, if the platformName or deviceName is list, then the code
+--deviceName, and --driverVersion directly to the set_search function with two exceptions.  First, if the platformName or deviceName equal all, then the code
+steps through all the platforms and/or devices to execute the code there.  Second, if the platformName or deviceName is list, then the code
 provides a list of all the platforms and devices that are available such as the listing shown above.
 </p>
 
@@ -183,7 +183,7 @@ In the parallel processing code, that same loop looks like the following.
 <code>
 <div class="CodeBlock">
 <span class="sc0">        </span><span class="sc11">m_pQ</span><span class="sc10">-&gt;</span><span class="sc11">submit</span><span class="sc10">([&amp;](</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">handler</span><span class="sc10">&amp;</span><span class="sc0"> </span><span class="sc11">cgh</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
-            </span><span class="sc11">cgh</span><span class="sc10">.</span><span class="sc11">parallel_for</span><span class="sc10">(</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">range</span><span class="sc10">&lt;</span><span class="sc4">2</span><span class="sc10">&gt;(</span><span class="sc11">height</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">width</span><span class="sc10">),</span><span class="sc0">
+            </span><span class="sc11">cgh</span><span class="sc10">.</span><span class="sc5">parallel_for</span><span class="sc10">(</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">range</span><span class="sc10">&lt;</span><span class="sc4">2</span><span class="sc10">&gt;(</span><span class="sc11">height</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">width</span><span class="sc10">),</span><span class="sc0">
             </span><span class="sc10">[=](</span><span class="sc11">sycl</span><span class="sc10">::</span><span class="sc11">id</span><span class="sc10">&lt;</span><span class="sc4">2</span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
                 </span><span class="sc11">Point3D</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">pElement</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">pPoints</span><span class="sc10">[</span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">width</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">item</span><span class="sc10">[</span><span class="sc4">1</span><span class="sc10">]];</span><span class="sc0">
 
@@ -198,10 +198,11 @@ In the parallel processing code, that same loop looks like the following.
 </code>
 
 <p>
-This allows the SYCL compiler to break the original 2D image up into a series of work items.  Each work item processes a single pixel.  The index for which pixel is assigned to a particular
+The submit function delivers the kernel (in this case a lambda expression) to the appropriate work queue.  The submitted kernel receives a sycl::handler object representing the
+command group handler.  This groups all the device specific data and commands together for use during the kernel execution.  The next line utilizes the parallel_for method
+to break the original 2D image up into a series of work items.  Each work item processes a single pixel.  The index for which pixel is assigned to a particular
 kernel execution is passed in via the item variable with index 0 being the y index and index 1 being the x index.  The kernel takes these values and locates the proper element
-to compute.  The wait() function after the loop waits for all
-the processing of pixels to complete prior to moving on through the remainder of the code in the algorithm.
+to compute.  The wait() function after the loop waits for all the processing of pixels to complete prior to moving on through the remainder of the code in the algorithm.
 </p>
 
 <h2>Algorithm 5</h2>
@@ -227,7 +228,7 @@ times averaging,100,               frame(s),  0.00455495,s,     4.55495,ms,    4
 <p>
 As a reminder, running algorithm 1 with the same parameters provides the following results.  The serial code is faster for the warmup iteration since the parallel code takes more
 overhead to select the hardware (even though it results in being the same CPU), construct the queue, and then compile the kernel for the target hardware.  However, note that for every
-subsequent run, that overhad disappears and the parallel nature of the code provides a nice speed improvement (219.54147446 / 64.83354991 = 3.386x).  Thus, if the use case
+subsequent run, that overhead disappears and the parallel nature of the code provides a nice speed improvement (219.54147446 / 64.83354991 = 3.386x).  Thus, if the use case
 requires processing a single image each time the code is invoked, pick the serial algorithm.  If many frames are likely to be processed each time, the parallel algorithm should be considered.
 </p>
 
@@ -265,8 +266,9 @@ times averaging,100,               frame(s),  0.00324626,s,     3.24626,ms,    3
 <h2>Algorithms 7 and 8</h2>
 
 <p>
-The optimizations attempted in algorithms 7 and 8 decreased the frames per second.  Algorithm 7 experimented with parallel_for_work_item and algorithm 8 used sub_groups.  It is
-unclear if these constructs are not well suited to this particular use case or if there is a more optimal way to configure those constructs.  See the results from the two runs below.
+The optimizations attempted in algorithms 7 and 8 decreased the frames per second.  They are included for completeness, but not discussed in depth since no speed up was achieved.
+Algorithm 7 experimented with parallel_for_work_item and algorithm 8 used sub_groups.  It is
+unclear if these constructs are not well suited to this particular use case or if there is a more optimal way to configure the constructs.  See the results from the two runs below.
 
 <code>
 <div class="ExecutionResults">
@@ -296,8 +298,8 @@ times averaging,100,               frame(s),  0.00640651,s,     6.40651,ms,    6
 
 <p>
 Algorithm 9 enhances the ExtractFrameImage function relative to Algorithm 6.  Many of the previous uses of ExtractFrameImage relied on cv::remap to collect all of the pixel values
-into the rectilinear image.  Algorithm 8 replaces the remap function with a DPC++ parallel_for and computes all the pixel values using parallel processing.  Compared to Algorithm 5 this
-results in a 1.8745 times improvement (577.44988890 / 308.04708315)
+into the rectilinear image.  Algorithm 8 replaces the remap function with a DPC++ parallel_for and computes all the pixel values using parallel processing.  Compared to Algorithm 6 this
+results in a 1.8745 times improvement (577.44988890 / 308.04708315).
 </p>
 
 <code>
@@ -334,7 +336,7 @@ times averaging,100,               frame(s),  0.00114736,s,     1.14736,ms,    1
 </code>
  
 <p>
-For a comparison of the output resulting from Algorithm 9 and 10 see Figure 1 and 2, respectively.
+For a comparison of the output resulting from Algorithms 9 and 10 see Figure 1 and 2, respectively.
 </p>
 
 <div class="Figure">
@@ -372,14 +374,24 @@ times averaging,100,               frame(s),  0.00108969,s,     1.08969,ms,    1
 </div>
 </code>
 
-<h2>Summary</h2>
+<h2>Conclusion</h2>
 
 <p>
 After experimenting with 11 algorithms the code operates nearly 1000 times faster (917.69302985 / 0.92762988 = 989.2879) than the original C++ algorithm and 
-77 times faster (917.69302985 / 11.821199533998858 = 77.63) than the Python code which also provided inspriation for algorithms.  At 917 FPS, the code
-could potentially handle up to 30 video streams @ 30 FPS with an Intel&reg; Core i9 class processor.  Newer generations or more powerful computing classes
+77 times faster (917.69302985 / 11.821199533998858 = 77.63) than the Python code which also provided inspiration for algorithms.  
+Key speedups reported on in this blog post include: 1) converting from serial to parallel processing, 2) reducing the number of kernels used to one, 3) replacing
+the cv::remap with DPC++ parallel algorithm, and 4) simplified calculation of which pixel value to extract from the equirectangular image.
+</p>
+
+<p>
+At 917 FPS, the code
+could potentially handle up to 30 video streams @ 30 FPS with an Intel&reg; Core i9 Gen 9 class processor.  Newer generations or more powerful computing classes
 such as Xeon processors could handle even more streams.  This is ideal for use cases such as Telesitting in hospital environments or video security
 setups where a single computer monitors multiple cameras simultaneously.
+</p>
+
+<p>
+The next blog in this series explores the use of the integrated GPU when performing the algorithm.
 </p>
 
 <h2>
@@ -392,7 +404,7 @@ About the Author
 <img src="author.jpg"></img>
 </td>
 <td>
-Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Corporation.
 He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
 </td>
 </tr>

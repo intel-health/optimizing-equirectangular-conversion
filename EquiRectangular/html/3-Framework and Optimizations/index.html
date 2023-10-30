@@ -98,7 +98,8 @@ Where: flags can be zero or more of the following (all flags are case insensitiv
 --driverVersion=value where value is a version number to select.  Only used for
     DPC++ algorithms.  Defaults to empty string (select any)
 --endAlgorithm=N where N denotes the last algorithm to run.  Use -1 to run to end of all algorithms.
-    Defaults to -1--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.
+    Defaults to -1
+--fov the number of integer degrees wide to use when flattening the image.  This can be from 1 to 120.  Default is 60.
 --heightOutput=N where N is the number of pixels height the flattened image will be.  Default is 540.
 --help|-h|-? means to display the usage message
 --img0=filePath where filePath is the path to an equirectangular image to load for the first frame.
@@ -130,7 +131,7 @@ Where: flags can be zero or more of the following (all flags are case insensitiv
 </code>
 
 <p>
-The file TimingStats.cpp contains a class which can be called periodically as the code executes in order to capture the amount of time different steps in the algorithm take execute.
+The file TimingStats.cpp contains a class which can be called periodically as the code executes to capture the amount of time different steps in the algorithm take execute.
 This class manages the warmup times, summing and averaging multiple iterations after warm up, and reporting out the information.
 </p>
 
@@ -190,7 +191,7 @@ value is changed to the entered number and then applied when the right arrow is 
 <p>
 The first algorithm utilizes the concepts from https://github.com/rfn123/equirectangular-to-rectlinear/blob/master/Equi2Rect.cpp and folds them into a derived class for the framework.
 A code execution returns the output shown below.  The first line of the output shows the command that was used to produce the subsequent output.  The --algorithm=0 selects algorithm
-zero to be used during the run.  THe --iterations tells the program to run 101 total iterations with the first being a warmup and the remaining one hundred being for averaging the results.
+zero to be used during the run.  The --iterations flag tells the program to run 101 total iterations with the first being a warmup and the remaining one hundred being for averaging the results.
 The --yaw, --pitch, and --roll values define the initial viewport direction.  The --deltaYaw tells how many degrees to add to the viewport viewing direction with each new iteration so
 iteration two will have a yaw of the initial 10 plus another 10 so it will point at 20 degrees to the right of center.  The next iteration will be 30 degrees and so on.
 The --typePreference selects the processor to use for doing the calculations; however, note that for any algorithm that is not using Data Parallel C++, this flag is ignored.  The final
@@ -206,7 +207,7 @@ any other startup tasks.
 <p>
 The "times averaging" rows report the average of the remaining N runs, in this case N = 100.  By running multiple iterations, it smooths out the results since
 it is possible that a single run may get swapped out in the middle of the calculation or take a bit longer than others as it executes.  Generally speaking, averaging a sufficiently
-large number of iterations makes the results easier to compare and less susceptible to anomolies.
+large number of iterations makes the results easier to compare and less susceptible to anomalies.
 </p>
 
 <p>
@@ -258,7 +259,7 @@ the class that implements a particular algorithm.
 <p>
 Within the framework, each class implementing an algorithm may have different variants.  Think of these as minor variations on an algorithm that are being tested to see which
 is more efficient.  For instance, variations may store data in memory differently such as array of structures, structure of arrays, row / column order, column / row order, and so on.
-To support these variations, after class instantition, the StartVariant is called for each variation.  The Variant initializations reports the amount of time it takes to do this initialization.
+To support these variations, after class instantiation, the StartVariant is called for each variation.  The Variant initializations reports the amount of time it takes to do this initialization.
 </p>
 
 <p>
@@ -376,18 +377,18 @@ times averaging,100,               frame(s),  0.01770360,s,    17.70360,ms,   17
 
 <p>
 Since Algorithm 1 pre-computes and stores the pixel address information for a given viewing direction, this information can be used to substantially accelerate image
-extraction for subsequent frames as long as the viewing direction does not change.  For instance, if the underlying frames come from a video or a person is
+extraction for subsequent frames if the viewing direction does not change.  For instance, if the underlying frames come from a video or a person is
 viewing a series of images and wishes to extract the same viewing location from each, then this algorithm trades memory usage for speed.
 </p>
 
 <p>
 In the output listed below, the --deltaYaw=10 was removed from the command line and --deltaImage was added.  The --deltaImage causes the framework to alternate each
-extraction between --img0 and --img1 in order to simulate video or multiple stills with the same viewing direction.  As highlighted below, this increases
+extraction between --img0 and --img1 to simulate video or multiple stills with the same viewing direction.  As highlighted below, this increases
 the FPS rate to 346.56867553 which is about 29 times faster than the original Python extraction speed for this specific usage scenario (i.e., 346.56867553 / 11.821199533998858).
 </p>
 
 <p>
-Notice that the warmup iteration must include the Frame Calculations since that is where the pixel address are calculated, but for all the "times averaging" rows the time spent is 
+Notice that the warmup iteration must include the Frame Calculations since that is where the pixel addresses are calculated, but for all the "times averaging" rows the time spent is 
 miniscule (i.e., a function call and a set of comparisons to ensure the viewing direction has not changed).  If nothing has changed, then the already cached frame extraction coordinates
 can be reused.
 </p>
@@ -557,9 +558,9 @@ provides the largest processing gains, if successful.
 </p>
 
 <p>
-The large red dot that has been selected in the figure below repreents calls to cv::Mat::at which accesses elements within a 2D matrix.  Advisor explains that the performance is currently 
+The large red dot that has been selected in the figure below represents calls to cv::Mat::at which accesses elements within a 2D matrix.  Advisor explains that the performance is currently 
 at 3.5 GigaOPS.  If the function could utilize more data from the L3 cache, it could execute at a maximum of 29.87 GigaOPS; whereas, if L1 cache could be utilized, it would jump up to 
-186.4 GigaOPS.  Notice that the scale of both axis of the Roofline graph are logrithmic so moving further up or right makes significant gains.
+186.4 GigaOPS.  Notice that the scale of both axis of the Roofline graph are logarithmic so moving further up or right makes significant gains.
 </p>
 
 <div class="Figure">
@@ -673,8 +674,8 @@ times averaging,100,               frame(s),  0.00719843,s,     7.19843,ms,    7
 <p>
 Algorithm 4 optimizes Algorithm 3 by refactoring the FrameCalculations to combine the three separate calls to ComputeXYZCoords, ComputeLonLatCoords, and ComputeXYCoords into a single
 function.  Each of the three functions had internal double loops and the computed values from each of those loops were used in subsequent loops.  By combining everything into a single
-function, the data computations tend to stay in registers or cache memory.  Determining why each step in the function occurs may be slightly more difficult, but that can be releived by
-good code comments.  As shown below, these code changes result in about a 20% improvment in speed (165.00667204 / 138.91914239 = 1.187789).
+function, the data computations tend to stay in registers or cache memory.  Determining why each step in the function occurs may be slightly more difficult, but that can be relieved by
+good code comments.  As shown below, these code changes result in about a 20% improvement in speed (165.00667204 / 138.91914239 = 1.187789).
 </p>
 
 <code>
@@ -689,10 +690,16 @@ times averaging,100,               frame(s),  0.00606036,s,     6.06036,ms,    6
 </div>
 </code>
 
-<h2>Summary</h2>
+<h2>Conclusion</h2>
 
 <p>
-This blog discussed techniques to increase the frames per second throughput.  The combined improvments resulted in moving from 0.92762988 FPS to 165.00667204 FPS a 177 times improvement.
+This blog introduced a framework for exploring different optimization techniques and discussed ways to increase the frames per second throughput including: 
+1) porting an speedy algorithm from Python to C++ and saving the pixel addresses from frame to frame, 2) optimizing array accesses, 3) reducing computational load
+by not calling the cv::Mat::at() function many times within a loop, and 4) combining separate loops into a single master loop.  The combined improvements resulted
+in moving from 0.92762988 FPS to 165.00667204 FPS for a 177 times improvement.
+</p>
+
+<p>
 In the next blog further improvements will be explored by converting the code from single thread processing to parallel processing.
 </p>
 
@@ -706,7 +713,7 @@ About the Author
 <img src="author.jpg"></img>
 </td>
 <td>
-Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Corporation.
 He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
 </td>
 </tr>

@@ -22,7 +22,7 @@ code to report on the amount of time each algorithm takes to extract a rectiline
 </p>
 
 <p>
-For small projects which occassionally need to present a field of view from an equirectangular image, most any implementation works. However, for situations where the equirectangular 
+For small projects which occasionally need to present a field of view from an equirectangular image, most any implementation works. However, for situations where the equirectangular 
 frames are from a video or in cases where many still images are being displayed from a sequence of images taken around the same time, code efficiency becomes far more important. 
 </p>
 
@@ -53,7 +53,7 @@ but has a nice explanation for the algorithm that is used and references a book 
 
 <p>
 The package includes a sample 360 image to use when testing, but for this blog series all code was minimally altered to use the same images for consistency. The two selected 
-images are shown in Figure 1 and Figure 13 from the initial blog post. The Equirectangular to RectLinear code depends on OpenCV for reading and writing image files as well as 
+images are shown in Figure 1 and Figure 13 from the initial blog post. The Equirectangular to Rectilinear code depends on OpenCV for reading and writing image files as well as 
 some of the operations. The code also has a dependency on libyaml-cpp-dev since the configuration file uses YAML to define all the desired parameters such as pan, roll, and 
 tilt angles; however, the core algorithm does not require YAML so it can be reused elsewhere without the YMAL dependency. The framework introduced later in this series leverages 
 that to incorporate this algorithm alongside other options. 
@@ -69,8 +69,8 @@ Instrumenting the C++ Code to Capture Performance Numbers
 </h3>
 
 <p>
-While a goal of the original author was concentrating on how to obtain a rectlinear image and not on efficiency, the work described in this blog series attempts to produce 
-rectlinear images in an efficient manner. Determining the efficiency of different algorithms requires a metric to assess the speed of each. Minor modifications were made to 
+While a goal of the original author was concentrating on how to obtain a rectilinear image and not on efficiency, the work described in this blog series attempts to produce 
+rectilinear images in an efficient manner. Determining the efficiency of different algorithms requires a metric to assess the speed of each. Minor modifications were made to 
 the code base. The first modification adds the chrono include at the top of the Equi2Rect.cpp file.
 </p>
 
@@ -130,7 +130,7 @@ Open Source Python Code
 
 <p>
 Another interesting implementation comes from https://github.com/fuenwang/Equirec2Perspec. This code uses the Python language for implementation along with OpenCV for reading 
-the image and performing image operations. As with the C++ code above, the author of the Python code nicely ecapsulates the core algorithm in a class.  The Github ReadMe.md
+the image and performing image operations. As with the C++ code above, the author of the Python code nicely encapsulates the core algorithm in a class.  The Github ReadMe.md
 file shows a sample usage of that function.
 </p>
 
@@ -188,10 +188,10 @@ Results from Running the Python Code
 </h3>
 
 <p>
-The box below shows the results from running the code on the same Intel&reg; i9-9900k machine as before.  Two different Python execution enviroments were run.  First is the standard
+The box below shows the results from running the code on the same Intel&reg; i9-9900k machine as before.  Two different Python execution environments were run.  First is the standard
 distribution of Python.  For the second, Intel maintains a distribution of Python that is optimized for Intel hardware available at 
 <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/distribution-for-python.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/distribution-for-python.html</a>.
-This distribution has optimizations for accelerating core numerical packages and it can extend numerical capabilities to other accelerators such as a GPU.  However, for this
+This distribution has optimizations for accelerating core numerical packages, and it can extend numerical capabilities to other accelerators such as a GPU.  However, for this
 particular code, there is not a significant difference in the performance most likely due to the fact that this code relies more on the OpenCV infrastructure rather than
 the Python execution engine computing all the math operations.  Fortunately, checking which distribution executes the code the fastest is very easy and both distributions can
 be installed simultaneously on a machine.
@@ -253,7 +253,7 @@ Figure 2: VTune Configuration to Run the Python Program
 
 <p>
 For both VTune runs, the Hotspots profiling was selected and along with hardware event sampling.  This provides deeper insights into the code execution; however, it does require running VTune
-(or Visual Studio) with Administrator priviledges.
+(or Visual Studio) with Administrator privileges.
 </p>
 
 <p>
@@ -348,7 +348,7 @@ Figure 7: VTune Summary Page for the C++ Program
 </div>
 
 <h2>
-Summary
+Conclusion
 </h2>
 
 <p>
@@ -373,7 +373,7 @@ About the Author
 <img src="author.jpg"></img>
 </td>
 <td>
-Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Coproration.
+Doug Bogia received his Ph.D. in computer science from University of Illinois, Urbana-Champaign and currently works at Intel Corporation.
 He enjoys photography, woodworking, programming, and optimizing solutions to run as fast as possible on a given piece of hardware.
 </td>
 </tr>
