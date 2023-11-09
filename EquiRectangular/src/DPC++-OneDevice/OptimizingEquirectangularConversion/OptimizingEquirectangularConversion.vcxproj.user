@@ -13,6 +13,6 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerEnvironment>PATH=C:\OpenCV-4.6\opencv\build\x64\vc15\bin;%PATH%</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--startAlgorithm=11 --endAlgorithm=11 --iterations=0 --yaw=0 --pitch=0 --roll=0 --deltaYaw=10  --typePreference=GPU;CPU --platform=all</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--startAlgorithm=11 --endAlgorithm=11 --iterations=101 --yaw=0 --pitch=0 --roll=0 --deltaYaw=10  --typePreference=GPU;CPU --platform=all</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

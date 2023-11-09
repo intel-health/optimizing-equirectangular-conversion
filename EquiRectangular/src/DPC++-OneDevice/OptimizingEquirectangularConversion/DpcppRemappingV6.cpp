@@ -15,7 +15,7 @@
 
 // This code starts from V2 and attempts to see if there are speed ups availabe in the ExtractFrame area
 
-#include "DpcppRemappingV7.hpp"
+#include "DpcppRemappingV6.hpp"
 #include "ConfigurableDeviceSelector.hpp"
 #include "TimingStats.hpp"
 #include <opencv2/calib3d.hpp>
@@ -25,37 +25,37 @@
 #pragma comment(lib, "libittnotify.lib")
 extern __itt_domain* pittTests_domain;
 // Create string handle for denoting when the kernel is running
-wchar_t const *pDpcppRemappingV7Extract = _T("DpcppRemappingV7 Extract Kernel");
-__itt_string_handle* handle_DpcppRemappingV7_extract_kernel = __itt_string_handle_create(pDpcppRemappingV7Extract);
-wchar_t const *pDpcppRemappingV7Calc = _T("DpcppRemappingV7 Calc Kernel");
-__itt_string_handle *handle_DpcppRemappingV7_calc_kernel = __itt_string_handle_create(pDpcppRemappingV7Calc);
+wchar_t const *pDpcppRemappingV6Extract = _T("DpcppRemappingV6 Extract Kernel");
+__itt_string_handle* handle_DpcppRemappingV6_extract_kernel = __itt_string_handle_create(pDpcppRemappingV6Extract);
+wchar_t const *pDpcppRemappingV6Calc = _T("DpcppRemappingV6 Calc Kernel");
+__itt_string_handle *handle_DpcppRemappingV6_calc_kernel = __itt_string_handle_create(pDpcppRemappingV6Calc);
 #endif
 
 const int pixelBytes = 3;
 
-DpcppRemappingV7::DpcppRemappingV7(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
+DpcppRemappingV6::DpcppRemappingV6(SParameters& parameters) : DpcppBaseAlgorithm(parameters)
 {
 	m_storageType = STORAGE_TYPE_INIT;
 }
 
-std::string DpcppRemappingV7::GetDescription()
+std::string DpcppRemappingV6::GetDescription()
 {
     std::string strDesc = GetDeviceDescription();
 
 	switch (m_storageType)
 	{
 	case STORAGE_TYPE_USM:
-		return "DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory " + strDesc;
+		return "DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point " + strDesc;
 		break;
 	case STORAGE_TYPE_DEVICE:
-		return "DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory " + strDesc;
+		return "DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point " + strDesc;
 		break;
 	}
 
 	return "Unknown";
 }
 
-void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
+void DpcppRemappingV6::FrameCalculations(bool bParametersChanged)
 {
 	if (bParametersChanged || m_bFrameCalcRequired)
 	{
@@ -86,10 +86,6 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 		float imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows - 1;;
 		float xDiv = 2 * M_PI;
 
-		std::chrono::high_resolution_clock::time_point startTime;
-
-		startTime = std::chrono::high_resolution_clock::now();
-
 		f = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
 		cx = ((float)m_parameters->m_widthOutput - 1.0f) / 2.0f;
 		cy = ((float)m_parameters->m_heightOutput - 1.0f) / 2.0f;
@@ -112,7 +108,7 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 		case STORAGE_TYPE_USM:
 		{
 #ifdef VTUNE_API
-			__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_calc_kernel);
+			__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV6_calc_kernel);
 #endif
 			m_pQ->submit([&](sycl::handler& cgh) {
 				cgh.parallel_for(sycl::range<2>(height, width),
@@ -187,7 +183,7 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 
 }
 
-cv::Mat DpcppRemappingV7::ExtractFrameImage()
+cv::Mat DpcppRemappingV6::ExtractFrameImage()
 {
 	std::chrono::high_resolution_clock::time_point startTime	= std::chrono::high_resolution_clock::now();
 	cv::Mat retVal;
@@ -197,7 +193,7 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 	case STORAGE_TYPE_USM:
 	{
 #ifdef VTUNE_API
-		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_extract_kernel);
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV6_extract_kernel);
 #endif
 		int height = m_parameters->m_heightOutput;
 		int width = m_parameters->m_widthOutput;
@@ -205,25 +201,16 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		int imageWidth = m_parameters->m_image[m_parameters->m_imageIndex].cols;
 		Point2D *pPoints = m_pXYPoints;
 		unsigned char *pFlatImage = m_pFlatImage;
-		unsigned char *pFullImage;
 
-		if (m_pQ->get_device().is_cpu())
+		if (m_currentIndex != m_parameters->m_imageIndex)
 		{
+			// TODO: This assumes that both images are the exact same size.  Perhaps should put an
+			// ASSERT here to check that assumption
+			memcpy(m_pFullImage, m_parameters->m_image[m_parameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
 			m_currentIndex = m_parameters->m_imageIndex;
-			pFullImage = m_parameters->m_image[m_parameters->m_imageIndex].data;
 		}
-		else
-		{
-			if (m_currentIndex != m_parameters->m_imageIndex)
-			{
-				// TODO: This assumes that both images are the exact same size.  Perhaps should put an
-				// ASSERT here to check that assumption
-				memcpy(m_pFullImage, m_parameters->m_image[m_parameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
-				m_currentIndex = m_parameters->m_imageIndex;
-			}
 
-			pFullImage = m_pFullImage;
-		}
+		unsigned char *pFullImage = m_pFullImage;
 
 		m_pQ->submit([&](sycl::handler &cgh) {
 			cgh.parallel_for(sycl::range<2>(height, width),
@@ -231,7 +218,7 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 				int offset = item[0] * width + item[1];
 				Point2D *pElement = &pPoints[offset];
 				unsigned char *pFlatPixel = &pFlatImage[offset * pixelBytes];
-				// determine the nearest top left pixel for bilinear interpolation
+				// determine the nearest top left pixel 
 				int top_left_x = static_cast<int>(pElement->m_x); // convert the subpixel value to an integer pixel value (top left pixel due to int() operator)
 				int top_left_y = static_cast<int>(pElement->m_y);
 				// Starting bytes for the four points to use for the calculation of the color for the flat image pixel.
@@ -261,26 +248,16 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		int imageHeight = m_parameters->m_image[m_parameters->m_imageIndex].rows;
 		int imageWidth = m_parameters->m_image[m_parameters->m_imageIndex].cols;
 		unsigned char *pFlatImage = m_pDevFlatImage;
-		unsigned char *pDevFullImage;
+		unsigned char *pDevFullImage = m_pDevFullImage;
 		Point2D *pDevXYPoints = m_pDevXYPoints;
 
-		if (m_pQ->get_device().is_cpu())
+		if (m_currentIndex != m_parameters->m_imageIndex)
 		{
+			// TODO: This assumes that both images are the exact same size.  Perhaps should put an
+			// ASSERT here to check that assumption
+			m_pQ->memcpy(m_pDevFullImage, m_parameters->m_image[m_parameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
+			m_pQ->wait();
 			m_currentIndex = m_parameters->m_imageIndex;
-			pDevFullImage = m_parameters->m_image[m_parameters->m_imageIndex].data;
-		}
-		else
-		{
-			if (m_currentIndex != m_parameters->m_imageIndex)
-			{
-				// TODO: This assumes that both images are the exact same size.  Perhaps should put an
-				// ASSERT here to check that assumption
-				m_pQ->memcpy(m_pDevFullImage, m_parameters->m_image[m_parameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
-				m_pQ->wait();
-				m_currentIndex = m_parameters->m_imageIndex;
-			}
-
-			pDevFullImage = m_pDevFullImage;
 		}
 
 		m_pQ->submit([&](sycl::handler &cgh) {
@@ -315,7 +292,7 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 }
 
 // Pass in theta, phi, and psi in radians, not degrees
-void DpcppRemappingV7::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
+void DpcppRemappingV6::ComputeRotationMatrix(float radTheta, float radPhi, float radPsi)
 {
 	// Python code snippet that this is attempting to match
 	//# Compute a matrix representing the three rotations THETA, PHI, and PSI
@@ -341,7 +318,7 @@ void DpcppRemappingV7::ComputeRotationMatrix(float radTheta, float radPhi, float
 	m_rotationMatrix = Rz * Rx * Ry;
 }
 
-bool DpcppRemappingV7::StartVariant()
+bool DpcppRemappingV6::StartVariant()
 {
 	bool bRetVal = false;
 
@@ -365,8 +342,7 @@ bool DpcppRemappingV7::StartVariant()
 			m_pFlatImage = (unsigned char *)malloc_shared(size * pixelBytes * sizeof(unsigned char), dev, ctxt);
 			m_pFullImage = (unsigned char *)malloc_shared(m_parameters->m_image[m_parameters->m_imageIndex].cols * m_parameters->m_image[m_parameters->m_imageIndex].rows * pixelBytes * sizeof(unsigned char), dev, ctxt);
 
-			printf("DpcppRemappingV7::StartVariant STORAGE_TYPE_USM\n");
-
+			printf("DpcppRemappingV6::StartVariant STORAGE_TYPE_USM\n");
 			break;
 		}
 		case STORAGE_TYPE_DEVICE:
@@ -374,8 +350,7 @@ bool DpcppRemappingV7::StartVariant()
 			m_pDevFlatImage = (unsigned char *)malloc_device(size * pixelBytes * sizeof(unsigned char), dev, ctxt);
 			m_pDevFullImage = (unsigned char *)malloc_device(m_parameters->m_image[m_parameters->m_imageIndex].cols * m_parameters->m_image[m_parameters->m_imageIndex].rows * pixelBytes * sizeof(unsigned char), dev, ctxt);
 
-			printf("DpcppRemappingV7::StartVariant STORAGE_TYPE_DEVICE\n");
-
+			printf("DpcppRemappingV6::StartVariant STORAGE_TYPE_DEVICE\n");
 			break;
 		}
 		m_bFrameCalcRequired = true;
@@ -385,7 +360,7 @@ bool DpcppRemappingV7::StartVariant()
 	return bRetVal;
 }
 
-void DpcppRemappingV7::StopVariant()
+void DpcppRemappingV6::StopVariant()
 {
 	switch (m_storageType)
 	{

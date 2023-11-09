@@ -21,6 +21,7 @@
 #include <array>
 #include <iostream>
 #include <opencv2/core/ocl.hpp>
+#include <opencv2/core/utils/logger.hpp>
 
 #include "ParseArgs.hpp"
 #include "Equi2Rect.hpp"
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
     std::chrono::high_resolution_clock::time_point totalTimeEnd;
     std::chrono::high_resolution_clock::time_point extractionStartTime;
     TimingStats *pTimingStats = TimingStats::GetTimingStats();
-    bool bInteractive = parameters.m_iterations <= 1;
+    bool bInteractive = parameters.m_iterations < 1;
     int iteration = 0;
     SParameters prevParameters;
     int startAlgorithm;
@@ -112,6 +113,10 @@ int main(int argc, char** argv) {
     int origPitch = parameters.m_pitch;
     int origRoll = parameters.m_roll;
 
+    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
+    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
+    cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
+    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_WARNING);
     if (parameters.m_algorithm > -1)
     {
         startAlgorithm = parameters.m_algorithm;

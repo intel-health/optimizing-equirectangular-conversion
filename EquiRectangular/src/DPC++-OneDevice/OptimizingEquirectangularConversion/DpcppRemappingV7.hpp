@@ -38,12 +38,6 @@ private:
 private:
 	// Pass in theta, phi, and psi in radians, not degrees
 	void ComputeRotationMatrix(float radTheta, float radPhi, float radPsi);
-#if 0
-	void ComputeXYZCoords();
-	void ComputeLonLatCoords();
-	void ConvertXYZToLonLat();
-	void ComputeXYCoords();
-#endif
 
 public:
 

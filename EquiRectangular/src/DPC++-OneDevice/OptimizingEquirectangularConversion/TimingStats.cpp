@@ -53,17 +53,25 @@ void TimingStats::AddIterationResults(ETimingType timingType, std::chrono::high_
 {
 	std::chrono::duration<double> duration = std::chrono::duration<double>(endTime - startTime);
 
-	if (timingType != TIMING_TOTAL && (m_durationWarmup[timingType] == std::chrono::duration<double>::zero()))
+	if (timingType == TIMING_TOTAL)
 	{
-		m_durationWarmup[timingType] = duration;
+		m_lapIterations[timingType] = m_lapIterations[TIMING_FRAME];
+		m_lapDurationsSum[timingType] = duration;
 	}
 	else
 	{
-		m_iterations[timingType]++;
-		m_durationsSum[timingType] += duration;
+		if (m_durationWarmup[timingType] == std::chrono::duration<double>::zero())
+		{
+			m_durationWarmup[timingType] = duration;
+		}
+		else
+		{
+			m_iterations[timingType]++;
+			m_durationsSum[timingType] += duration;
+		}
+		m_lapIterations[timingType]++;
+		m_lapDurationsSum[timingType] += duration;
 	}
-	m_lapIterations[timingType]++;
-	m_lapDurationsSum[timingType] += duration;
 }
 
 std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeString, std::chrono::duration<double> durationSum, int numIterations, ETimingType timingType)
@@ -84,6 +92,10 @@ std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeStr
 	std::chrono::duration<double> aveDuration = durationSum / numIterations;
 	sprintf(line1, pFmt, strDesc.c_str(), numIterations, typeString.c_str(), aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);
 	if (timingType == TIMING_FRAME)
+	{
+		sprintf(line2, pFmt2, 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
+	}
+	else if (timingType == TIMING_TOTAL)
 	{
 		sprintf(line2, pFmt2, 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
 	}
@@ -183,7 +195,14 @@ void TimingStats::ReportTimes(bool bIncludeLap)
 			if (m_lapIterations[i] != 0)
 			{
 				std::string typeString = GetTypeString((ETimingType)i);
-				ReportTime(desc, typeString, m_lapDurationsSum[i], m_lapIterations[i], (ETimingType)i);
+				if (i == ETimingType::TIMING_TOTAL)
+				{
+					ReportTime("total averaging", typeString, m_lapDurationsSum[i], m_lapIterations[i], (ETimingType)i);
+				}
+				else
+				{
+					ReportTime(desc, typeString, m_lapDurationsSum[i], m_lapIterations[i], (ETimingType)i);
+				}
 			}
 		}
 	}
@@ -201,7 +220,11 @@ std::string TimingStats::SummaryStats(bool bIncludeLap /* = true */)
 	{
 		retVal += GetSummaryLine("times averaging", GetTypeString(ETimingType::TIMING_FRAME), m_durationsSum[ETimingType::TIMING_FRAME], m_iterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
 	}
-	if (bIncludeLap && m_lapIterations[ETimingType::TIMING_FRAME] != 0)
+	if (m_lapIterations[ETimingType::TIMING_TOTAL] != 0)
+	{
+		retVal += GetSummaryLine("total averaging", GetTypeString(ETimingType::TIMING_TOTAL), m_lapDurationsSum[ETimingType::TIMING_TOTAL], m_lapIterations[ETimingType::TIMING_TOTAL], ETimingType::TIMING_TOTAL);
+	}
+	if (bIncludeLap && m_lapIterations[ETimingType::TIMING_TOTAL] != 0)
 	{
 		retVal += GetSummaryLine("lap averaging", GetTypeString(ETimingType::TIMING_FRAME), m_lapDurationsSum[ETimingType::TIMING_FRAME], m_lapIterations[ETimingType::TIMING_FRAME], ETimingType::TIMING_FRAME);
 	}
