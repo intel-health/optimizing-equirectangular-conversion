@@ -15,12 +15,12 @@
 
 // Quick and dirty command line argument passing.  Drafted our own so it should be portable to either Linux or Windows
 
+#include "ParseArgs.hpp"
 #include <stdio.h>
 #include <string.h>
+//#include <math.h>
 #include <stdlib.h>
 #include <iostream>
-
-#include "ParseArgs.hpp"
 
 _SParameters::_SParameters()
 {
@@ -40,7 +40,7 @@ _SParameters::_SParameters()
     strcpy_s(m_imgFilename[0], "..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg");
     strcpy_s(m_imgFilename[1], "..\\..\\..\\images\\ImageAndOverlay-equirectangular.jpg");
     // m_iterations = 0 means interactive
-    m_iterations = 0;
+    m_iterations = 101;
     m_bShowFrames = false;
     for (int i = 0; i < 3; i++)
     {
@@ -51,6 +51,15 @@ _SParameters::_SParameters()
     m_platformName = "";
     m_deviceName = "";
     m_driverVersion = "";
+
+    m_uiMyMask = 0;
+    m_uiDevIndex = 0;
+    m_pRequestWorkMutex = NULL;
+    m_pRequestWorkCondVar = NULL;
+    m_pRequestWork = NULL;
+    m_pWorkCompletedMutex = NULL;
+    m_pWorkCompletedCondVar = NULL;
+    m_pWorkCompleted = NULL;
 }
 
 bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessage)
@@ -207,9 +216,9 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("algorithm", flagStart, flagLength) == 0)
                     {
                         parameters->m_algorithm = atoi(valueStart);
-                        if (parameters->m_algorithm < -1 || parameters->m_algorithm > MAX_ALGORITHM)
+                        if (parameters->m_algorithm < 5 || parameters->m_algorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for algorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
+                            sprintf(errorMessage, "Error: Illegal value for algorithm (%s).  Must be 5 to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -217,9 +226,9 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("startAlgorithm", flagStart, flagLength) == 0)
                     {
                         parameters->m_startAlgorithm = atoi(valueStart);
-                        if (parameters->m_startAlgorithm < 0 || parameters->m_startAlgorithm > MAX_ALGORITHM)
+                        if (parameters->m_startAlgorithm < 5 || parameters->m_startAlgorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for startAlgorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
+                            sprintf(errorMessage, "Error: Illegal value for startAlgorithm (%s).  Must be 5 to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -227,9 +236,9 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("endAlgorithm", flagStart, flagLength) == 0)
                     {
                         parameters->m_endAlgorithm = atoi(valueStart);
-                        if (parameters->m_endAlgorithm < -1 || parameters->m_endAlgorithm > MAX_ALGORITHM)
+                        if (parameters->m_endAlgorithm < 5 || parameters->m_endAlgorithm > MAX_ALGORITHM)
                         {
-                            sprintf(errorMessage, "Error: Illegal value for m_endAlgorithm (%s).  Must be -1 to %d.", valueStart, MAX_ALGORITHM);
+                            sprintf(errorMessage, "Error: Illegal value for m_endAlgorithm (%s).  Must be 5  to %d.", valueStart, MAX_ALGORITHM);
                             bRetVal = false;
                             break;
                         }
@@ -265,9 +274,10 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("iterations", flagStart, flagLength) == 0)
                     {
                         parameters->m_iterations = atoi(valueStart);
-                        if (parameters->m_iterations <= 1)
+                        if (parameters->m_iterations < 1)
                         {
-                            parameters->m_bShowFrames = true;
+                            sprintf(errorMessage, "Error: Illegal value for iterations (%s).  Must be a positive number.", valueStart);
+                            bRetVal = false;
                         }
                     }
                     else if (_strnicmp("typePreference", flagStart, flagLength) == 0)
@@ -309,12 +319,6 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("--algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes\n");
     printf("    precedence over --startAlgorithm and --endAlgorithm.  Defaults to -1.\n");
     printf("    -1 = execute algorithms from --startAlgorithm to --endAlgorithm.\n");
-    printf("     0 = Algorithm from https://github.com/rfn123/equirectangular-to-rectlinear/blob/master/Equi2Rect.cpp.\n");
-    printf("     1 = Conversion to C++ of the Python algorithm from\n");
-    printf("         https://github.com/fuenwang/Equirec2Perspec/blob/master/Equirec2Perspec.py\n");
-    printf("     2 = Changed 1 to access m_pXYZPoints by moving a pointer instead of array indexing each time.\n");
-    printf("     3 = Changed 2 to cache m_rotationMatrix instead of array indexing each time.\n");
-    printf("     4 = Single loop point by point conversion from equirectangular to flat.\n");
     printf("     5 = Computes a Remapping algorithm using oneAPI's DPC++.\n");
     printf("     6 = Single kernel vs 3 kernels using oneAPI's DPC++.\n");
     printf("     7 = Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group.\n");
@@ -346,7 +350,7 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("    Defaults to ..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg.\n");
     printf("--img1=filePath where filePath is the path to an equirectangular image to load for the second frame.\n");
     printf("    Defaults to ..\\..\\..\\images\\ImageAndOverlay - equirectangular.jpg.\n");
-    printf("--iterations=N where N is the number of iterations.  Defaults to 0 (interactive)\n");
+    printf("--iterations=N where N is the number of iterations.  Must be > 0.  Defaults to 101.\n");
     printf("--platformName=value where value is a string to match against platform names.\n");
     printf("    Other options include:\n");
     printf("      all - to run on all platforms or\n");

@@ -73,7 +73,6 @@ int main(int argc, char** argv) {
     SParameters parameters;
     char errorMessage[MAX_ERROR_MESSAGE];
 
-    InitializeParameters(&parameters);
     if (!ParseArgs(argc, argv, &parameters, errorMessage))
     {
         PrintUsage(argv[0], errorMessage);
@@ -172,21 +171,21 @@ int main(int argc, char** argv) {
     {
         parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
     }
-    // read src image1
+    // read src image0
     printf("Loading Image0\n");
     parameters.m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
     if (parameters.m_image[0].empty())
     {
         printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
-        throw std::invalid_argument("Error: Could not load image 1.");
+        throw std::invalid_argument("Error: Could not load image 0.");
     }
-    // read src image2
+    // read src image1
     printf("Loading Image1\n");
     parameters.m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
     if (parameters.m_image[1].empty())
     {
         printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
-        throw std::invalid_argument("Error: Could not load image 2.");
+        throw std::invalid_argument("Error: Could not load image 1.");
     }
     printf("Images loaded.\n");
     int algorithm = startAlgorithm;

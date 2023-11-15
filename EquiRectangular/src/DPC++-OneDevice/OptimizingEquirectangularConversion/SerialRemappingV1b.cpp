@@ -497,7 +497,11 @@ bool SerialRemappingV1b::StartVariant()
 
 void SerialRemappingV1b::StopVariant()
 {
+	delete m_pXYZPoints;
+	m_pXYZPoints = NULL;
 	delete m_pXYPoints;
 	m_pXYPoints = NULL;
+	delete m_pLonLatPoints;
+	m_pLonLatPoints = NULL;
 }
 

@@ -27,6 +27,12 @@ const int MAX_PATH = 1024;
 const int MAX_ERROR_MESSAGE = 1024;
 const double DEGREE_CONVERSION_FACTOR = 2 * M_PI / 360.0;
 const int MAX_ALGORITHM = 11;
+const unsigned int CPU_DEVICE_MASK = 1;
+const unsigned int GPU_DEVICE_MASK = 2;
+const unsigned int ALL_DEVICES_MASK = CPU_DEVICE_MASK | GPU_DEVICE_MASK;
+const unsigned int MAX_DEVICES = 2;
+const unsigned int GENERAL_STATS = MAX_DEVICES + 1;
+const unsigned int ALL_STATS = GENERAL_STATS + 1;
 
 typedef struct _SParameters {
 	// m_algorithm defines the algorithm to use during the current run of the program
@@ -105,12 +111,47 @@ typedef struct _SParameters {
 	// will be considered depending on how the other parameters are set.
 	std::string m_driverVersion;
 	bool m_bShowFrames;
+	unsigned int m_uiMyMask;
+	unsigned int m_uiDevIndex;
+	std::mutex *m_pRequestWorkMutex;
+	std::condition_variable *m_pRequestWorkCondVar;
+	// m_pRequestWork is used with the above mutex and condition variable
+	// to indicate which devices are being requested to start working
+	unsigned int *m_pRequestWork;
+	// m_workCompletedMutex is the mutex that controls access to the m_workCompleted
+	// variable
+	std::mutex *m_pWorkCompletedMutex;
+	std::condition_variable *m_pWorkCompletedCondVar;
+	// Mask to indicate which devices have completed their work
+	unsigned int *m_pWorkCompleted;
+	cv::Mat m_FlatImg;
 
 	_SParameters();
 
 	bool operator!=(const struct _SParameters& a) const
 	{
-		return (a.m_algorithm != m_algorithm || a.m_yaw != m_yaw || m_pitch != a.m_pitch || m_roll != a.m_roll || m_fov != a.m_fov || m_widthOutput != a.m_widthOutput || m_heightOutput != a.m_heightOutput);
+		return (
+			m_algorithm != a.m_algorithm ||
+			m_yaw != a.m_yaw ||
+			m_pitch != a.m_pitch || 
+			m_roll != a.m_roll || 
+			m_fov != a.m_fov || 
+			m_widthOutput != a.m_widthOutput || 
+			m_heightOutput != a.m_heightOutput
+		);
+	}
+	struct _SParameters& operator=(const struct _SParameters &a)
+	{
+		m_algorithm = a.m_algorithm;
+		m_yaw = a.m_yaw;
+		m_pitch = a.m_pitch;
+		m_roll = a.m_roll;
+		m_fov = a.m_fov;
+		m_widthOutput = a.m_widthOutput;
+		m_heightOutput = a.m_heightOutput;
+		m_imageIndex = a.m_imageIndex;
+
+		return *this;
 	}
 } SParameters;
 
