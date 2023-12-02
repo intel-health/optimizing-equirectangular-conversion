@@ -17,6 +17,16 @@
 #include "ConfigurableDeviceSelector.hpp"
 #include "TimingStats.hpp"
 
+#ifdef VTUNE_API
+// Assuming you have 2023 of VTune installed, you will need to add
+// $(VTUNE_PROFILER_2023_DIR)\sdk\include
+// to the include directories for any configurations that will be profiled.  Also add
+// $(VTUNE_PROFILER_2023_DIR)\sdk\lib64
+// to the linker additional directories area
+#include "ittnotify.h"
+#pragma comment(lib, "libittnotify.lib")
+#endif
+
 DpcppBaseAlgorithm::DpcppBaseAlgorithm(SParameters& parameters) : BaseAlgorithm(parameters)
 {
     m_pQ = NULL;
@@ -293,6 +303,23 @@ unsigned int DpcppBaseAlgorithm::threadFunc()
     std::chrono::high_resolution_clock::time_point frameEndTime;
     TimingStats *pTimingStats = TimingStats::GetTimingStats();
 
+#ifdef VTUNE_API
+    // Create string handle for denoting when the kernel is running
+
+    if (m_pParameters->m_uiMyMask == CPU_DEVICE_MASK)
+    {
+        wchar_t const *pThreadName = _T("CPU orchestrator thread");
+
+        __itt_thread_set_name(pThreadName);
+    }
+    else if (m_pParameters->m_uiMyMask == GPU_DEVICE_MASK)
+    {
+        wchar_t const *pThreadName = _T("GPU orchestrator thread");
+
+        __itt_thread_set_name(pThreadName);
+    }
+#endif
+
     while (!m_bThreadStopRequested)
     {
         // We will await a command from the commanding layer that we should do
@@ -327,5 +354,7 @@ unsigned int DpcppBaseAlgorithm::threadFunc()
             m_pParameters->m_pWorkCompletedCondVar->notify_one();
         }
     }
+
+    return 0;
 }
 

@@ -42,16 +42,6 @@
 
 using namespace cl::sycl;
 
-#if 0
-// Convience data access definitions
-constexpr access::mode dp_read = access::mode::read;
-constexpr access::mode dp_write = access::mode::write;
-
-// ARRAY type & data size for use in this example
-constexpr size_t array_size = 10000;
-typedef std::array<int, array_size> IntArray;
-#endif
-
 #ifdef VTUNE_API
 // Assuming you have 2023 of VTune installed, you will need to add
 // $(VTUNE_PROFILER_2023_DIR)\sdk\include
@@ -66,9 +56,6 @@ wchar_t const *pPrintParameters = _T("Print Parameters");
 __itt_string_handle *handle_print_parameters = __itt_string_handle_create(pPrintParameters);
 #endif
 
-//************************************
-// Demonstrate summation of arrays both in scalar on CPU and parallel on device
-//************************************
 int main(int argc, char** argv) {
     SParameters parameters;
     char errorMessage[MAX_ERROR_MESSAGE];
@@ -246,7 +233,6 @@ int main(int argc, char** argv) {
 
                     if (bVariantValid)
                     {
-                        pTimingStats->Reset();
                         description = pAlg->GetDescription();
                         // Reset the perspective back to the inital values so each algorithm
                         // works from the same baseline
@@ -256,6 +242,7 @@ int main(int argc, char** argv) {
                         parameters.m_imageIndex = 0;
                         iteration = 0;
 
+                        pTimingStats->Reset();
                         pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, initStartTime, initEndTime);
                         pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, variantInitStartTime, std::chrono::high_resolution_clock::now());
                         bRunningVariant = true;
@@ -560,14 +547,10 @@ int main(int argc, char** argv) {
     {
         printf("%s\n", element.c_str());
     }
-    printf("\033[32m");
-    printf("It is possible that the exit will hang due to a driver not unloading properly.\n");
-    printf("It is safe to force the program to stop since no more computing is being done.\n");
-    printf("\033[0m");
     if (!bInteractive)
     {
         key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
     }
 
-  return 0;
+    return 0;
 }

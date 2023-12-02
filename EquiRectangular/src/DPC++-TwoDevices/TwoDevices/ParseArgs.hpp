@@ -31,7 +31,7 @@ const unsigned int CPU_DEVICE_MASK = 1;
 const unsigned int GPU_DEVICE_MASK = 2;
 const unsigned int ALL_DEVICES_MASK = CPU_DEVICE_MASK | GPU_DEVICE_MASK;
 const unsigned int MAX_DEVICES = 2;
-const unsigned int GENERAL_STATS = MAX_DEVICES + 1;
+const unsigned int GENERAL_STATS = MAX_DEVICES;
 const unsigned int ALL_STATS = GENERAL_STATS + 1;
 
 typedef struct _SParameters {

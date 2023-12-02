@@ -45,6 +45,9 @@ void TimingStats::Reset()
 				m_durationWarmup[i][j] = std::chrono::duration<double>::zero();
 			}
 		}
+
+		m_bFirstNonWarmup = true;
+		m_startWarmupTime = std::chrono::high_resolution_clock::now();
 	}
 }
 
@@ -67,7 +70,6 @@ void TimingStats::ResetLap()
 void TimingStats::AddIterationResults(ETimingType timingType, unsigned int uiDevIndex, std::chrono::high_resolution_clock::time_point startTime, std::chrono::high_resolution_clock::time_point endTime)
 {
 	std::chrono::duration<double> duration = std::chrono::duration<double>(endTime - startTime);
-
 	{
 		std::lock_guard<std::mutex> requestWorkLock(m_accessMutex);
 
@@ -79,6 +81,7 @@ void TimingStats::AddIterationResults(ETimingType timingType, unsigned int uiDev
 				m_lapIterations[timingType][uiDevIndex] += m_lapIterations[TIMING_FRAME][j];
 			}
 			m_lapDurationsSum[timingType][uiDevIndex] = duration;
+			m_durationsSum[TIMING_TOTAL][GENERAL_STATS] = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - m_startNonWarmupTime);
 		}
 		else
 		{
@@ -86,11 +89,29 @@ void TimingStats::AddIterationResults(ETimingType timingType, unsigned int uiDev
 			{
 				m_durationWarmup[timingType][uiDevIndex] = duration;
 				m_warmupIterations[timingType][uiDevIndex]++;
+
+				if (timingType == TIMING_FRAME)
+				{
+					m_warmupIterations[TIMING_TOTAL][GENERAL_STATS]++;
+					if (m_warmupIterations[TIMING_TOTAL][GENERAL_STATS] == MAX_DEVICES)
+					{
+						m_durationWarmup[TIMING_TOTAL][GENERAL_STATS] = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - m_startWarmupTime);
+					}
+				}
 			}
 			else
 			{
 				m_iterations[timingType][uiDevIndex]++;
 				m_durationsSum[timingType][uiDevIndex] += duration;
+				if (timingType == TIMING_FRAME)
+				{
+					if (m_bFirstNonWarmup)
+					{
+						m_bFirstNonWarmup = false;
+						m_startNonWarmupTime = std::chrono::high_resolution_clock::now();
+					}
+					m_iterations[TIMING_TOTAL][GENERAL_STATS]++;
+				}
 			}
 			m_lapIterations[timingType][uiDevIndex]++;
 			m_lapDurationsSum[timingType][uiDevIndex] += duration;
@@ -107,10 +128,10 @@ std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeStr
 #define CSV_OUTPUT
 #ifdef CSV_OUTPUT
 	// The Comma Separated Variables output is useful when loading the output into a program such as Excel
-	char const *pFmt = "%3s,%15s,%3d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
+	char const *pFmt = "%3s,%15s,%5d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
 	char const *pFmt2 = "FPS, %12.8f\n";
 #else
-	char const *pFmt = "%3s %15s %3d %23s %12.8fs %12.5fms %12.3fus ";
+	char const *pFmt = "%3s %15s %5d %23s %12.8fs %12.5fms %12.3fus ";
 	char const *pFmt2 = "FPS = %12.8f\n";
 #endif
 	std::chrono::duration<double> aveDuration = durationSum / numIterations;
@@ -272,6 +293,14 @@ std::string TimingStats::SummaryStats(bool bIncludeLap /* = true */)
 		if (m_iterations[ETimingType::TIMING_FRAME][j] != 0)
 		{
 			retVal += GetSummaryLine("times averaging", GetTypeString(ETimingType::TIMING_FRAME), devString, m_durationsSum[ETimingType::TIMING_FRAME][j], m_iterations[ETimingType::TIMING_FRAME][j], ETimingType::TIMING_FRAME);
+		}
+		if (m_durationWarmup[ETimingType::TIMING_TOTAL][j] != std::chrono::duration<double>::zero())
+		{
+			retVal += GetSummaryLine("warmup", GetTypeString(ETimingType::TIMING_TOTAL), devString, m_durationWarmup[ETimingType::TIMING_TOTAL][j], m_warmupIterations[ETimingType::TIMING_TOTAL][j], ETimingType::TIMING_TOTAL);
+		}
+		if (m_iterations[ETimingType::TIMING_TOTAL][j] != 0)
+		{
+			retVal += GetSummaryLine("times averaging", GetTypeString(ETimingType::TIMING_TOTAL), devString, m_durationsSum[ETimingType::TIMING_TOTAL][j], m_iterations[ETimingType::TIMING_TOTAL][j], ETimingType::TIMING_TOTAL);
 		}
 		if (m_lapIterations[ETimingType::TIMING_TOTAL][j] != 0)
 		{

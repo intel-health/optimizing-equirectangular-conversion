@@ -21,13 +21,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2024</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2024</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -59,13 +59,13 @@
       </PrecompiledHeaderFile>
       <SYCLWarningLevel>Level3</SYCLWarningLevel>
       <PreprocessorDefinitions>VTUNE_API;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,7 +76,7 @@
       </PrecompiledHeaderFile>
       <SYCLWarningLevel>Level3</SYCLWarningLevel>
       <PreprocessorDefinitions>VTUNE_API;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -84,7 +84,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\lib64;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

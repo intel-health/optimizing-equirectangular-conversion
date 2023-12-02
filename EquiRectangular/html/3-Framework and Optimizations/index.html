@@ -47,24 +47,25 @@ when testing how fast a specific algorithm functions:
 </p>
 
 <p>
-The code found in the github repository <a href="https://github.com/intel-health/TODO-getfinallocation">OptimizingEquirectangularConversion</a> implements the elements described above with some enhancements.  For instance,
+The code found in the github repository <a href="https://github.com/intel-health/TODO-getfinallocation">OneDevice</a> implements the elements described above with some enhancements.  For instance,
 some of the algorithms being tested take longer during the first iteration due to a need to compile a kernel or pass the kernel to an accelerator in the system such as a GPU.  In cases such as
 video conversion, this "warmup iteration" happens at the very beginning and has a minor effect on the overall experience; however, for cases where the extraction happens on a single frame, 
 this warmup time may be significant.  To help distinguish between these two situations, the framework separates out the first iteration as a "warmup iteration" and then takes the average 
-of the remaining iterations.  This allows the operator to understand how the algorithm will perform for either single frames or changing frames which could either be a video stream 
+of the remaining iterations.  This allows the operator to understand how the algorithm will perform for either single frames or a sequence of frames which could either be a video stream 
 or changing as the operator moves the viewport around the scene.
 </p>
 
 <p>
-The code that implements the psuedocode described above can be found in OptimizingEquirectangularConversion.cpp.  This file uses ParseArg.cpp to parse the command line parameters.  Running the executable with
-the command line flag --help, -h, or -? prints out the full list of available flags and their default values.  These can be used to configure the run and specify the algorithm(s) to use,
+The code that implements the psuedocode described above can be found in OptimizingEquirectangularConversion.cpp.  This file uses ParseArg.cpp to parse the command line parameters.  
+Running the executable with the command line flag --help, -h, or -? prints out the full list of available flags and their default values.  
+These can be used to configure the run and specify the algorithm(s) to use,
 the initial viewing direction, the amount to change that direction with each iteration, the images to use, and so on.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">OptimizingEquirectangularConversion.exe -h
-</span><span class="ResultsLine">Usage: Flatten360Image.exe [flags]
+<span class="CommandLine">OneDevice.exe -h
+</span><span class="ResultsLine">Usage: OneDevice.exe [flags]
 Where: flags can be zero or more of the following (all flags are case insensitive):
 --algorithm=N where N is the number of the algorithm to use during the run. If this is set non-negative, it takes
     precedence over --startAlgorithm and --endAlgorithm.  Defaults to -1.
@@ -120,7 +121,7 @@ Where: flags can be zero or more of the following (all flags are case insensitiv
 --startAlgorithm=N where N defines the first algorithm number to run and then all algorithms up to and including
     --endAlgorithm will be run in succession.  Defaults to 0.
 --showFrames indicates each calculated frame should be shown.  Defaults to true for interactive mode, false otherwise.
---typePreference=type1;type2;... where the types can be CPU, GPU, or
+--typePreference=type1;type2;... where the types can be CPU, GPU, or 
     ACC (for Accelerator such as FPGA.  type1 is highest preference, then type2, etc.
 --widthOutput=N where N is the number of pixels width the flattened image will be.  Default is 1080.
 --yaw=N where N defines the yaw of the viewer's perspective (left or right angle).  This can run from
@@ -137,7 +138,7 @@ This class manages the warmup times, summing and averaging multiple iterations a
 
 <p>
 The framework includes a BaseAlgorithm.cpp that defines an abstract base class that has pure virtual functions indicating what the inheriting classes must implement so the framework can
-call the algorithm implementations.  Aside from the constructor and destructor, the base class has a function for the following:
+call the algorithm implementations.  Aside from the constructor and destructor, the base class has functions for the following:
 <ul>
 <li> FrameCalculations - determine the pixel addresses for the frame</li>
 <li> ExtractFrameImage - make a copy of the required pixels</li>
@@ -152,30 +153,30 @@ call the algorithm implementations.  Aside from the constructor and destructor, 
 The majority of the other files in the framework contain classes that derive from the base class above and implement various algorithms for extracting a rectilinear image from
 an equirectangular image.  The following sections of this blog describe the algorithms.
 </p>
+
 <h2>Running the Framework in Interactive Mode</h2>
 
 <p>
 In order to assist with debugging and checking implemented algorithms for correct behaviors, the framework supports an interactive mode.  Placing the flag --iterations=0 on the command
 line launches in interactive mode.  The framework initializes according to all other command line flags, runs the first algorithm, and then presents the rectilinear image in
-a window.  The person running the code can interact using that window to manually change many of the parameters and the displayed image will update accordingly.  The framework
+a window.  The person running the code can interact using that window to change many of the parameters manually and the displayed image will update accordingly.  The framework
 supports changing the yaw, pitch, and roll.  To provide maximum control, there is an internal "delta" value that determines how many degrees to move in a selected direction.  This
 value is initialized to 10, but can be altered using keystrokes described below.
-The accepted keys
-include:
+The accepted keys include:
 <ul>
 <li>
 [#]Right arrow - add "delta" to the current yaw setting.  Optionally, if a positive or negative number is entered prior to hitting the right arrow, the "delta"
-value is changed to the entered number and then applied when the right arrow is entered.
+value is changed to the entered number and then applied when the right arrow is entered.  For example, 20 followed by right arrow will change the delta value to 20.
 </li>
-<li>Left arrow - similar to right arrow except the "delta" value is subtracted from the yaw.</li>
-<li>Up arrow - similar to right arrow except the "delta" value is added to the pitch.</li>
-<li>Down arrow - similar to right arrow except the "delta" value is subtracted from the pitch.</li>
-<li>PgUp - similar to right arrow except the "delta" value is subtracted from the roll.</li>
-<li>PgDn - similar to right arrow except the "delta" value is added to the roll.</li>
-<li>End - similar to right arrow except the "delta" value is subtracted from the roll.</li>
-<li>Home - similar to right arrow except the "delta" value is added to the roll.</li>
-<li>* - similar to right arrow except the "delta" is subtracted from the field of view (fov).  The image zooms in.</li>
-<li>/ - similar to right arrow except the "delta" is added to the field of view (fov).  The image zooms out.</li>
+<li>[#]Left arrow - similar to right arrow except the "delta" value is subtracted from the yaw.</li>
+<li>[#]Up arrow - similar to right arrow except the "delta" value is added to the pitch.</li>
+<li>[#]Down arrow - similar to right arrow except the "delta" value is subtracted from the pitch.</li>
+<li>[#]PgUp - similar to right arrow except the "delta" value is subtracted from the roll.</li>
+<li>[#]PgDn - similar to right arrow except the "delta" value is added to the roll.</li>
+<li>[#]End - similar to right arrow except the "delta" value is subtracted from the roll.</li>
+<li>[#]Home - similar to right arrow except the "delta" value is added to the roll.</li>
+<li>[#]* - similar to right arrow except the "delta" is subtracted from the field of view (fov).  The image zooms in.</li>
+<li>[#]/ - similar to right arrow except the "delta" is added to the field of view (fov).  The image zooms out.</li>
 <li>f - the image being displayed is changed to the other image (e.g., img0 to img1 or img1 to img0).</li>
 <li>a - change the algorithm.  Enter a number from 0 - 11 before the a key to jump to that algorithm.</li>
 <li>p - change the pitch to a given value.  Enter a number before the p key to jump to that pitch.</li>
@@ -205,14 +206,21 @@ any other startup tasks.
 </p>
 
 <p>
-The "times averaging" rows report the average of the remaining N runs, in this case N = 100.  By running multiple iterations, it smooths out the results since
+The "times averaging" rows report the average of the remaining N-1 runs, in this case N = 1001.  By running multiple iterations, it smooths out the results since
 it is possible that a single run may get swapped out in the middle of the calculation or take a bit longer than others as it executes.  Generally speaking, averaging a sufficiently
 large number of iterations makes the results easier to compare and less susceptible to anomalies.
 </p>
 
 <p>
-The "lap averaging" rows combine the warmup and times averaging to get the total picture of a run from start to finish across the N+1 iterations.  The one exception is the lap averaging
-Total row where the iteration count is 1.  That row represents the duration of the entire execution of the program.  The iteration count is one since it represents one iteration of the program.
+The "lap averaging" rows combine the warmup and times averaging to get the total picture of a run from start to finish across the full N iterations.  
+</p>
+
+<p>
+All of the above averages uses the time within the function to compute an "instantaneous" FPS result that does not take into account any of the other logic outside the specific
+computation functions.  The total averaging row takes the full execution time including all the supporting setup time and calculates the perceived FPS by the person operating the
+code.  When everything is executing on a single device (CPU or GPU) the total averaging tends to be a lower FPS rate than the times averaging or the lap averaging since it takes longer
+for the entire loop of code to run compared to the individual functions.  When code is executed on two devices which will be described later in the blog series, then the perceived
+time may be shorter than the computational times since the computations on two devices happen in parallel.
 </p>
 
 <p>
@@ -226,27 +234,28 @@ Notice that all rows are comma separated variables (CSV).  This makes it easy to
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=0 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=0 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg	 
 </span><span class="ResultsLine">Loading Image0
-</span><span class="ResultsLine">Loading Image1
-</span><span class="ResultsLine">Images loaded.
-</span><span class="ResultsLine">Algorithm description: V1 Equi2Rect reprojection.
-</span><span class="ResultsLine">         warmup,  1,   Class initialization,  0.00062570,s,     0.62570,ms,     625.700,us,
-</span><span class="ResultsLine">         warmup,  1, Variant initialization,  0.00000640,s,     0.00640,ms,       6.400,us,
-</span><span class="ResultsLine">         warmup,  1,     Frame Calculations,  0.00010180,s,     0.10180,ms,     101.800,us,
-</span><span class="ResultsLine">         warmup,  1,       Image extraction,  1.08168020,s,  1081.68020,ms, 1081680.200,us,
-</span><span class="ResultsLine">         warmup,  1,               frame(s),  1.08178460,s,  1081.78460,ms, 1081784.600,us, FPS,   0.92439844
-</span><span class="ResultsLine">times averaging,100,     Frame Calculations,  0.00000509,s,     0.00509,ms,       5.093,us,
-</span><span class="ResultsLine">times averaging,100,       Image extraction,  1.07800978,s,  1078.00978,ms, 1078009.780,us,
-</span><span class="ResultsLine">times averaging,100,               frame(s),  1.07801616,s,  1078.01616,ms, 1078016.160,us, FPS,   0.92762988
-</span><span class="ResultsLine">  lap averaging,101,     Frame Calculations,  0.00000605,s,     0.00605,ms,       6.050,us,
-</span><span class="ResultsLine">  lap averaging,101,       Image extraction,  1.07804612,s,  1078.04612,ms, 1078046.121,us,
-</span><span class="ResultsLine">  lap averaging,101,               frame(s),  1.07805347,s,  1078.05347,ms, 1078053.471,us, FPS,   0.92759777
-</span><span class="ResultsLine">  lap averaging,  1,                  Total,108.88348860,s,108883.48860,ms,108883488.600,us,
-</span><span class="ResultsLine">All done!  Summary of all runs:
-</span><span class="ResultsLine">V1 Equi2Rect reprojection.
-</span><span class="ResultsLine">         warmup,  1,               frame(s),  1.08178460,s,  1081.78460,ms, 1081784.600,us, FPS,   0.92439844
-</span><span class="ResultsLine">times averaging,100,               frame(s),  1.07801616,s,  1078.01616,ms, 1078016.160,us, <span class="ResultsHighlight">FPS,   0.92762988</span>
+Loading Image1
+Images loaded.
+Algorithm description: V1 Equi2Rect reprojection.
+         warmup,    1,   Class initialization,  0.00054740,s,     0.54740,ms,     547.400,us, 
+         warmup,    1, Variant initialization,  0.00000460,s,     0.00460,ms,       4.600,us, 
+         warmup,    1,     Frame Calculations,  0.00171000,s,     1.71000,ms,    1710.000,us, 
+         warmup,    1,       Image extraction,  1.08332820,s,  1083.32820,ms, 1083328.200,us, 
+         warmup,    1,               frame(s),  1.08504090,s,  1085.04090,ms, 1085040.900,us, FPS,    0.9216242
+times averaging, 1000,     Frame Calculations,  0.00000466,s,     0.00466,ms,       4.662,us, 
+times averaging, 1000,       Image extraction,  1.07838461,s,  1078.38461,ms, 1078384.611,us, 
+times averaging, 1000,               frame(s),  1.07839043,s,  1078.39043,ms, 1078390.427,us, FPS,    0.9273079
+  lap averaging, 1001,     Frame Calculations,  0.00000637,s,     0.00637,ms,       6.366,us, 
+  lap averaging, 1001,       Image extraction,  1.07838955,s,  1078.38955,ms, 1078389.549,us, 
+  lap averaging, 1001,               frame(s),  1.07839707,s,  1078.39707,ms, 1078397.071,us, FPS,    0.9273022
+total averaging, 1001,                  Total,  1.07839733,s,  1078.39733,ms, 1078397.329,us, FPS,    0.9273020
+All done!  Summary of all runs:
+V1 Equi2Rect reprojection.
+         warmup,    1,               frame(s),  1.08504090,s,  1085.04090,ms, 1085040.900,us, FPS,    0.9216242
+times averaging, 1000,               frame(s),  1.07839043,s,  1078.39043,ms, 1078390.427,us, <span class="ResultsHighlight">FPS,    0.9273079</span>
+total averaging, 1001,                  Total,  1.07839733,s,  1078.39733,ms, 1078397.329,us, FPS,    0.9273020
 </span>
 </div>
 </code>
@@ -276,12 +285,12 @@ The Image extraction tells the amount of time it takes the algorithm to copy all
 <p>
 The frame(s) row reports how long it takes to do all the work to extract a frame.  This row also reports the maximum frame per second rate that could be achieved by this algorithm
 assuming that nothing else was happening in the overall workflow.  Obviously, this is unrealistic in an actual workflow since the extracted image would need to be displayed to the
-person using the program, but it gives a well define metric to use when comparing the efficiency of one algorithm versus another.
+person using the program, but it gives a well defined metric to use when comparing the efficiency of one algorithm versus another.
 </p>
 
 <p>
 The same Intel&reg; i9-9900k machine was used to execute the program as was used in the <a href="TODO link to blog 2">previous blog</a> that introduced this code.  The yellow highlighted
-FPS (0.92762988) is approximately the same as the previous standalone results (0.89846216), so incorporating the code into the framework did not introduce substantial overhead.
+FPS (0.9273079) is approximately the same as the previous standalone results (0.89846216), so incorporating the code into the framework did not introduce substantial overhead.
 </p>
 
 <h2>Algorithm 1</h2>
@@ -295,96 +304,98 @@ additional step of transposing from column/row to row/column for the extraction 
 
 <p>
 For this algorithm, extra code was added to report on the amount of time the three key function calls take (Create XYZ Coords, Create Lon Lat Coords, and Create XY Coords) as well as
-the extra Create Map step required to transpose the map.  As can be seen, the Create Map step accounts for 1.8 milliseconds on average, and this step along accounts for the majority
-of the slowdown (i.e., if we take the overall frame time (17.70360) and subtract the Create Map time (1.84352), the frame time would take 15.86008 which is similar to the row/column
-frame time of 15.42411 milliseconds).
+the extra Create Map step required to transpose the map.  As can be seen, the Create Map step in the second variant accounts for 1.77984 milliseconds on average, and this step alone 
+accounts for the majority of the slowdown (i.e., if we take the overall frame time (16.79339) and subtract the Create Map time (1.77984), the frame time would take 
+15.01355 which is similar to the row/column frame time of 14.82140 milliseconds for the first variant).
 </p>
 
 <p>
-Comparing the FPS results below against the original Python results shows the C++ implementation to be about 5.5 times faster (i.e., 64.83354991 / 11.821199533998858).
+Comparing the FPS results below against the original Python results shows the C++ implementation to be about 5.7 times faster (i.e., 67.4700178 / 11.821199533998858).
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=1 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg	 
 </span><span class="ResultsLine">Loading Image0
 Loading Image1
 Images loaded.
 Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
-         warmup,  1,   Class initialization,  0.00002380,s,     0.02380,ms,      23.800,us,
-         warmup,  1, Variant initialization,  0.00007300,s,     0.07300,ms,      73.000,us,
-         warmup,  1,      Create XYZ Coords,  0.00248180,s,     2.48180,ms,    2481.800,us,
-         warmup,  1,  Create Lon Lat Coords,  0.01253490,s,    12.53490,ms,   12534.900,us,
-         warmup,  1,       Create XY Coords,  0.00207160,s,     2.07160,ms,    2071.600,us,
-         warmup,  1,     Frame Calculations,  0.01709680,s,    17.09680,ms,   17096.800,us,
-         warmup,  1,                  Remap,  0.01028550,s,    10.28550,ms,   10285.500,us,
-         warmup,  1,       Image extraction,  0.01028640,s,    10.28640,ms,   10286.400,us,
-         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  36.51434101
-times averaging,100,      Create XYZ Coords,  0.00055944,s,     0.55944,ms,     559.437,us,
-times averaging,100,  Create Lon Lat Coords,  0.01125354,s,    11.25354,ms,   11253.539,us,
-times averaging,100,       Create XY Coords,  0.00068595,s,     0.68595,ms,     685.953,us,
-times averaging,100,     Frame Calculations,  0.01249949,s,    12.49949,ms,   12499.485,us,
-times averaging,100,                  Remap,  0.00274433,s,     2.74433,ms,    2744.326,us,
-times averaging,100,       Image extraction,  0.00292323,s,     2.92323,ms,    2923.234,us,
-times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  64.83354991
-  lap averaging,101,      Create XYZ Coords,  0.00057847,s,     0.57847,ms,     578.470,us,
-  lap averaging,101,  Create Lon Lat Coords,  0.01126623,s,    11.26623,ms,   11266.226,us,
-  lap averaging,101,       Create XY Coords,  0.00069967,s,     0.69967,ms,     699.672,us,
-  lap averaging,101,     Frame Calculations,  0.01254500,s,    12.54500,ms,   12545.003,us,
-  lap averaging,101,                  Remap,  0.00281899,s,     2.81899,ms,    2818.991,us,
-  lap averaging,101,       Image extraction,  0.00299614,s,     2.99614,ms,    2996.137,us,
-  lap averaging,101,               frame(s),  0.01554255,s,    15.54255,ms,   15542.552,us, FPS,  64.33949646
-  lap averaging,  1,                  Total,  1.56987770,s,  1569.87770,ms, 1569877.700,us,
+         warmup,    1,   Class initialization,  0.00000450,s,     0.00450,ms,       4.500,us, 
+         warmup,    1, Variant initialization,  0.00004560,s,     0.04560,ms,      45.600,us, 
+         warmup,    1,      Create XYZ Coords,  0.00222730,s,     2.22730,ms,    2227.300,us, 
+         warmup,    1,  Create Lon Lat Coords,  0.01442760,s,    14.42760,ms,   14427.600,us, 
+         warmup,    1,       Create XY Coords,  0.00194850,s,     1.94850,ms,    1948.500,us, 
+         warmup,    1,     Frame Calculations,  0.01861200,s,    18.61200,ms,   18612.000,us, 
+         warmup,    1,                  Remap,  0.00945840,s,     9.45840,ms,    9458.400,us, 
+         warmup,    1,       Image extraction,  0.00945890,s,     9.45890,ms,    9458.900,us, 
+         warmup,    1,               frame(s),  0.02807420,s,    28.07420,ms,   28074.200,us, FPS,   35.6198930
+times averaging, 1000,      Create XYZ Coords,  0.00054643,s,     0.54643,ms,     546.431,us, 
+times averaging, 1000,  Create Lon Lat Coords,  0.01073178,s,    10.73178,ms,   10731.780,us, 
+times averaging, 1000,       Create XY Coords,  0.00065189,s,     0.65189,ms,     651.894,us, 
+times averaging, 1000,     Frame Calculations,  0.01193053,s,    11.93053,ms,   11930.530,us, 
+times averaging, 1000,                  Remap,  0.00269910,s,     2.69910,ms,    2699.101,us, 
+times averaging, 1000,       Image extraction,  0.00288956,s,     2.88956,ms,    2889.561,us, 
+times averaging, 1000,               frame(s),  0.01482140,s,    14.82140,ms,   14821.398,us, FPS,   67.4700178
+  lap averaging, 1001,      Create XYZ Coords,  0.00054811,s,     0.54811,ms,     548.110,us, 
+  lap averaging, 1001,  Create Lon Lat Coords,  0.01073547,s,    10.73547,ms,   10735.472,us, 
+  lap averaging, 1001,       Create XY Coords,  0.00065319,s,     0.65319,ms,     653.189,us, 
+  lap averaging, 1001,     Frame Calculations,  0.01193721,s,    11.93721,ms,   11937.205,us, 
+  lap averaging, 1001,                  Remap,  0.00270585,s,     2.70585,ms,    2705.853,us, 
+  lap averaging, 1001,       Image extraction,  0.00289612,s,     2.89612,ms,    2896.124,us, 
+  lap averaging, 1001,               frame(s),  0.01483464,s,    14.83464,ms,   14834.638,us, FPS,   67.4098024
+total averaging, 1001,                  Total,  0.01483488,s,    14.83488,ms,   14834.884,us, FPS,   67.4086857
 Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
-         warmup,  1,   Class initialization,  0.00002380,s,     0.02380,ms,      23.800,us,
-         warmup,  1, Variant initialization,  0.00006350,s,     0.06350,ms,      63.500,us,
-         warmup,  1,      Create XYZ Coords,  0.00216010,s,     2.16010,ms,    2160.100,us,
-         warmup,  1,  Create Lon Lat Coords,  0.01260240,s,    12.60240,ms,   12602.400,us,
-         warmup,  1,       Create XY Coords,  0.00204510,s,     2.04510,ms,    2045.100,us,
-         warmup,  1,     Frame Calculations,  0.01680810,s,    16.80810,ms,   16808.100,us,
-         warmup,  1,             Create Map,  0.00228710,s,     2.28710,ms,    2287.100,us,
-         warmup,  1,                  Remap,  0.00322880,s,     3.22880,ms,    3228.800,us,
-         warmup,  1,       Image extraction,  0.00564330,s,     5.64330,ms,    5643.300,us,
-         warmup,  1,               frame(s),  0.02245330,s,    22.45330,ms,   22453.300,us, FPS,  44.53688322
-times averaging,100,      Create XYZ Coords,  0.00054138,s,     0.54138,ms,     541.376,us,
-times averaging,100,  Create Lon Lat Coords,  0.01130559,s,    11.30559,ms,   11305.585,us,
-times averaging,100,       Create XY Coords,  0.00070777,s,     0.70777,ms,     707.766,us,
-times averaging,100,     Frame Calculations,  0.01255526,s,    12.55526,ms,   12555.263,us,
-times averaging,100,             Create Map,  0.00184352,s,     1.84352,ms,    1843.518,us,
-times averaging,100,                  Remap,  0.00317580,s,     3.17580,ms,    3175.804,us,
-times averaging,100,       Image extraction,  0.00514685,s,     5.14685,ms,    5146.848,us,
-times averaging,100,               frame(s),  0.01770360,s,    17.70360,ms,   17703.600,us, FPS,  56.48568653
-  lap averaging,101,      Create XYZ Coords,  0.00055740,s,     0.55740,ms,     557.403,us,
-  lap averaging,101,  Create Lon Lat Coords,  0.01131842,s,    11.31842,ms,   11318.425,us,
-  lap averaging,101,       Create XY Coords,  0.00072101,s,     0.72101,ms,     721.007,us,
-  lap averaging,101,     Frame Calculations,  0.01259737,s,    12.59737,ms,   12597.370,us,
-  lap averaging,101,             Create Map,  0.00184791,s,     1.84791,ms,    1847.910,us,
-  lap averaging,101,                  Remap,  0.00317633,s,     3.17633,ms,    3176.329,us,
-  lap averaging,101,       Image extraction,  0.00515176,s,     5.15176,ms,    5151.763,us,
-  lap averaging,101,               frame(s),  0.01775063,s,    17.75063,ms,   17750.627,us, FPS,  56.33603901
-  lap averaging,  1,                  Total,  1.79283790,s,  1792.83790,ms, 1792837.900,us,
+         warmup,    1,   Class initialization,  0.00000450,s,     0.00450,ms,       4.500,us, 
+         warmup,    1, Variant initialization,  0.00004020,s,     0.04020,ms,      40.200,us, 
+         warmup,    1,      Create XYZ Coords,  0.00212270,s,     2.12270,ms,    2122.700,us, 
+         warmup,    1,  Create Lon Lat Coords,  0.01130650,s,    11.30650,ms,   11306.500,us, 
+         warmup,    1,       Create XY Coords,  0.00171640,s,     1.71640,ms,    1716.400,us, 
+         warmup,    1,     Frame Calculations,  0.01514570,s,    15.14570,ms,   15145.700,us, 
+         warmup,    1,             Create Map,  0.00208630,s,     2.08630,ms,    2086.300,us, 
+         warmup,    1,                  Remap,  0.00312290,s,     3.12290,ms,    3122.900,us, 
+         warmup,    1,       Image extraction,  0.00533190,s,     5.33190,ms,    5331.900,us, 
+         warmup,    1,               frame(s),  0.02047830,s,    20.47830,ms,   20478.300,us, FPS,   48.8321785
+times averaging, 1000,      Create XYZ Coords,  0.00053543,s,     0.53543,ms,     535.429,us, 
+times averaging, 1000,  Create Lon Lat Coords,  0.01063900,s,    10.63900,ms,   10639.004,us, 
+times averaging, 1000,       Create XY Coords,  0.00064727,s,     0.64727,ms,     647.272,us, 
+times averaging, 1000,     Frame Calculations,  0.01182214,s,    11.82214,ms,   11822.140,us, 
+times averaging, 1000,             Create Map,  0.00177984,s,     1.77984,ms,    1779.843,us, 
+times averaging, 1000,                  Remap,  0.00306457,s,     3.06457,ms,    3064.568,us, 
+times averaging, 1000,       Image extraction,  0.00496970,s,     4.96970,ms,    4969.697,us, 
+times averaging, 1000,               frame(s),  0.01679339,s,    16.79339,ms,   16793.390,us, FPS,   59.5472375
+  lap averaging, 1001,      Create XYZ Coords,  0.00053701,s,     0.53701,ms,     537.014,us, 
+  lap averaging, 1001,  Create Lon Lat Coords,  0.01063967,s,    10.63967,ms,   10639.671,us, 
+  lap averaging, 1001,       Create XY Coords,  0.00064834,s,     0.64834,ms,     648.340,us, 
+  lap averaging, 1001,     Frame Calculations,  0.01182546,s,    11.82546,ms,   11825.460,us, 
+  lap averaging, 1001,             Create Map,  0.00178015,s,     1.78015,ms,    1780.149,us, 
+  lap averaging, 1001,                  Remap,  0.00306463,s,     3.06463,ms,    3064.626,us, 
+  lap averaging, 1001,       Image extraction,  0.00497006,s,     4.97006,ms,    4970.059,us, 
+  lap averaging, 1001,               frame(s),  0.01679707,s,    16.79707,ms,   16797.072,us, FPS,   59.5341872
+total averaging, 1001,                  Total,  0.01679729,s,    16.79729,ms,   16797.288,us, FPS,   59.5334195
 All done!  Summary of all runs:
 V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
-         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  36.51434101
-times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  <span class="ResultsHighlight">64.83354991</span>
+         warmup,    1,               frame(s),  0.02807420,s,    28.07420,ms,   28074.200,us, FPS,   35.6198930
+times averaging, 1000,               frame(s),  0.01482140,s,    14.82140,ms,   14821.398,us, FPS,   <span class="ResultsHighlight">67.4700178</span>
+total averaging, 1001,                  Total,  0.01483488,s,    14.83488,ms,   14834.884,us, FPS,   67.4086857
 
 V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
-         warmup,  1,               frame(s),  0.02245330,s,    22.45330,ms,   22453.300,us, FPS,  44.53688322
-times averaging,100,               frame(s),  0.01770360,s,    17.70360,ms,   17703.600,us, FPS,  <span class="ResultsHighlight">56.48568653</span>
+         warmup,    1,               frame(s),  0.02047830,s,    20.47830,ms,   20478.300,us, FPS,   48.8321785
+times averaging, 1000,               frame(s),  0.01679339,s,    16.79339,ms,   16793.390,us, FPS,   <span class="ResultsHighlight">59.5472375</span>
+total averaging, 1001,                  Total,  0.01679729,s,    16.79729,ms,   16797.288,us, FPS,   59.5334195
 </span>
 </div>
 </code>
 
 <p>
-Since Algorithm 1 pre-computes and stores the pixel address information for a given viewing direction, this information can be used to substantially accelerate image
-extraction for subsequent frames if the viewing direction does not change.  For instance, if the underlying frames come from a video or a person is
-viewing a series of images and wishes to extract the same viewing location from each, then this algorithm trades memory usage for speed.
+Since Algorithm 1 pre-computes and stores the pixel address information for a given viewing direction, this information can be used to accelerate image
+extraction for subsequent frames substantially, if the viewing direction does not change.  For instance, if the underlying frames come from a video or a person is
+viewing a series of images and wishes to extract the same viewing direction from each, then this algorithm trades memory usage for speed.
 </p>
 
 <p>
 In the output listed below, the --deltaYaw=10 was removed from the command line and --deltaImage was added.  The --deltaImage causes the framework to alternate each
 extraction between --img0 and --img1 to simulate video or multiple stills with the same viewing direction.  As highlighted below, this increases
-the FPS rate to 346.56867553 which is about 29 times faster than the original Python extraction speed for this specific usage scenario (i.e., 346.56867553 / 11.821199533998858).
+the FPS rate to 355.4009988 which is about 30 times faster than the original Python extraction speed for this specific usage scenario (i.e., 355.4009988 / 11.821199533998858).
 </p>
 
 <p>
@@ -395,67 +406,67 @@ can be reused.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=1 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg	 
 </span><span class="ResultsLine">Loading Image0
 Loading Image1
 Images loaded.
 Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
-         warmup,  1,   Class initialization,  0.00000480,s,     0.00480,ms,       4.800,us,
-         warmup,  1, Variant initialization,  0.00006750,s,     0.06750,ms,      67.500,us,
-         warmup,  1,      Create XYZ Coords,  0.00221850,s,     2.21850,ms,    2218.500,us,
-         warmup,  1,  Create Lon Lat Coords,  0.01250470,s,    12.50470,ms,   12504.700,us,
-         warmup,  1,       Create XY Coords,  0.00199550,s,     1.99550,ms,    1995.500,us,
-         warmup,  1,     Frame Calculations,  0.01672040,s,    16.72040,ms,   16720.400,us,
-         warmup,  1,                  Remap,  0.00959870,s,     9.59870,ms,    9598.700,us,
-         warmup,  1,       Image extraction,  0.00959910,s,     9.59910,ms,    9599.100,us,
-         warmup,  1,               frame(s),  0.02632230,s,    26.32230,ms,   26322.300,us, FPS,  37.99060113
-         warmup,  1,                  Total,  0.31494070,s,   314.94070,ms,  314940.700,us,
-times averaging,100,     Frame Calculations,  0.00000021,s,     0.00021,ms,       0.208,us,
-times averaging,100,                  Remap,  0.00273271,s,     2.73271,ms,    2732.707,us,
-times averaging,100,       Image extraction,  0.00288419,s,     2.88419,ms,    2884.190,us,
-times averaging,100,               frame(s),  0.00288543,s,     2.88543,ms,    2885.431,us, FPS, 346.56867553
-  lap averaging,  1,      Create XYZ Coords,  0.00221850,s,     2.21850,ms,    2218.500,us,
-  lap averaging,  1,  Create Lon Lat Coords,  0.01250470,s,    12.50470,ms,   12504.700,us,
-  lap averaging,  1,       Create XY Coords,  0.00199550,s,     1.99550,ms,    1995.500,us,
-  lap averaging,101,     Frame Calculations,  0.00016575,s,     0.16575,ms,     165.754,us,
-  lap averaging,101,                  Remap,  0.00280069,s,     2.80069,ms,    2800.687,us,
-  lap averaging,101,       Image extraction,  0.00295067,s,     2.95067,ms,    2950.674,us,
-  lap averaging,101,               frame(s),  0.00311748,s,     3.11748,ms,    3117.479,us, FPS, 320.77198701
-  lap averaging,  1,                  Total,  0.31494070,s,   314.94070,ms,  314940.700,us,
+         warmup,    1,   Class initialization,  0.00000440,s,     0.00440,ms,       4.400,us, 
+         warmup,    1, Variant initialization,  0.00004450,s,     0.04450,ms,      44.500,us, 
+         warmup,    1,      Create XYZ Coords,  0.00225770,s,     2.25770,ms,    2257.700,us, 
+         warmup,    1,  Create Lon Lat Coords,  0.01194410,s,    11.94410,ms,   11944.100,us, 
+         warmup,    1,       Create XY Coords,  0.00181920,s,     1.81920,ms,    1819.200,us, 
+         warmup,    1,     Frame Calculations,  0.01602420,s,    16.02420,ms,   16024.200,us, 
+         warmup,    1,                  Remap,  0.00939080,s,     9.39080,ms,    9390.800,us, 
+         warmup,    1,       Image extraction,  0.00939140,s,     9.39140,ms,    9391.400,us, 
+         warmup,    1,               frame(s),  0.02541870,s,    25.41870,ms,   25418.700,us, FPS,   39.3411150
+times averaging, 1000,     Frame Calculations,  0.00000021,s,     0.00021,ms,       0.208,us, 
+times averaging, 1000,                  Remap,  0.00265969,s,     2.65969,ms,    2659.692,us, 
+times averaging, 1000,       Image extraction,  0.00281265,s,     2.81265,ms,    2812.651,us, 
+times averaging, 1000,               frame(s),  0.00281372,s,     2.81372,ms,    2813.723,us, FPS,  355.4009988
+  lap averaging,    1,      Create XYZ Coords,  0.00225770,s,     2.25770,ms,    2257.700,us, 
+  lap averaging,    1,  Create Lon Lat Coords,  0.01194410,s,    11.94410,ms,   11944.100,us, 
+  lap averaging,    1,       Create XY Coords,  0.00181920,s,     1.81920,ms,    1819.200,us, 
+  lap averaging, 1001,     Frame Calculations,  0.00001622,s,     0.01622,ms,      16.216,us, 
+  lap averaging, 1001,                  Remap,  0.00266642,s,     2.66642,ms,    2666.416,us, 
+  lap averaging, 1001,       Image extraction,  0.00281922,s,     2.81922,ms,    2819.223,us, 
+  lap averaging, 1001,               frame(s),  0.00283631,s,     2.83631,ms,    2836.305,us, FPS,  352.5713298
+total averaging, 1001,                  Total,  0.00283654,s,     2.83654,ms,    2836.541,us, FPS,  352.5420749
 Algorithm description: V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
-         warmup,  1,   Class initialization,  0.00000480,s,     0.00480,ms,       4.800,us,
-         warmup,  1, Variant initialization,  0.00004250,s,     0.04250,ms,      42.500,us,
-         warmup,  1,      Create XYZ Coords,  0.00222650,s,     2.22650,ms,    2226.500,us,
-         warmup,  1,  Create Lon Lat Coords,  0.01246930,s,    12.46930,ms,   12469.300,us,
-         warmup,  1,       Create XY Coords,  0.00195770,s,     1.95770,ms,    1957.700,us,
-         warmup,  1,     Frame Calculations,  0.01665400,s,    16.65400,ms,   16654.000,us,
-         warmup,  1,             Create Map,  0.00229950,s,     2.29950,ms,    2299.500,us,
-         warmup,  1,                  Remap,  0.00314090,s,     3.14090,ms,    3140.900,us,
-         warmup,  1,       Image extraction,  0.00556730,s,     5.56730,ms,    5567.300,us,
-         warmup,  1,               frame(s),  0.02222290,s,    22.22290,ms,   22222.900,us, FPS,  44.99862754
-         warmup,  1,                  Total,  0.53160210,s,   531.60210,ms,  531602.100,us,
-times averaging,100,     Frame Calculations,  0.00000020,s,     0.00020,ms,       0.202,us,
-times averaging,100,             Create Map,  0.00192384,s,     1.92384,ms,    1923.843,us,
-times averaging,100,                  Remap,  0.00304748,s,     3.04748,ms,    3047.483,us,
-times averaging,100,       Image extraction,  0.00509229,s,     5.09229,ms,    5092.295,us,
-times averaging,100,               frame(s),  0.00509362,s,     5.09362,ms,    5093.616,us, FPS, 196.32418306
-  lap averaging,  1,      Create XYZ Coords,  0.00222650,s,     2.22650,ms,    2226.500,us,
-  lap averaging,  1,  Create Lon Lat Coords,  0.01246930,s,    12.46930,ms,   12469.300,us,
-  lap averaging,  1,       Create XY Coords,  0.00195770,s,     1.95770,ms,    1957.700,us,
-  lap averaging,101,     Frame Calculations,  0.00016509,s,     0.16509,ms,     165.091,us,
-  lap averaging,101,             Create Map,  0.00192756,s,     1.92756,ms,    1927.562,us,
-  lap averaging,101,                  Remap,  0.00304841,s,     3.04841,ms,    3048.408,us,
-  lap averaging,101,       Image extraction,  0.00509700,s,     5.09700,ms,    5096.998,us,
-  lap averaging,101,               frame(s),  0.00526321,s,     5.26321,ms,    5263.213,us, FPS, 189.99801537
-  lap averaging,  1,                  Total,  0.53160210,s,   531.60210,ms,  531602.100,us,
+         warmup,    1,   Class initialization,  0.00000440,s,     0.00440,ms,       4.400,us, 
+         warmup,    1, Variant initialization,  0.00004320,s,     0.04320,ms,      43.200,us, 
+         warmup,    1,      Create XYZ Coords,  0.00222200,s,     2.22200,ms,    2222.000,us, 
+         warmup,    1,  Create Lon Lat Coords,  0.01238700,s,    12.38700,ms,   12387.000,us, 
+         warmup,    1,       Create XY Coords,  0.00183970,s,     1.83970,ms,    1839.700,us, 
+         warmup,    1,     Frame Calculations,  0.01644900,s,    16.44900,ms,   16449.000,us, 
+         warmup,    1,             Create Map,  0.00212530,s,     2.12530,ms,    2125.300,us, 
+         warmup,    1,                  Remap,  0.00307680,s,     3.07680,ms,    3076.800,us, 
+         warmup,    1,       Image extraction,  0.00533200,s,     5.33200,ms,    5332.000,us, 
+         warmup,    1,               frame(s),  0.02178190,s,    21.78190,ms,   21781.900,us, FPS,   45.9096773
+times averaging, 1000,     Frame Calculations,  0.00000017,s,     0.00017,ms,       0.173,us, 
+times averaging, 1000,             Create Map,  0.00187661,s,     1.87661,ms,    1876.607,us, 
+times averaging, 1000,                  Remap,  0.00296983,s,     2.96983,ms,    2969.835,us, 
+times averaging, 1000,       Image extraction,  0.00497003,s,     4.97003,ms,    4970.026,us, 
+times averaging, 1000,               frame(s),  0.00497128,s,     4.97128,ms,    4971.278,us, FPS,  201.1555258
+  lap averaging,    1,      Create XYZ Coords,  0.00222200,s,     2.22200,ms,    2222.000,us, 
+  lap averaging,    1,  Create Lon Lat Coords,  0.01238700,s,    12.38700,ms,   12387.000,us, 
+  lap averaging,    1,       Create XY Coords,  0.00183970,s,     1.83970,ms,    1839.700,us, 
+  lap averaging, 1001,     Frame Calculations,  0.00001660,s,     0.01660,ms,      16.605,us, 
+  lap averaging, 1001,             Create Map,  0.00187686,s,     1.87686,ms,    1876.855,us, 
+  lap averaging, 1001,                  Remap,  0.00296994,s,     2.96994,ms,    2969.942,us, 
+  lap averaging, 1001,       Image extraction,  0.00497039,s,     4.97039,ms,    4970.388,us, 
+  lap averaging, 1001,               frame(s),  0.00498807,s,     4.98807,ms,    4988.072,us, FPS,  200.4782759
+total averaging, 1001,                  Total,  0.00498829,s,     4.98829,ms,    4988.291,us, FPS,  200.4694550
 All done!  Summary of all runs:
 V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
-         warmup,  1,               frame(s),  0.02632230,s,    26.32230,ms,   26322.300,us, FPS,  37.99060113
-times averaging,100,               frame(s),  0.00288543,s,     2.88543,ms,    2885.431,us, FPS, <span class="ResultsHighlight">346.56867553</span>
+         warmup,    1,               frame(s),  0.02541870,s,    25.41870,ms,   25418.700,us, FPS,   39.3411150
+times averaging, 1000,               frame(s),  0.00281372,s,     2.81372,ms,    2813.723,us, FPS,  <span class="ResultsHighlight">355.4009988</span>
+total averaging, 1001,                  Total,  0.00283654,s,     2.83654,ms,    2836.541,us, FPS,  352.5420749
 
 V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure column/row layout.
-         warmup,  1,               frame(s),  0.02222290,s,    22.22290,ms,   22222.900,us, FPS,  44.99862754
-times averaging,100,               frame(s),  0.00509362,s,     5.09362,ms,    5093.616,us, FPS, 196.32418306
+         warmup,    1,               frame(s),  0.02178190,s,    21.78190,ms,   21781.900,us, FPS,   45.9096773
+times averaging, 1000,               frame(s),  0.00497128,s,     4.97128,ms,    4971.278,us, FPS,  201.1555258
+total averaging, 1001,                  Total,  0.00498829,s,     4.98829,ms,    4988.291,us, FPS,  200.4694550
 </span>
 </div>
 </code>
@@ -506,22 +517,24 @@ during the loop.
 </code>
 
 <p>
-However, Algorithm 2 (64.87905830 FPS) performs about the same as Algorithm 1 (64.83354991 FPS).  See output below from Algorithm 2 (only the summary lines are presented for brevity).  
+However, Algorithm 2 (67.5261480 FPS) performs about the same as Algorithm 1 (67.4700178 FPS).  See output below from Algorithm 2 (only the summary lines are presented for brevity).  
 Either the multiple additions from Algorithm 1 computing the array index offset are inconsequential or the compiler optimizes this code properly.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=2 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=2 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V1b = Changed V1a to access m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure row/column layout.
-         warmup,  1,               frame(s),  0.02682570,s,    26.82570,ms,   26825.700,us, FPS,  37.27768520
-times averaging,100,               frame(s),  0.01541329,s,    15.41329,ms,   15413.294,us, FPS,  <span class="ResultsHighlight">64.87905830</span>
+         warmup,    1,               frame(s),  0.02526620,s,    25.26620,ms,   25266.200,us, FPS,   39.5785674
+times averaging, 1000,               frame(s),  0.01480908,s,    14.80908,ms,   14809.078,us, FPS,   <span class="ResultsHighlight">67.5261480</span>
+total averaging, 1001,                  Total,  0.01481985,s,    14.81985,ms,   14819.853,us, FPS,   67.4770533
 
 V1b = Changed V1a to access m_pXYZPoints by moving a pointer instead of array indexing each time.  Memory array of structure column/row layout.
-         warmup,  1,               frame(s),  0.02242470,s,    22.42470,ms,   22424.700,us, FPS,  44.59368464
-times averaging,100,               frame(s),  0.01766683,s,    17.66683,ms,   17666.832,us, FPS,  56.60324386
+         warmup,    1,               frame(s),  0.02068500,s,    20.68500,ms,   20685.000,us, FPS,   48.3442108
+times averaging, 1000,               frame(s),  0.01678843,s,    16.78843,ms,   16788.432,us, FPS,   59.5648249
+total averaging, 1001,                  Total,  0.01679259,s,    16.79259,ms,   16792.588,us, FPS,   59.5500817
 </span>
 </div>
 </code>
@@ -530,8 +543,8 @@ times averaging,100,               frame(s),  0.01766683,s,    17.66683,ms,   17
 
 <p>
 Algorithm 3 resulted from exploring the code using the Intel&reg; Advisor tool which runs the executable and monitors the code's behavior.  Advisor has several profile settings
-to provide: 1) a general survey, 2) characterization of trip counts, FLOPs, and call stacks, 3) memory access patterns, and/or 4) dependencies.  Advisor can profile an execution
-without making any modifications to the code; however, it also supports an API that allows a programmer to inform Advisor about code sections to profile.
+to provide: 1) a general survey, 2) characterization of trip counts, Floating Point Operations Per Second (FLOPS), and call stacks, 3) memory access patterns, and/or 4) dependencies.
+Advisor can profile an execution without making any modifications to the code; however, it also supports an API that allows a programmer to inform Advisor about code sections to profile.
 </p>
 
 <p>
@@ -539,22 +552,28 @@ The Intel&reg; oneAPI Base Toolkit
 (<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html</a>) 
 includes Advisor.  Alternatively, a standalone version is available at 
 <a href="https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#advisor">https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#advisor</a>.
-Regardless of the selected download, the tool is free.
+Regardless of the selected download option, the tool is free.
 </p>
 
 <p>
 Figure 1 below shows a screen capture from Advisor after profiling Algorithm 1 in Debug Mode.  The upper part of the figure contains the Roofline analysis.  There are three regions shown in different
 shades of pink: 1) Memory bound functions and loops on the left, 2) Bound by computer and memory roofs in the center, and 3) Compute bound on the right.  Functions and loops falling in the Memory
 region are throttled due to requiring memory access and the CPU remains capable of processing more data than can be provided by the memory accesses.  The central zone shows functions that may be
-capped by memory accesses or by compute speed depending on which memory type of memory is being accessed (DRAM, L1, L2, or L3 cache) and which instruction sets are being utilized (Scaler Add,
-Vecotr Add, or Fused Multiply Add (FMA)).  The Compute bound zone receives plenty of data from appropriate memory sources and the CPU computational capabilities are the bottleneck.
+capped by memory accesses or by compute speed depending on which memory type of memory is being accessed (DRAM, Level 1, Level 2, or Level 3 cache) and which instruction sets are being utilized
+(Scaler Add, Vecotr Add, or Fused Multiply Add (FMA)).  The Compute bound zone receives plenty of data from appropriate memory sources and the CPU computational capabilities are the bottleneck.
 </p>
 
 <p>
 Within the Roofline plot, each circle represents one of the loops or functions shown in the lower portion of the application.  Advisor categorizes each as: 1) Green if the code is not called 
-a lot or if it is not taking a lot of processing time (i.e., the effort the optimize any of these will not result in large reductions in the time taken to compute an answer), 2) Yellow dots represent
-code that merits taking a look at, but the gains will be lower than the red dots, 3) Red dots showcase code that would provide the maximum return on investment since optimizing those elements
-provides the largest processing gains, if successful.
+a lot or if it is not taking a lot of processing time (i.e., the effort the optimize any of these will not result in large reductions in the overall time taken to compute an answer), 
+2) Yellow dots represent code that merits taking a look at, but the gains will be lower than the red dots, 3) Red dots showcase code that would provide the maximum return on investment since
+optimizing those elements provides the largest processing gains, if successful.
+</p>
+
+<p>
+For each of the three regions in advisor, if a line is drawn directly upward, it will intersect with one or more lines above the dot.  Each of these lines represent either a type of memory
+access (the diagonal lines) or a specific compute type (the horizontal lines).  To get above any of these lines, the code must be changed to take advantage of a different type of memory
+access (to get above a diagonal line) or compute type (to get above a horizontal line).
 </p>
 
 <p>
@@ -572,9 +591,9 @@ Figure 1: Intel&reg; Advisor Roofline for Algorithm 1 Debug Mode
 
 <p>
 One option would be to investigate improving the performance of the at function; however, that code resides in the OpenCV code base so making changes there would be harder.  Thus,
-for this coding effort the code was reviewed to see if the number of calls to the at function could be reduced.  Within Algorithm 1 (and 2), the code calling the at function looks like 
-the following.  Since the 9 calls to at are inside a double loop, each one is called m_heightOutput * m_widthOutput times.  The code run through Advisor was configured to have the width
-at 1080 and height at 540 resulting in 1080 * 540 * 9 = 5,248,800 calls to at.  
+for this coding effort the code was reviewed to see if the number of calls to the "at" function could be reduced.  Within Algorithm 1 (and 2), the code calling the "at" function looks like 
+the following.  Since the 9 calls to "at" are inside a double loop, each one is called m_heightOutput * m_widthOutput times.  The code run through Advisor was configured to have the width
+at 1080 and height at 540 resulting in 1080 * 540 * 9 = 5,248,800 calls to "at".  
 </p>
 
 <code>
@@ -607,8 +626,8 @@ at 1080 and height at 540 resulting in 1080 * 540 * 9 = 5,248,800 calls to at.
 
 <p>
 Given the m_rotationMatrix does not change values during the execution of ConvertXYZToLonLat function, the
-solution implemented in Algorithm 3 pulls those 9 calls to at outside the loops and gathers the 9 values in local variables a single time before the loops.
-This results in the following code snippet.
+solution implemented in Algorithm 3 pulls those 9 calls to "at" outside the loops and gathers the 9 values in local variables a single time before the loops.
+This results in the following code snippet.  The compiler can then keep these values in registers or cache so the code performs more efficiently.
 </p>
 
 <code>
@@ -654,17 +673,23 @@ This results in the following code snippet.
 </code>
 
 <p>
-This code change results in an approximately 2x improvement over Algorithm 1 (i.e., 138.91914239 / 64.87905830 = 2.14).
+This code change results in an approximately 2x improvement over Algorithm 1 (i.e., 142.8002410 / 67.4700178 = 2.12).
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=3 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=3 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure row/column layout.
-         warmup,  1,               frame(s),  0.02344410,s,    23.44410,ms,   23444.100,us, FPS,  42.65465512
-times averaging,100,               frame(s),  0.00719843,s,     7.19843,ms,    7198.432,us, FPS, <span class="ResultsHighlight">138.91914239</span>
+         warmup,    1,               frame(s),  0.02331580,s,    23.31580,ms,   23315.800,us, FPS,   42.8893712
+times averaging, 1000,               frame(s),  0.00700279,s,     7.00279,ms,    7002.789,us, FPS,  <span class="ResultsHighlight">142.8002410</span>
+total averaging, 1001,                  Total,  0.00701936,s,     7.01936,ms,    7019.360,us, FPS,  142.4631338
+
+V1c = Changed V1b to cache m_rotationMatrix instead of array indexing each time.  Memory array of structure column/row layout.
+         warmup,    1,               frame(s),  0.01310980,s,    13.10980,ms,   13109.800,us, FPS,   76.2788143
+times averaging, 1000,               frame(s),  0.00903281,s,     9.03281,ms,    9032.813,us, FPS,  110.7074876
+total averaging, 1001,                  Total,  0.00903708,s,     9.03708,ms,    9037.081,us, FPS,  110.6551943
 </span>
 </div>
 </code>
@@ -675,17 +700,23 @@ times averaging,100,               frame(s),  0.00719843,s,     7.19843,ms,    7
 Algorithm 4 optimizes Algorithm 3 by refactoring the FrameCalculations to combine the three separate calls to ComputeXYZCoords, ComputeLonLatCoords, and ComputeXYCoords into a single
 function.  Each of the three functions had internal double loops and the computed values from each of those loops were used in subsequent loops.  By combining everything into a single
 function, the data computations tend to stay in registers or cache memory.  Determining why each step in the function occurs may be slightly more difficult, but that can be relieved by
-good code comments.  As shown below, these code changes result in about a 20% improvement in speed (165.00667204 / 138.91914239 = 1.187789).
+good code comments.  As shown below, these code changes result in nearly a 20% improvement in speed (170.4878797 / 142.8002410 = 1.19389).
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=4 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=4 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 V2 Single loop point by point conversion from equirectangular to flat.  Array of structure row/column layout.
-         warmup,  1,               frame(s),  0.01448670,s,    14.48670,ms,   14486.700,us, FPS,  69.02883334
-times averaging,100,               frame(s),  0.00606036,s,     6.06036,ms,    6060.361,us, FPS, <span class="ResultsHighlight">165.00667204</span>
+         warmup,    1,               frame(s),  0.01413620,s,    14.13620,ms,   14136.200,us, FPS,   70.7403687
+times averaging, 1000,               frame(s),  0.00586552,s,     5.86552,ms,    5865.520,us, FPS,  <span class="ResultsHighlight">170.4878797</span>
+total averaging, 1001,                  Total,  0.00587395,s,     5.87395,ms,    5873.945,us, FPS,  170.2433357
+
+V2 Single loop point by point conversion from equirectangular to flat.  Two arrays for X and Y points.
+         warmup,    1,               frame(s),  0.00703820,s,     7.03820,ms,    7038.200,us, FPS,  142.0817823
+times averaging, 1000,               frame(s),  0.00583512,s,     5.83512,ms,    5835.120,us, FPS,  171.3760726
+total averaging, 1001,                  Total,  0.00583647,s,     5.83647,ms,    5836.466,us, FPS,  171.3365519
 </span>
 </div>
 </code>
@@ -696,7 +727,7 @@ times averaging,100,               frame(s),  0.00606036,s,     6.06036,ms,    6
 This blog introduced a framework for exploring different optimization techniques and discussed ways to increase the frames per second throughput including: 
 1) porting an speedy algorithm from Python to C++ and saving the pixel addresses from frame to frame, 2) optimizing array accesses, 3) reducing computational load
 by not calling the cv::Mat::at() function many times within a loop, and 4) combining separate loops into a single master loop.  The combined improvements resulted
-in moving from 0.92762988 FPS to 165.00667204 FPS for a 177 times improvement.
+in moving from 0.9273079 FPS to 170.4878797 FPS for a 183 times improvement.
 </p>
 
 <p>

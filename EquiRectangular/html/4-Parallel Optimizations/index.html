@@ -29,7 +29,7 @@ Compilers exist for multiple vendors' hardware platforms meaning that code writt
 </p>
 
 <p>
-Intel created the Intel&reg; oneAPI Base Toolkit (Base Kit) which embodies all the tools and libraries required to write in SYCL and Intel refers to the language as Data Parallel C++ (DPC++).
+Intel created the Intel&reg; oneAPI Base Toolkit (Base Kit) which embodies all the tools and libraries required to write in SYCL. Intel refers to the language as Data Parallel C++ (DPC++).
 The toolkit(s) are available for no fee from 
 <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html</a>.  The tool kit
 integrates into Microsoft Visual Studio and Eclipse IDE allowing developers to continue using those familiar development environments, if desired.  The Base Toolkit includes the DPC++ compiler,
@@ -47,7 +47,7 @@ that has been used for executing all the code in this blog series.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">.\x64\Release\OptimizingEquirectangularConversion.exe --platformName=list
+<span class="CommandLine">.\x64\Release\OneDevice.exe --platformName=list
 </span><span class="ResultsLine">Platform:                     Intel(R) OpenCL
   Device information:
     vendor:                   Intel(R) Corporation
@@ -131,8 +131,8 @@ anywhere within the driver_version, it is considered a match.
 <h2>Command Line Flags to Select the Hardware Target(s)</h2>
 
 <p>
-The OptimizingEquirectangularConversion.exe framework calls the ConfigurableDeviceSelector by passing the values from the --typePreference, --platformName,
---deviceName, and --driverVersion directly to the set_search function with two exceptions.  First, if the platformName or deviceName equal all, then the code
+The OneDevice.exe framework calls the ConfigurableDeviceSelector by passing the values from the --typePreference, --platformName,
+--deviceName, and --driverVersion directly to the set_search function with two exceptions.  First, if the platformName or deviceName flag are equal to "all", then the code
 steps through all the platforms and/or devices to execute the code there.  Second, if the platformName or deviceName is list, then the code
 provides a list of all the platforms and devices that are available such as the listing shown above.
 </p>
@@ -142,8 +142,9 @@ provides a list of all the platforms and devices that are available such as the 
 <p>
 In SYCL, device queues represent the linkage between the program as it executes and the target device to utilize when running a specific chunk of code (also known as a kernel).
 Device queue creation involves a line of code that looks like the following.  In this case, the set_search passes the command line arguments to the ConfigurableDeviceSelector and
-then the class's device_selector is called with each platform and device to determine which to use.  After locating the best match for the device, a queue to that device gets created
-and any code utilizing that queue will execute on the selected device.
+then the class's device_selector is called by the oneAPI framework with each platform and device to determine which to use.  The device_selector returns integer values for each
+call indicating whether the provided device is desired (a positive number) or not (a negative value).  The device that receives the highest positive value gets utilized.  
+After locating the best match for the device, a queue to that device gets created and any code utilizing that queue will be compiled and executed on the selected device.
 </p>
 
 <code>
@@ -157,7 +158,7 @@ m_pQ</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0
 <h2>Introduction to parallel_for</h2>
 
 <p>
-The other key SYCL construct used by the code is parallel_for.  For instance, an example code loop from the original serial looks like the following.
+Another key SYCL construct used by the code is parallel_for.  For instance, an example code loop from the original serial looks like the following.
 </p>
 
 <code>
@@ -202,7 +203,9 @@ The submit function delivers the kernel (in this case a lambda expression) to th
 command group handler.  This groups all the device specific data and commands together for use during the kernel execution.  The next line utilizes the parallel_for method
 to break the original 2D image up into a series of work items.  Each work item processes a single pixel.  The index for which pixel is assigned to a particular
 kernel execution is passed in via the item variable with index 0 being the y index and index 1 being the x index.  The kernel takes these values and locates the proper element
-to compute.  The wait() function after the loop waits for all the processing of pixels to complete prior to moving on through the remainder of the code in the algorithm.
+to compute.  The wait() function after the loop waits for all parallel processing of pixels to complete prior to moving on through the remainder of the code in the algorithm.
+If there was other useful code to execute while the parallel processing is underway, the program could place this code between the submit and the wait and that would run
+in parallel with the code being executed by the SYCL device.
 </p>
 
 <h2>Algorithm 5</h2>
@@ -215,12 +218,13 @@ equivalents, algorithm 5 execution results in the following frames per second.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=5 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=5 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemapping: Computes a Remapping algorithm using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.34868130,s,   348.68130,ms,  348681.300,us, FPS,   <span class="ResultsHighlight">2.86794847</span>
-times averaging,100,               frame(s),  0.00455495,s,     4.55495,ms,    4554.948,us, FPS, <span class="ResultsHighlight">219.54147446</span>
+         warmup,    1,               frame(s),  0.37628390,s,   376.28390,ms,  376283.900,us, FPS,    <span class="ResultsHighlight">2.6575679</span>
+times averaging, 1000,               frame(s),  0.00434346,s,     4.34346,ms,    4343.463,us, FPS,  <span class="ResultsHighlight">230.2310604</span>
+total averaging, 1001,                  Total,  0.00471534,s,     4.71534,ms,    4715.338,us, FPS,  212.0738898
 </span>
 </div>
 </code>
@@ -228,18 +232,18 @@ times averaging,100,               frame(s),  0.00455495,s,     4.55495,ms,    4
 <p>
 As a reminder, running algorithm 1 with the same parameters provides the following results.  The serial code is faster for the warmup iteration since the parallel code takes more
 overhead to select the hardware (even though it results in being the same CPU), construct the queue, and then compile the kernel for the target hardware.  However, note that for every
-subsequent run, that overhead disappears and the parallel nature of the code provides a nice speed improvement (219.54147446 / 64.83354991 = 3.386x).  Thus, if the use case
+subsequent run, that overhead disappears and the parallel nature of the code provides a nice speed improvement (230.2310604 / 67.4700178 = 3.41x).  Thus, if the use case
 requires processing a single image each time the code is invoked, pick the serial algorithm.  If many frames are likely to be processed each time, the parallel algorithm should be considered.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=1 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=1 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
-All done!  Summary of all runs:
 V1a Multiple loop serial point by point conversion from equirectangular to flat.  Memory array of structure row/column layout.
-         warmup,  1,               frame(s),  0.02738650,s,    27.38650,ms,   27386.500,us, FPS,  <span class="ResultsHighlight">36.51434101</span>
-times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15424.113,us, FPS,  <span class="ResultsHighlight">64.83354991</span>
+         warmup,    1,               frame(s),  0.02807420,s,    28.07420,ms,   28074.200,us, FPS,   <span class="ResultsHighlight">35.6198930</span>
+times averaging, 1000,               frame(s),  0.01482140,s,    14.82140,ms,   14821.398,us, FPS,   <span class="ResultsHighlight">67.4700178</span>
+total averaging, 1001,                  Total,  0.01483488,s,    14.83488,ms,   14834.884,us, FPS,   67.4086857
 </span>
 </div>
 </code>
@@ -248,17 +252,42 @@ times averaging,100,               frame(s),  0.01542411,s,    15.42411,ms,   15
 
 <p>
 Algorithm 6 optimizes by taking all the separate invocations of kernels and combining the code into a single kernel much like Algorithm 4 did when combining the separate functions
-into a single function.  Compared to Algorithm 5, this provides a 40% speed up (308.04708315 / 219.54147446 = 1.403).
+into a single function.  Compared to Algorithm 5, this provides a 35% speed up (311.4885092 / 230.2310604 = 1.35).
+</p>
+
+<p>
+Algorithm 6 has two variants.  The faster one utilizes Univerisal Shared Memory (USM) which allows a programmer to allocate memory in a fashion very similar to the standard malloc call.
+oneAPI then takes care of making sure the memory is allocated on the proper device and data read and written is moved from / to the device.  This is done with special calls to malloc_shared
+and a variation of free.  Both of these calls take additional arguments to indicate which device / context is being used for the memory allocation and free operations.  Universal shared
+memory is able to take advantage of memory that is shared by a CPU and integrated GPU to make execution faster.  If the device is a discrete GPU, then the GPU is informed of the
+memory allocation and data is transferred to/from the discrete GPU.
+</p>
+
+<p>
+The second variant used malloc_device which specifically allocates memory space on the device.  Responsibility for moving data to/from the device rests with the programmer.
+</p>
+
+<p>
+The results below show a limitation of the use of variants in the framework.  Notice that the warmup time for the Device Memory variant seems to be shorter resulting in a higher
+FPS rate.  However, if the variants are run in the opposite order, then the USM warmup becomes faster.  Most likely this is due to the fact that the oneAPI compilation of
+all the kernels happens at the very beginning of the program and therefore factor into the first warmup period only.  This fact affects the "warmup" and "total averaging" rows, but
+does not impact the validity of the "times averaging" rows.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=6 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=6 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.29173290,s,   291.73290,ms,  291732.900,us, FPS,   3.42779303
-times averaging,100,               frame(s),  0.00324626,s,     3.24626,ms,    3246.257,us, FPS, <span class="ResultsHighlight">308.04708315</span>
+         warmup,    1,               frame(s),  0.29612750,s,   296.12750,ms,  296127.500,us, FPS,    3.3769238
+times averaging, 1000,               frame(s),  0.00321039,s,     3.21039,ms,    3210.391,us, FPS,  <span class="ResultsHighlight">311.4885092</span>
+total averaging, 1001,                  Total,  0.00350324,s,     3.50324,ms,    3503.243,us, FPS,  285.4497670
+
+DpcppRemappingV2: Single kernel vs 3 kernels using oneAPI's DPC++ Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.00687840,s,     6.87840,ms,    6878.400,us, FPS,  145.3826471
+times averaging, 1000,               frame(s),  0.00354152,s,     3.54152,ms,    3541.519,us, FPS,  282.3646822
+total averaging, 1001,                  Total,  0.00354516,s,     3.54516,ms,    3545.158,us, FPS,  282.0749115
 </span>
 </div>
 </code>
@@ -266,30 +295,42 @@ times averaging,100,               frame(s),  0.00324626,s,     3.24626,ms,    3
 <h2>Algorithms 7 and 8</h2>
 
 <p>
-The optimizations attempted in algorithms 7 and 8 decreased the frames per second.  They are included for completeness, but not discussed in depth since no speed up was achieved.
+The optimizations attempted in algorithms 7 and 8 decreased the frames per second.  They are included for completeness, but not discussed in depth since no speed-up was achieved.
 Algorithm 7 experimented with parallel_for_work_item and algorithm 8 used sub_groups.  It is
 unclear if these constructs are not well suited to this particular use case or if there is a more optimal way to configure the constructs.  See the results from the two runs below.
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=7 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=7 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.48395650,s,   483.95650,ms,  483956.500,us, FPS,   2.06630141
-times averaging,100,               frame(s),  0.00510782,s,     5.10782,ms,    5107.817,us, FPS, <span class="ResultsHighlight">195.77835306</span>
+         warmup,    1,               frame(s),  0.38534900,s,   385.34900,ms,  385349.000,us, FPS,    2.5950502
+times averaging, 1000,               frame(s),  0.00513247,s,     5.13247,ms,    5132.466,us, FPS,  <span class="ResultsHighlight">194.8381035</span>
+total averaging, 1001,                  Total,  0.00551252,s,     5.51252,ms,    5512.524,us, FPS,  181.4051067
+
+DpcppRemappingV3: Computes a Remapping algorithm using oneAPI's DPC++ parallel_for_work_group & Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.00916840,s,     9.16840,ms,    9168.400,us, FPS,  109.0702849
+times averaging, 1000,               frame(s),  0.00522256,s,     5.22256,ms,    5222.563,us, FPS,  191.4768668
+total averaging, 1001,                  Total,  0.00522678,s,     5.22678,ms,    5226.779,us, FPS,  191.3224252
 </span>
 </div>
 </code>
 <p></p>
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=8 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=8 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with Universal Shared Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.35892010,s,   358.92010,ms,  358920.100,us, FPS,   2.78613541
-times averaging,100,               frame(s),  0.00640651,s,     6.40651,ms,    6406.509,us, FPS, <span class="ResultsHighlight">156.09125032</span>
+         warmup,    1,               frame(s),  0.31897010,s,   318.97010,ms,  318970.100,us, FPS,    3.1350901
+times averaging, 1000,               frame(s),  0.00628122,s,     6.28122,ms,    6281.221,us, FPS,  <span class="ResultsHighlight">159.2047227</span>
+total averaging, 1001,                  Total,  0.00659384,s,     6.59384,ms,    6593.842,us, FPS,  151.6566504
+
+DpcppRemappingV4: Computes a Remapping algorithm using oneAPI's DPC++ sub-groups to reduce scatter with  Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.00984590,s,     9.84590,ms,    9845.900,us, FPS,  101.5651185
+times averaging, 1000,               frame(s),  0.00662433,s,     6.62433,ms,    6624.329,us, FPS,  150.9586744
+total averaging, 1001,                  Total,  0.00662780,s,     6.62780,ms,    6627.802,us, FPS,  150.8795759
 </span>
 </div>
 </code>
@@ -299,17 +340,23 @@ times averaging,100,               frame(s),  0.00640651,s,     6.40651,ms,    6
 <p>
 Algorithm 9 enhances the ExtractFrameImage function relative to Algorithm 6.  Many of the previous uses of ExtractFrameImage relied on cv::remap to collect all of the pixel values
 into the rectilinear image.  Algorithm 8 replaces the remap function with a DPC++ parallel_for and computes all the pixel values using parallel processing.  Compared to Algorithm 6 this
-results in a 1.8745 times improvement (577.44988890 / 308.04708315).
+results in a 2 times improvement (629.4278677 / 311.4885092).
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=9 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=9 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.47795310,s,   477.95310,ms,  477953.100,us, FPS,   2.09225550
-times averaging,100,               frame(s),  0.00173175,s,     1.73175,ms,    1731.752,us, FPS, <span class="ResultsHighlight">577.44988890</span>
+         warmup,    1,               frame(s),  0.47157100,s,   471.57100,ms,  471571.000,us, FPS,    2.1205715
+times averaging, 1000,               frame(s),  0.00158874,s,     1.58874,ms,    1588.744,us, FPS,  <span class="ResultsHighlight">629.4278677</span>
+total averaging, 1001,                  Total,  0.00205839,s,     2.05839,ms,    2058.388,us, FPS,  485.8171719
+
+DpcppRemappingV5: DpcppRemappingV2 and optimized ExtractFrame using DPC++ and Device Memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.03297480,s,    32.97480,ms,   32974.800,us, FPS,   30.3261885
+times averaging, 1000,               frame(s),  0.00211797,s,     2.11797,ms,    2117.966,us, FPS,  472.1511556
+total averaging, 1001,                  Total,  0.00214898,s,     2.14898,ms,    2148.975,us, FPS,  465.3380560
 </span>
 </div>
 </code>
@@ -319,18 +366,24 @@ times averaging,100,               frame(s),  0.00173175,s,     1.73175,ms,    1
 <p>
 Algorithm 10 experiments with possibly sacrificing image quality in favor of speed.  If the frames come from a video stream, then perhaps sampling multiple pixels can be dropped.
 Thus, this algorithm simply takes the nearest top, left pixel to the compute pixel location.  Note that the computed pixel locations are floating point so they may not uniquely
-identify a particular pixel in the equirectangular image.  Simply truncating to integer and using that value as the pixel address, the calculations are 50% faster
-(871.56602984 / 577.44988890 = 1.509) as shown below.
+identify a particular pixel in the equirectangular image.  Simply truncating to integer and using that value as the pixel address, the calculations are nearly 50% faster
+(930.5499839 / 629.4278677 = 1.478) as shown below.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=10 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=10 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV6: DpcppRemappingV5 USM but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.46491030,s,   464.91030,ms,  464910.300,us, FPS,   2.15095256
-times averaging,100,               frame(s),  0.00114736,s,     1.14736,ms,    1147.360,us, FPS, <span class="ResultsHighlight">871.56602984</span>
+         warmup,    1,               frame(s),  0.46488320,s,   464.88320,ms,  464883.200,us, FPS,    2.1510779
+times averaging, 1000,               frame(s),  0.00107463,s,     1.07463,ms,    1074.633,us, FPS,  <span class="ResultsHighlight">930.5499839</span>
+total averaging, 1001,                  Total,  0.00153812,s,     1.53812,ms,    1538.124,us, FPS,  650.1424403
+
+DpcppRemappingV6: DpcppRemappingV5 Device Memory but just taking the truncated pixel point Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.03010280,s,    30.10280,ms,   30102.800,us, FPS,   33.2195012
+times averaging, 1000,               frame(s),  0.00165322,s,     1.65322,ms,    1653.221,us, FPS,  604.8796610
+total averaging, 1001,                  Total,  0.00168184,s,     1.68184,ms,    1681.843,us, FPS,  594.5858356
 </span>
 </div>
 </code>
@@ -358,34 +411,66 @@ Figure 2: Output from Algorithm 10
 
 <p>
 The final code optimization utilizes the Universal Shared Memory, but when the target device is the CPU, the code does not make a memory copy and just points to the original image buffer.
-This boosts the FPS by about 5% (917.69302985 / 871.56602984 = 1.05) as shown below.  Given that each frame is being processed within 1 millisecond, finding additional improvement is becoming
+This boosts the FPS by about 3% (954.9373652 / 930.5499839 = 1.03) as shown below.  Given that each frame is being processed within 1 millisecond, finding additional improvement is becoming
 increasingly harder, but plesae comment if there are further enhancements to consider.
 </p>
 
 <code>
 <div class="ExecutionResults">
-<span class="CommandLine">src\DPC++\x64\Release\OptimizingEquirectangularConversion.exe --algorithm=11 --iterations=101 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=11 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg	
 </span><span class="ResultsLine">...
 All done!  Summary of all runs:
 DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
-         warmup,  1,               frame(s),  0.44029590,s,   440.29590,ms,  440295.900,us, FPS,   2.27119989
-times averaging,100,               frame(s),  0.00108969,s,     1.08969,ms,    1089.689,us, FPS, <span class="ResultsHighlight">917.69302985</span>
+         warmup,    1,               frame(s),  0.43129320,s,   431.29320,ms,  431293.200,us, FPS,    2.3186083
+times averaging, 1000,               frame(s),  0.00104719,s,     1.04719,ms,    1047.189,us, FPS,  <span class="ResultsHighlight">954.9373652</span>
+total averaging, 1001,                  Total,  0.00147714,s,     1.47714,ms,    1477.137,us, FPS,  676.9853390
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.00729330,s,     7.29330,ms,    7293.300,us, FPS,  137.1121440
+times averaging, 1000,               frame(s),  0.00161683,s,     1.61683,ms,    1616.828,us, FPS,  618.4949408
+total averaging, 1001,                  Total,  0.00162270,s,     1.62270,ms,    1622.702,us, FPS,  616.2559833
 </span>
 </div>
 </code>
 
+<p>
+Algorithm 11 excels when keeping the viewing direction static and changing the equirectangular frame.  As shown below, replacing the --deltaYaw with --deltaImage, results in
+1607 FPS when extracting a rectilinear image.
+</p>
+
+<code>
+<div class="ExecutionResults">
+<span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=11 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg	
+</span><span class="ResultsLine">...
+All done!  Summary of all runs:
+DpcppRemappingV7: DpcppRemappingV6 USM but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.45048580,s,   450.48580,ms,  450485.800,us, FPS,    2.2198258
+times averaging, 1000,               frame(s),  0.00062221,s,     0.62221,ms,     622.212,us, FPS, <span class="ResultsHighlight">1607.1695189</span>
+total averaging, 1001,                  Total,  0.00107182,s,     1.07182,ms,    1071.817,us, FPS,  932.9951933
+
+DpcppRemappingV7: DpcppRemappingV6 Device Memory but on CPU don't copy memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.00696300,s,     6.96300,ms,    6963.000,us, FPS,  143.6162574
+times averaging, 1000,               frame(s),  0.00128732,s,     1.28732,ms,    1287.324,us, FPS,  776.8054590
+total averaging, 1001,                  Total,  0.00129327,s,     1.29327,ms,    1293.271,us, FPS,  773.2334243
+</span>
+</div>
+</code>
+
+
 <h2>Conclusion</h2>
 
 <p>
-After experimenting with 11 algorithms the code operates nearly 1000 times faster (917.69302985 / 0.92762988 = 989.2879) than the original C++ algorithm and 
-77 times faster (917.69302985 / 11.821199533998858 = 77.63) than the Python code which also provided inspiration for algorithms.  
+After experimenting with 12 algorithms the code operates around 1700 times faster (1607.1695189 / 0.9273079 = 1,733.2 than the original C++ algorithm.  
 Key speedups reported on in this blog post include: 1) converting from serial to parallel processing, 2) reducing the number of kernels used to one, 3) replacing
-the cv::remap with DPC++ parallel algorithm, and 4) simplified calculation of which pixel value to extract from the equirectangular image.
+the cv::remap with DPC++ parallel algorithm, 4) simplified calculation of which pixel value to extract from the equirectangular image, and 5) keeping the
+viewing direction static while changing frames to extract.  If the viewing direction changes, then the code remains over 1000 times faster (954.9373652 / 0.9273079 = 1,029.8)
+than the original C++ algorithm and 80 times faster than Python (954.9373652 / 11.821199533998858 = 80.78).  Incidentally, the Python code can be modified
+to cache the viewing direction and runs around 150 FPS.  Algorithm 11 remains around 10 times faster than the Python code under these conditions (1607.1695189 / 150 = 10.7).
 </p>
 
 <p>
-At 917 FPS, the code
-could potentially handle up to 30 video streams @ 30 FPS with an Intel&reg; Core i9 Gen 9 class processor.  Newer generations or more powerful computing classes
+At 1607 FPS, the code
+could potentially handle up to 50 video streams @ 30 FPS with an Intel&reg; Core i9 Gen 9 class processor.  Newer generations or more powerful computing classes
 such as Xeon processors could handle even more streams.  This is ideal for use cases such as Telesitting in hospital environments or video security
 setups where a single computer monitors multiple cameras simultaneously.
 </p>

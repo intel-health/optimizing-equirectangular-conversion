@@ -37,16 +37,6 @@
 
 using namespace cl::sycl;
 
-#if 0
-// Convience data access definitions
-constexpr access::mode dp_read = access::mode::read;
-constexpr access::mode dp_write = access::mode::write;
-
-// ARRAY type & data size for use in this example
-constexpr size_t array_size = 10000;
-typedef std::array<int, array_size> IntArray;
-#endif
-
 #ifdef VTUNE_API
 // Assuming you have 2023 of VTune installed, you will need to add
 // $(VTUNE_PROFILER_2023_DIR)\sdk\include
@@ -109,9 +99,6 @@ void UpdateParameters(SParameters &parameters)
     }
 }
 
-//************************************
-// Demonstrate summation of arrays both in scalar on CPU and parallel on device
-//************************************
 int main(int argc, char** argv) {
     SParameters parameters;
     // For this demo, just support 2 devices (CPU and GPU)
@@ -124,7 +111,7 @@ int main(int argc, char** argv) {
     unsigned int availableDevices = ALL_DEVICES_MASK;
     // requestWork is used with the above mutex and condition variable
     // to indicate which devices are being requested to start working
-    unsigned int requestWork;
+    unsigned int requestWork = 0;
     // m_workCompletedMutex is the mutex that controls access to the m_workCompleted
     // variable
     std::mutex workCompletedMutex;
@@ -133,7 +120,7 @@ int main(int argc, char** argv) {
     // m_workCompleted is used with the above mutex and condition variable
     // so devices can report when they have completed the requested work and are now
     // available.
-    unsigned int workCompleted;
+    unsigned int workCompleted = 0;
 
     char errorMessage[MAX_ERROR_MESSAGE];
 
@@ -142,6 +129,12 @@ int main(int argc, char** argv) {
         PrintUsage(argv[0], errorMessage);
         exit(1);
     }
+
+#ifdef VTUNE_API
+    wchar_t const *pThreadName = _T("Main thread");
+
+    __itt_thread_set_name(pThreadName);
+#endif
 
     std::string description;
     std::chrono::high_resolution_clock::time_point initStartTime;
@@ -157,14 +150,9 @@ int main(int argc, char** argv) {
     int startAlgorithm;
     int endAlgorithm;
     int key;
-    bool bDebug = false;
-    bool bEnteringData = false;
     bool bDoIterations = true;
-    int sign = 1;
     cv::Mat debugImg;
     cv::Mat flatImg;
-    int delta = 10;
-    int prevDelta = 10;
     bool bRunningVariant;
     bool bVariantValid;
     std::vector<std::string> summaryStats;
@@ -269,6 +257,12 @@ int main(int argc, char** argv) {
     }
     devParameters[0].m_typePreference = "CPU";
     devParameters[1].m_typePreference = "GPU";
+    // Uncomment enable / disable the code lines below to select a specific iGPU.  If
+    // neither line is enabled, then oneAPI will select the best GPU.
+    // Specifically select the OpenCL driver for the GPU versus Level Zero
+    devParameters[1].m_platformName = "OpenCL";
+    // Specifically select the Level-Zero driver for the GPU versus Level Zero
+    //devParameters[1].m_platformName = "Level-Zero";
 
     try {
         while (algorithm <= endAlgorithm)
@@ -342,7 +336,6 @@ int main(int argc, char** argv) {
 
                     if (bVariantValid)
                     {
-                        pTimingStats->Reset();
                         // Reset the perspective back to the inital values so each algorithm
                         // works from the same baseline
                         parameters.m_yaw = origYaw;
@@ -352,6 +345,7 @@ int main(int argc, char** argv) {
                         iteration = 0;
                         finishedIterations = 0;
 
+                        pTimingStats->Reset();
                         pTimingStats->AddIterationResults(ETimingType::TIMING_INITIALIZATION, GENERAL_STATS, initStartTime, initEndTime);
                         pTimingStats->AddIterationResults(ETimingType::VARIANT_INITIALIZATION, GENERAL_STATS, variantInitStartTime, std::chrono::high_resolution_clock::now());
                         bRunningVariant = true;
@@ -533,14 +527,10 @@ int main(int argc, char** argv) {
     {
         printf("%s\n", element.c_str());
     }
-    printf("\033[32m");
-    printf("It is possible that the exit will hang due to a driver not unloading properly.\n");
-    printf("It is safe to force the program to stop since no more computing is being done.\n");
-    printf("\033[0m");
     if (!bInteractive)
     {
         key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
     }
 
-  return 0;
+    return 0;
 }

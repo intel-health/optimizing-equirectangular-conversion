@@ -110,13 +110,14 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 #ifdef VTUNE_API
 			__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_calc_kernel);
 #endif
+
 			m_pQ->submit([&](sycl::handler& cgh) {
 				cgh.parallel_for(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
-					Point2D* pElement = &pPoints[item[0] * width + item[1]];
+					Point2D *pElement = &pPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
 					float y = item[0] * invf + translatecy;
-					float z  = 1.0f;
+					float z = 1.0f;
 					float norm;
 
 					// Calculate xyz * R, save the initial x, y, and z values for the computation
@@ -138,6 +139,7 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 				});
 			});
 			m_pQ->wait();
+
 #ifdef VTUNE_API
 			__itt_task_end(pittTests_domain);
 #endif
@@ -149,7 +151,7 @@ void DpcppRemappingV7::FrameCalculations(bool bParametersChanged)
 			m_pQ->submit([&](sycl::handler& cgh) {
 				cgh.parallel_for(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
-					Point2D* pElement = &pDevPoints[item[0] * width + item[1]];
+					Point2D *pElement = &pDevPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
 					float y = item[0] * invf + translatecy;
 					float z = 1.0f;
@@ -222,15 +224,18 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		}
 
 		m_pQ->submit([&](sycl::handler &cgh) {
+			//sycl::stream out(65535, 256, cgh);
+
 			cgh.parallel_for(sycl::range<2>(height, width),
 			[=](sycl::id<2> item) {
 				int offset = item[0] * width + item[1];
+				//out << offset << sycl::endl;
 				Point2D *pElement = &pPoints[offset];
 				unsigned char *pFlatPixel = &pFlatImage[offset * pixelBytes];
-				// determine the nearest top left pixel for bilinear interpolation
+				// determine the nearest top left pixel
 				int top_left_x = static_cast<int>(pElement->m_x); // convert the subpixel value to an integer pixel value (top left pixel due to int() operator)
 				int top_left_y = static_cast<int>(pElement->m_y);
-				// Starting bytes for the four points to use for the calculation of the color for the flat image pixel.
+				// Starting point to use for the calculation of the color for the flat image pixel.
 				unsigned char *tl = pFullImage + (top_left_y * imageWidth + top_left_x) * pixelBytes;
 
 				// There is an assumption here that the image has 3 consecutive bytes for

@@ -371,7 +371,6 @@ void PrintUsage(char* pProgramName, char* pMessage)
     printf("    -180 to 180 integer degrees.  Negative values are to the left of center and positive to the right.  0 is\n");
     printf("    straight ahead (center of equirectangular image).  Default is 0.\n");
     printf("\n");
-    //printf("NOTE: You can set the environment variable OPENCV_OPENCL_DEVICE to :GPU or :CPU to target a specific HW usage.");
 }
 
 void PrintParameters(SParameters* parameters)

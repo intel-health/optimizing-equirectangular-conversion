@@ -56,6 +56,9 @@ private:
 	// and those where they were not.
 	int m_lapIterations[TIMING_MAX][ALL_STATS];
 	std::chrono::duration<double> m_lapDurationsSum[TIMING_MAX][ALL_STATS];
+	std::chrono::high_resolution_clock::time_point m_startWarmupTime;
+	std::chrono::high_resolution_clock::time_point m_startNonWarmupTime;
+	bool m_bFirstNonWarmup;
 	std::mutex m_accessMutex;
 
 public:

@@ -10,6 +10,6 @@
     <LocalDebuggerEnvironment>
     </LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--startAlgorithm=11 --endAlgorithm=11 --iterations=1001 --yaw=0 --pitch=0 --roll=0 --deltaYaw=10  --typePreference=CPU;GPU --platform=all</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--startAlgorithm=10 --endAlgorithm=10 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10  --typePreference=CPU</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

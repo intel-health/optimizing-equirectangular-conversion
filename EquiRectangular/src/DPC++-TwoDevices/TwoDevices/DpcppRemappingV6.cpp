@@ -113,10 +113,10 @@ void DpcppRemappingV6::FrameCalculations(bool bParametersChanged)
 			m_pQ->submit([&](sycl::handler& cgh) {
 				cgh.parallel_for(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
-					Point2D* pElement = &pPoints[item[0] * width + item[1]];
+					Point2D *pElement = &pPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
 					float y = item[0] * invf + translatecy;
-					float z  = 1.0f;
+					float z = 1.0f;
 					float norm;
 
 					// Calculate xyz * R, save the initial x, y, and z values for the computation
@@ -149,7 +149,7 @@ void DpcppRemappingV6::FrameCalculations(bool bParametersChanged)
 			m_pQ->submit([&](sycl::handler& cgh) {
 				cgh.parallel_for(sycl::range<2>(height, width),
 				[=](sycl::id<2> item) {
-					Point2D* pElement = &pDevPoints[item[0] * width + item[1]];
+					Point2D *pElement = &pDevPoints[item[0] * width + item[1]];
 					float x = item[1] * invf + translatecx;
 					float y = item[0] * invf + translatecy;
 					float z = 1.0f;
