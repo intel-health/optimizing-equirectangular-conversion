@@ -36,6 +36,14 @@
 #include "DpcppRemappingV5.hpp"
 #include "DpcppRemappingV6.hpp"
 #include "DpcppRemappingV7.hpp"
+#include "DpcppRemappingV8.hpp"
+#include "DpcppRemappingV9.hpp"
+#include "DpcppRemappingV10.hpp"
+#include "DpcppRemappingV11.hpp"
+#include "DpcppRemappingV12.hpp"
+#include "DpcppRemappingV13.hpp"
+#include "DpcppRemappingV14.hpp"
+#include "DpcppRemappingV15.hpp"
 #include "OptimizingEquirectangularConversion.h"
 #include "TimingStats.hpp"
 #include "ConfigurableDeviceSelector.hpp"
@@ -218,6 +226,30 @@ int main(int argc, char** argv) {
                 break;
             case 11:
                 pAlg = new DpcppRemappingV7(parameters);
+                break;
+            case 12:
+                pAlg = new DpcppRemappingV8(parameters);
+                break;
+            case 13:
+                pAlg = new DpcppRemappingV9(parameters);
+                break;
+            case 14:
+                pAlg = new DpcppRemappingV10(parameters);
+                break;
+            case 15:
+                pAlg = new DpcppRemappingV11(parameters);
+                break;
+            case 16:
+                pAlg = new DpcppRemappingV12(parameters);
+                break;
+            case 17:
+                pAlg = new DpcppRemappingV13(parameters);
+                break;
+            case 18:
+                pAlg = new DpcppRemappingV14(parameters);
+                break;
+            case 19:
+                pAlg = new DpcppRemappingV15(parameters);
                 break;
             }
 

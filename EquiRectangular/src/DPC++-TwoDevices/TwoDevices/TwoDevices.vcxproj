@@ -42,13 +42,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2024</PlatformToolset>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2024</PlatformToolset>
+    <PlatformToolset>Intel(R) oneAPI DPC++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -104,12 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VTUNE_API;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\include;C:\OpenCV-4.6\opencv\build\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;C:\OpenCV-4.6\opencv\build\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\lib64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64</AdditionalLibraryDirectories>
       <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -121,14 +121,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VTUNE_API;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\include;C:\OpenCV-4.6\opencv\build\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\include;C:\OpenCV-4.6\opencv\build\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2024_DIR)\sdk\lib64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VTUNE_PROFILER_2023_DIR)\sdk\lib64</AdditionalLibraryDirectories>
       <AdditionalDependencies>C:\OpenCV-4.6\opencv\build\x64\vc15\lib\opencv_world460.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -137,12 +137,20 @@
     <ClCompile Include="ConfigurableDeviceSelector.cpp" />
     <ClCompile Include="DpcppBaseAlgorithm.cpp" />
     <ClCompile Include="DpcppRemapping.cpp" />
+    <ClCompile Include="DpcppRemappingV10.cpp" />
+    <ClCompile Include="DpcppRemappingV11.cpp" />
+    <ClCompile Include="DpcppRemappingV12.cpp" />
+    <ClCompile Include="DpcppRemappingV13.cpp" />
+    <ClCompile Include="DpcppRemappingV14.cpp" />
+    <ClCompile Include="DpcppRemappingV15.cpp" />
     <ClCompile Include="DpcppRemappingV2.cpp" />
     <ClCompile Include="DpcppRemappingV3.cpp" />
     <ClCompile Include="DpcppRemappingV4.cpp" />
     <ClCompile Include="DpcppRemappingV5.cpp" />
     <ClCompile Include="DpcppRemappingV6.cpp" />
     <ClCompile Include="DpcppRemappingV7.cpp" />
+    <ClCompile Include="DpcppRemappingV8.cpp" />
+    <ClCompile Include="DpcppRemappingV9.cpp" />
     <ClCompile Include="OptimizingEquirectangularConversion.cpp" />
     <ClCompile Include="ParseArgs.cpp" />
     <ClCompile Include="TimingStats.cpp" />
@@ -152,12 +160,20 @@
     <ClInclude Include="ConfigurableDeviceSelector.hpp" />
     <ClInclude Include="DpcppBaseAlgorithm.hpp" />
     <ClInclude Include="DpcppRemapping.hpp" />
+    <ClInclude Include="DpcppRemappingV10.hpp" />
+    <ClInclude Include="DpcppRemappingV11.hpp" />
+    <ClInclude Include="DpcppRemappingV12.hpp" />
+    <ClInclude Include="DpcppRemappingV13.hpp" />
+    <ClInclude Include="DpcppRemappingV14.hpp" />
+    <ClInclude Include="DpcppRemappingV15.hpp" />
     <ClInclude Include="DpcppRemappingV2.hpp" />
     <ClInclude Include="DpcppRemappingV3.hpp" />
     <ClInclude Include="DpcppRemappingV4.hpp" />
     <ClInclude Include="DpcppRemappingV5.hpp" />
     <ClInclude Include="DpcppRemappingV6.hpp" />
     <ClInclude Include="DpcppRemappingV7.hpp" />
+    <ClInclude Include="DpcppRemappingV8.hpp" />
+    <ClInclude Include="DpcppRemappingV9.hpp" />
     <ClInclude Include="OptimizingEquirectangularConversion.h" />
     <ClInclude Include="ParseArgs.hpp" />
     <ClInclude Include="Point2D.hpp" />

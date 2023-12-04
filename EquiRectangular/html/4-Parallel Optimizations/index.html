@@ -216,6 +216,13 @@ changed it to utilize parallel processing and select which hardware to target fo
 equivalents, algorithm 5 execution results in the following frames per second.
 </p>
 
+<p>
+Note that the blog references algorithm numbers as provided on the command line via the --algorithm, --startAlgorithm, or --endAlgorithm flags.  Internally, the algorithms utilize
+classes named in a (hopefully) descriptive fashion.  Thus, --algorithm=5 maps to DpcppRemapping (which is essentially v1 of the Data Parallel C++ algorithms), 
+--algorithm=6 maps to DpcppRemappingV2, and so on.  Thus in the print outs shown below the internal classname is used while the command line and blog references the external
+algorithm number.  In hindsight, it would have been better if these were all consistent.
+<p>
+
 <code>
 <div class="ExecutionResults">
 <span class="CommandLine">src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=5 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
@@ -456,6 +463,20 @@ total averaging, 1001,                  Total,  0.00129327,s,     1.29327,ms,   
 </div>
 </code>
 
+<p>
+The code implements algorithms 12 - 18 as well.  The algorithms 5 - 11 utilize floating point 64 (fp64) sized elements (double), but not all hardware supports fp64, so
+algorithms 12 - 18 are identical to 5 - 11 except floating point 32 (fp32) sized elements (float) are used instead.  Neither fp64 nor fp32 operated significantly faster
+or slower than the other (generally plus or minus 1 or 2% of the other), thus, no need to discuss algorithms 12 - 18 further here beyond pointing out that
+if hardware being used does not support fp64, use the fp32 variant instead.
+</p>
+
+<p>
+Important: If the hardware does not support fp64, an exception may be thrown by the code along the lines of "Required aspect fp64 is not supported on the device".  If this occurs,
+converting the code to fp32 requires changing all double usage in the kernels to float.  However, that may not be enough.  There is also an extremely subtle situation where
+the use of numbers in the code (either hardcoded numerics like 2 or 0.5 in an equation or #defines) for computing a floating point number can also get cast to a double
+by the compiler.  In these cases make sure to denote they are floats (e.g., use 0.5f instead of just 0.5).  Unfortunately, no help is provided by the compiler in locating
+where the code is doing this so fixing it can be tedious.
+</p>
 
 <h2>Conclusion</h2>
 

@@ -31,6 +31,14 @@
 #include "DpcppRemappingV5.hpp"
 #include "DpcppRemappingV6.hpp"
 #include "DpcppRemappingV7.hpp"
+#include "DpcppRemappingV8.hpp"
+#include "DpcppRemappingV9.hpp"
+#include "DpcppRemappingV10.hpp"
+#include "DpcppRemappingV11.hpp"
+#include "DpcppRemappingV12.hpp"
+#include "DpcppRemappingV13.hpp"
+#include "DpcppRemappingV14.hpp"
+#include "DpcppRemappingV15.hpp"
 #include "OptimizingEquirectangularConversion.h"
 #include "TimingStats.hpp"
 #include "ConfigurableDeviceSelector.hpp"
@@ -47,6 +55,10 @@ using namespace cl::sycl;
 #pragma comment(lib, "libittnotify.lib")
 __itt_domain* pittTests_domain = __itt_domain_createA("localDomain");
 // Create string handle for denoting when the kernel is running
+wchar_t const* pDispatchWork = _T("Dispatch Work");
+__itt_string_handle* handle_dispatch_work = __itt_string_handle_create(pDispatchWork);
+wchar_t const* pWaitForCompletion = _T("Wait for Completion");
+__itt_string_handle* handle_wait_for_completion = __itt_string_handle_create(pWaitForCompletion);
 wchar_t const *pPrintParameters = _T("Print Parameters");
 __itt_string_handle *handle_print_parameters = __itt_string_handle_create(pPrintParameters);
 #endif
@@ -160,6 +172,9 @@ int main(int argc, char** argv) {
     int origPitch = parameters.m_pitch;
     int origRoll = parameters.m_roll;
 
+    pDevAlg[0] = NULL;
+    pDevAlg[1] = NULL;
+
     //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
     //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
     cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
@@ -260,9 +275,9 @@ int main(int argc, char** argv) {
     // Uncomment enable / disable the code lines below to select a specific iGPU.  If
     // neither line is enabled, then oneAPI will select the best GPU.
     // Specifically select the OpenCL driver for the GPU versus Level Zero
-    devParameters[1].m_platformName = "OpenCL";
+    //devParameters[1].m_platformName = "OpenCL";
     // Specifically select the Level-Zero driver for the GPU versus Level Zero
-    //devParameters[1].m_platformName = "Level-Zero";
+    devParameters[1].m_platformName = "Level-Zero";
 
     try {
         while (algorithm <= endAlgorithm)
@@ -310,6 +325,54 @@ int main(int argc, char** argv) {
                 for (unsigned int i = 0; i < MAX_DEVICES; i++)
                 {
                     pDevAlg[i] = new DpcppRemappingV7(devParameters[i]);
+                }
+                break;
+            case 12:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV8(devParameters[i]);
+                }
+                break;
+            case 13:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV9(devParameters[i]);
+                }
+                break;
+            case 14:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV10(devParameters[i]);
+                }
+                break;
+            case 15:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV11(devParameters[i]);
+                }
+                break;
+            case 16:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV12(devParameters[i]);
+                }
+                break;
+            case 17:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV13(devParameters[i]);
+                }
+                break;
+            case 18:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV14(devParameters[i]);
+                }
+                break;
+            case 19:
+                for (unsigned int i = 0; i < MAX_DEVICES; i++)
+                {
+                    pDevAlg[i] = new DpcppRemappingV15(devParameters[i]);
                 }
                 break;
             }
@@ -363,6 +426,11 @@ int main(int argc, char** argv) {
                             {
                                 if (bDoIterations)
                                 {
+                                    // Normally it is not required to wait for all the devices to warm up before starting the real work, but in this
+                                    // case, we are trying to compare the running speed of different algorithms so we want to make sure we know
+                                    // the actual warm up times to get all devices up and going and then the run time after everything is warmed up.
+                                    bool bStarting = true;
+                                    bool bWarmup = false;
                                     do
                                     {
                                         unsigned int newWork = 0;
@@ -370,35 +438,52 @@ int main(int argc, char** argv) {
 
                                         if (iteration < parameters.m_iterations)
                                         {
-                                            uiDevIndex = 0;
-
-                                            for (unsigned int uiMask = 1; (uiMask < ALL_DEVICES_MASK) && (iteration < parameters.m_iterations); uiMask <<= 1)
+                                            if (!bWarmup)
                                             {
-                                                if ((uiMask & availableDevices) == uiMask)
+                                                uiDevIndex = 0;
+
+#ifdef VTUNE_API
+                                                __itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_dispatch_work);
+#endif
+
+                                                for (unsigned int uiMask = 1; (uiMask < ALL_DEVICES_MASK) && (iteration < parameters.m_iterations); uiMask <<= 1)
                                                 {
-                                                    NormalizeParameters(parameters);
-                                                    // Copy the interesting parameters over to the device parameters structure
-                                                    devParameters[uiDevIndex] = parameters;
-                                                    newWork |= uiMask;
-                                                    // Update the parameters for the next time we can give out work
-                                                    UpdateParameters(parameters);
-                                                    // Clear the device from the available devices list while it is working
-                                                    availableDevices &= ~uiMask;
-                                                    iteration++;
+                                                    if ((uiMask & availableDevices) == uiMask)
+                                                    {
+                                                        NormalizeParameters(parameters);
+                                                        // Copy the interesting parameters over to the device parameters structure
+                                                        devParameters[uiDevIndex] = parameters;
+                                                        newWork |= uiMask;
+                                                        // Update the parameters for the next time we can give out work
+                                                        UpdateParameters(parameters);
+                                                        // Clear the device from the available devices list while it is working
+                                                        availableDevices &= ~uiMask;
+                                                        iteration++;
+                                                    }
+                                                    uiDevIndex++;
                                                 }
-                                                uiDevIndex++;
-                                            }
 
-                                            // Create a code block so the requestWorkLock will be automatically released
-                                            {
-                                                std::lock_guard<std::mutex> requestWorkLock(requestWorkMutex);
-                                                // We have the lock, select the layers that should do the work (in this case all)
-                                                requestWork |= newWork;
+                                                // Create a code block so the requestWorkLock will be automatically released
+                                                {
+                                                    std::lock_guard<std::mutex> requestWorkLock(requestWorkMutex);
+                                                    // We have the lock, select the layers that should do the work (in this case all)
+                                                    requestWork |= newWork;
+                                                }
+                                                // Let all sub-Layers know about the request so they can determine if it applies
+                                                requestWorkCondVar.notify_all();
+#ifdef VTUNE_API
+                                                __itt_task_end(pittTests_domain);
+#endif
+                                                if (bStarting)
+                                                {
+                                                    bStarting = false;
+                                                    bWarmup = true;
+                                                }
                                             }
-                                            // Let all sub-Layers know about the request so they can determine if it applies
-                                            requestWorkCondVar.notify_all();
-
                                         }
+#ifdef VTUNE_API
+                                        __itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_wait_for_completion);
+#endif
                                         // Now wait for one or more to be done.  Do it in a code block to make sure
                                         // the lock is released in all cases.
                                         {
@@ -413,6 +498,9 @@ int main(int argc, char** argv) {
 
                                         availableDevices |= finishedWork;
                                         uiDevIndex = 0;
+#ifdef VTUNE_API
+                                        __itt_task_end(pittTests_domain);
+#endif
 
                                         for (unsigned int uiMask = 1; uiMask < ALL_DEVICES_MASK; uiMask <<= 1)
                                         {
@@ -434,6 +522,12 @@ int main(int argc, char** argv) {
                                                 finishedIterations++;
                                             }
                                             uiDevIndex++;
+                                        }
+                                        if (bWarmup && availableDevices == ALL_DEVICES_MASK)
+                                        {
+                                            // We were warming up all the devices and they have all reported the work to be done,
+                                            // so now we can go to normal run mode.
+                                            bWarmup = false;
                                         }
                                     } while (finishedIterations < parameters.m_iterations);
 #ifdef VTUNE_API

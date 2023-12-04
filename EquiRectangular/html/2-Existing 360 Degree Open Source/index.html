@@ -107,7 +107,18 @@ Results from Running the C++ Code
 </h3>
 
 <p>
-The box below shows the results from running the code on an Intel&reg; i9-9900k machine.  First the code was compiled and run using the debug mode.  The second set of results are from 
+The box below shows the results from running the code on an Intel&reg; i9-9900k machine, specifically<br>
+<br>
+Gigabyte Desktop Board Z390 Aorus Ultra<br>
+Processor       Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz<br>
+Installed RAM   16.0 GB (15.9 GB usable)<br>
+System Type     64-bit operating system, x64-based processor<br>
+Intel oneAPI Base Toolkit 2023.2
+Microsoft Visual Studio 2022
+</p>
+
+<p>
+First the code was compiled and run using the debug mode.  The second set of results are from 
 running the code in built in Release mode.  Not surprisingly, the debug code runs slower due to additional code checks, such as range checking method input parameters or
 ensuring no accesses to memory beyond the end of an array, which assist a developer when creating the code.  The Release mode
 removes these checks since, presumably, the code functions properly after debugging.  However, given the large difference in execution times, performance testing should use Release mode code.

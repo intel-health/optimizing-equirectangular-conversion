@@ -16,7 +16,7 @@
 #pragma once
 
 #ifndef M_PI
-#define M_PI (3.14159265358979323846)
+#define M_PI (3.14159265358979323846f)
 #endif
 
 #include "opencv2/core/core.hpp"
@@ -25,8 +25,8 @@
 
 const int MAX_PATH = 1024;
 const int MAX_ERROR_MESSAGE = 1024;
-const double DEGREE_CONVERSION_FACTOR = 2 * M_PI / 360.0;
-const int MAX_ALGORITHM = 11;
+const float DEGREE_CONVERSION_FACTOR = 2.0f * M_PI / 360.0f;
+const int MAX_ALGORITHM = 19;
 
 typedef struct _SParameters {
 	// m_algorithm defines the algorithm to use during the current run of the program

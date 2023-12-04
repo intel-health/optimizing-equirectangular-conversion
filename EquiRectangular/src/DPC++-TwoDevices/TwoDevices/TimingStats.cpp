@@ -128,11 +128,11 @@ std::string TimingStats::GetSummaryLine(std::string strDesc, std::string typeStr
 #define CSV_OUTPUT
 #ifdef CSV_OUTPUT
 	// The Comma Separated Variables output is useful when loading the output into a program such as Excel
-	char const *pFmt = "%3s,%15s,%5d,%23s,%12.8f,s,%12.5f,ms,%12.3f,us, ";
-	char const *pFmt2 = "FPS, %12.8f\n";
+	char const *pFmt = "%3s,%15s,%5d,%23s,%f,s,%12.5f,ms,%12.3f,us, ";
+	char const *pFmt2 = "FPS, %12.7f\n";
 #else
 	char const *pFmt = "%3s %15s %5d %23s %12.8fs %12.5fms %12.3fus ";
-	char const *pFmt2 = "FPS = %12.8f\n";
+	char const *pFmt2 = "FPS = %12.7f\n";
 #endif
 	std::chrono::duration<double> aveDuration = durationSum / numIterations;
 	sprintf(line1, pFmt, devString.c_str(), strDesc.c_str(), numIterations, typeString.c_str(), aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0);

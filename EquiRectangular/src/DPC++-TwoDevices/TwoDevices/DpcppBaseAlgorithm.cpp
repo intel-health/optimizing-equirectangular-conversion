@@ -337,14 +337,26 @@ unsigned int DpcppBaseAlgorithm::threadFunc()
             bool bParametersChanged = prevParameters != *m_pParameters;
 
             frameStartTime = std::chrono::high_resolution_clock::now();
-            FrameCalculations(bParametersChanged);
-            pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, m_pParameters->m_uiDevIndex, frameStartTime, std::chrono::high_resolution_clock::now());
-            prevParameters = *m_pParameters;
-            extractionStartTime = std::chrono::high_resolution_clock::now();
-            m_pParameters->m_FlatImg = ExtractFrameImage();
-            frameEndTime = std::chrono::high_resolution_clock::now();
-            pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, m_pParameters->m_uiDevIndex, extractionStartTime, frameEndTime);
-            pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, m_pParameters->m_uiDevIndex, frameStartTime, frameEndTime);
+            try
+            {
+                FrameCalculations(bParametersChanged);
+                pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME_CALCULATIONS, m_pParameters->m_uiDevIndex, frameStartTime, std::chrono::high_resolution_clock::now());
+                prevParameters = *m_pParameters;
+                extractionStartTime = std::chrono::high_resolution_clock::now();
+                m_pParameters->m_FlatImg = ExtractFrameImage();
+                frameEndTime = std::chrono::high_resolution_clock::now();
+                pTimingStats->AddIterationResults(ETimingType::TIMING_IMAGE_EXTRACTION, m_pParameters->m_uiDevIndex, extractionStartTime, frameEndTime);
+                pTimingStats->AddIterationResults(ETimingType::TIMING_FRAME, m_pParameters->m_uiDevIndex, frameStartTime, frameEndTime);
+            }
+            catch (cl::sycl::exception const& e) {
+                std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
+
+            }
+            catch (std::exception const& e) {
+                // catch the exception from devices that are not supported.
+                std::cout << "Exception caught during main loop." << std::endl;
+                std::cout << e.what() << std::endl;
+            }
 
             {
                 // Note that we are done with the work

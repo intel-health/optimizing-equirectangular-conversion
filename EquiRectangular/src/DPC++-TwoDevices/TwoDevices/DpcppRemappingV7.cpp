@@ -25,6 +25,8 @@
 #pragma comment(lib, "libittnotify.lib")
 extern __itt_domain* pittTests_domain;
 // Create string handle for denoting when the kernel is running
+wchar_t const* pDpcppRemappingV7CopyImage = _T("DpcppRemappingV7 Copy Image to USM");
+__itt_string_handle* handle_DpcppRemappingV7_copy_image = __itt_string_handle_create(pDpcppRemappingV7CopyImage);
 wchar_t const *pDpcppRemappingV7Extract = _T("DpcppRemappingV7 Extract Kernel");
 __itt_string_handle* handle_DpcppRemappingV7_extract_kernel = __itt_string_handle_create(pDpcppRemappingV7Extract);
 wchar_t const *pDpcppRemappingV7Calc = _T("DpcppRemappingV7 Calc Kernel");
@@ -194,9 +196,6 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 	{
 	case STORAGE_TYPE_USM:
 	{
-#ifdef VTUNE_API
-		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_extract_kernel);
-#endif
 		int height = m_pParameters->m_heightOutput;
 		int width = m_pParameters->m_widthOutput;
 		int imageHeight = m_pParameters->m_image[m_pParameters->m_imageIndex].rows;
@@ -214,15 +213,24 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		{
 			if (m_currentIndex != m_pParameters->m_imageIndex)
 			{
+#ifdef VTUNE_API
+				__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_copy_image);
+#endif
 				// TODO: This assumes that both images are the exact same size.  Perhaps should put an
 				// ASSERT here to check that assumption
 				memcpy(m_pFullImage, m_pParameters->m_image[m_pParameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
 				m_currentIndex = m_pParameters->m_imageIndex;
+#ifdef VTUNE_API
+				__itt_task_end(pittTests_domain);
+#endif
 			}
 
 			pFullImage = m_pFullImage;
 		}
 
+#ifdef VTUNE_API
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_extract_kernel);
+#endif
 		m_pQ->submit([&](sycl::handler &cgh) {
 			//sycl::stream out(65535, 256, cgh);
 
@@ -274,16 +282,25 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		{
 			if (m_currentIndex != m_pParameters->m_imageIndex)
 			{
+#ifdef VTUNE_API
+				__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_copy_image);
+#endif
 				// TODO: This assumes that both images are the exact same size.  Perhaps should put an
 				// ASSERT here to check that assumption
 				m_pQ->memcpy(m_pDevFullImage, m_pParameters->m_image[m_pParameters->m_imageIndex].data, imageHeight * imageWidth * sizeof(unsigned char) * pixelBytes);
 				m_pQ->wait();
 				m_currentIndex = m_pParameters->m_imageIndex;
+#ifdef VTUNE_API
+				__itt_task_end(pittTests_domain);
+#endif
 			}
 
 			pDevFullImage = m_pDevFullImage;
 		}
 
+#ifdef VTUNE_API
+		__itt_task_begin(pittTests_domain, __itt_null, __itt_null, handle_DpcppRemappingV7_extract_kernel);
+#endif
 		m_pQ->submit([&](sycl::handler &cgh) {
 			cgh.parallel_for(sycl::range<2>(height, width),
 			[=](sycl::id<2> item) {
@@ -308,6 +325,9 @@ cv::Mat DpcppRemappingV7::ExtractFrameImage()
 		m_pQ->memcpy(retVal.data, m_pDevFlatImage, m_pParameters->m_heightOutput * m_pParameters->m_widthOutput * sizeof(unsigned char) * pixelBytes);
 		m_pQ->wait();
 		TimingStats::GetTimingStats()->AddIterationResults(ETimingType::TIMING_REMAP, m_pParameters->m_uiDevIndex, startTime, std::chrono::high_resolution_clock::now());
+#ifdef VTUNE_API
+		__itt_task_end(pittTests_domain);
+#endif
 		break;
 	}
 	}

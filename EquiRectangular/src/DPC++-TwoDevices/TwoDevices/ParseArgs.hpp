@@ -16,7 +16,7 @@
 #pragma once
 
 #ifndef M_PI
-#define M_PI (3.14159265358979323846)
+#define M_PI (3.14159265358979323846f)
 #endif
 
 #include "opencv2/core/core.hpp"
@@ -25,8 +25,8 @@
 
 const int MAX_PATH = 1024;
 const int MAX_ERROR_MESSAGE = 1024;
-const double DEGREE_CONVERSION_FACTOR = 2 * M_PI / 360.0;
-const int MAX_ALGORITHM = 11;
+const float DEGREE_CONVERSION_FACTOR = 2 * M_PI / 360.0;
+const int MAX_ALGORITHM = 19;
 const unsigned int CPU_DEVICE_MASK = 1;
 const unsigned int GPU_DEVICE_MASK = 2;
 const unsigned int ALL_DEVICES_MASK = CPU_DEVICE_MASK | GPU_DEVICE_MASK;

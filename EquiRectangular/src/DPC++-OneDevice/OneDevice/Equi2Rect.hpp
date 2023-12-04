@@ -65,7 +65,7 @@ public:
     virtual void StopVariant();
 
 private:
-    auto eul2rotm(double rotx, double roty, double rotz) -> cv::Mat;
+    auto eul2rotm(float rotx, float roty, float rotz) -> cv::Mat;
     auto bilinear_interpolation() -> void;
     auto reprojection(int x_img, int y_img) -> cv::Vec2d;
 

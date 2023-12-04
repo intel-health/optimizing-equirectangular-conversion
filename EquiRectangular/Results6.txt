@@ -1,0 +1,1004 @@
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-OneDevice\x64\Release\OneDevice.exe" --algorithm=17 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00029160,s,     0.29160,ms,     291.600,us,
+         warmup,    1, Variant initialization,  2.41786480,s,  2417.86480,ms, 2417864.799,us,
+         warmup,    1,     Frame Calculations,  0.96552402,s,   965.52402,ms,  965524.018,us,
+         warmup,    1,                  Remap,  0.04106410,s,    41.06410,ms,   41064.098,us,
+         warmup,    1,       Image extraction,  0.04106480,s,    41.06480,ms,   41064.799,us,
+         warmup,    1,               frame(s),  1.00659120,s,  1006.59120,ms, 1006591.201,us, FPS,    0.9934520
+times averaging, 1000,     Frame Calculations,  0.00049028,s,     0.49028,ms,     490.280,us,
+times averaging, 1000,                  Remap,  0.00056266,s,     0.56266,ms,     562.659,us,
+times averaging, 1000,       Image extraction,  0.00056289,s,     0.56289,ms,     562.885,us,
+times averaging, 1000,               frame(s),  0.00105391,s,     1.05391,ms,    1053.906,us, FPS,  948.8515803
+  lap averaging, 1001,     Frame Calculations,  0.00145435,s,     1.45435,ms,    1454.351,us,
+  lap averaging, 1001,                  Remap,  0.00060312,s,     0.60312,ms,     603.120,us,
+  lap averaging, 1001,       Image extraction,  0.00060335,s,     0.60335,ms,     603.347,us,
+  lap averaging, 1001,               frame(s),  0.00205844,s,     2.05844,ms,    2058.437,us, FPS,  485.8053940
+total averaging, 1001,                  Total,  0.00205901,s,     2.05901,ms,    2059.006,us, FPS,  485.6711402
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00029160,s,     0.29160,ms,     291.600,us,
+         warmup,    1, Variant initialization,  0.00009030,s,     0.09030,ms,      90.300,us,
+         warmup,    1,     Frame Calculations,  0.00451960,s,     4.51960,ms,    4519.600,us,
+         warmup,    1,                  Remap,  0.03099210,s,    30.99210,ms,   30992.100,us,
+         warmup,    1,       Image extraction,  0.03099310,s,    30.99310,ms,   30993.100,us,
+         warmup,    1,               frame(s),  0.03551390,s,    35.51390,ms,   35513.900,us, FPS,   28.1579887
+times averaging, 1000,     Frame Calculations,  0.00050407,s,     0.50407,ms,     504.073,us,
+times averaging, 1000,                  Remap,  0.00101525,s,     1.01525,ms,    1015.246,us,
+times averaging, 1000,       Image extraction,  0.00113976,s,     1.13976,ms,    1139.761,us,
+times averaging, 1000,               frame(s),  0.00164497,s,     1.64497,ms,    1644.973,us, FPS,  607.9128310
+  lap averaging, 1001,     Frame Calculations,  0.00050808,s,     0.50808,ms,     508.085,us,
+  lap averaging, 1001,                  Remap,  0.00104519,s,     1.04519,ms,    1045.193,us,
+  lap averaging, 1001,       Image extraction,  0.00116958,s,     1.16958,ms,    1169.584,us,
+  lap averaging, 1001,               frame(s),  0.00167881,s,     1.67881,ms,    1678.808,us, FPS,  595.6607764
+total averaging, 1001,                  Total,  0.00167909,s,     1.67909,ms,    1679.085,us, FPS,  595.5623817
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  1.00659120,s,  1006.59120,ms, 1006591.201,us, FPS,    0.9934520
+times averaging, 1000,               frame(s),  0.00105391,s,     1.05391,ms,    1053.906,us, FPS,  948.8515803
+total averaging, 1001,                  Total,  0.00205901,s,     2.05901,ms,    2059.006,us, FPS,  485.6711402
+
+DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.03551390,s,    35.51390,ms,   35513.900,us, FPS,   28.1579887
+times averaging, 1000,               frame(s),  0.00164497,s,     1.64497,ms,    1644.973,us, FPS,  607.9128310
+total averaging, 1001,                  Total,  0.00167909,s,     1.67909,ms,    1679.085,us, FPS,  595.5623817
+
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-TwoDevices\x64\Release\TwoDevices.exe" --algorithm=17 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform = Level-Zero device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.0
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.391850,s,   391.85011,ms,  391850.114,us,
+CPU,         warmup,    1,                  Remap,0.038360,s,    38.36010,ms,   38360.100,us,
+CPU,         warmup,    1,       Image extraction,0.038361,s,    38.36100,ms,   38361.002,us,
+CPU,         warmup,    1,               frame(s),0.430212,s,   430.21160,ms,  430211.604,us, FPS,    2.3244375
+CPU,times averaging,  505,     Frame Calculations,0.000613,s,     0.61332,ms,     613.319,us,
+CPU,times averaging,  505,                  Remap,0.001379,s,     1.37898,ms,    1378.976,us,
+CPU,times averaging,  505,       Image extraction,0.001380,s,     1.37973,ms,    1379.727,us,
+CPU,times averaging,  505,               frame(s),0.001994,s,     1.99355,ms,    1993.550,us, FPS,  501.6177342
+CPU,  lap averaging,  506,     Frame Calculations,0.001387,s,     1.38651,ms,    1386.515,us,
+CPU,  lap averaging,  506,                  Remap,0.001452,s,     1.45206,ms,    1452.061,us,
+CPU,  lap averaging,  506,       Image extraction,0.001453,s,     1.45281,ms,    1452.812,us,
+CPU,  lap averaging,  506,               frame(s),0.002840,s,     2.83983,ms,    2839.827,us, FPS,  352.1340657
+GPU,         warmup,    1,     Frame Calculations,0.159969,s,   159.96920,ms,  159969.196,us,
+GPU,         warmup,    1,                  Remap,0.018636,s,    18.63560,ms,   18635.601,us,
+GPU,         warmup,    1,       Image extraction,0.018637,s,    18.63670,ms,   18636.700,us,
+GPU,         warmup,    1,               frame(s),0.178606,s,   178.60641,ms,  178606.406,us, FPS,    5.5989033
+GPU,times averaging,  494,     Frame Calculations,0.000565,s,     0.56481,ms,     564.809,us,
+GPU,times averaging,  494,                  Remap,0.001422,s,     1.42159,ms,    1421.593,us,
+GPU,times averaging,  494,       Image extraction,0.001423,s,     1.42297,ms,    1422.973,us,
+GPU,times averaging,  494,               frame(s),0.001988,s,     1.98813,ms,    1988.134,us, FPS,  502.9842864
+GPU,  lap averaging,  495,     Frame Calculations,0.000887,s,     0.88684,ms,     886.838,us,
+GPU,  lap averaging,  495,                  Remap,0.001456,s,     1.45637,ms,    1456.369,us,
+GPU,  lap averaging,  495,       Image extraction,0.001458,s,     1.45775,ms,    1457.748,us,
+GPU,  lap averaging,  495,               frame(s),0.002345,s,     2.34494,ms,    2344.939,us, FPS,  426.4503325
+All,         warmup,    1,   Class initialization,0.000104,s,     0.10390,ms,     103.900,us,
+All,         warmup,    1, Variant initialization,0.161382,s,   161.38220,ms,  161382.198,us,
+All,         warmup,    2,                  Total,0.215111,s,   215.11130,ms,  215111.300,us, FPS,    4.6487562
+All,times averaging,  999,                  Total,0.001011,s,     1.01071,ms,    1010.708,us, FPS,  989.4058882
+All,total averaging, 1001,                  Total,0.001440,s,     1.43994,ms,    1439.941,us, FPS,  694.4729958
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.005251,s,     5.25140,ms,    5251.400,us,
+CPU,         warmup,    1,                  Remap,0.053312,s,    53.31200,ms,   53312.000,us,
+CPU,         warmup,    1,       Image extraction,0.053313,s,    53.31280,ms,   53312.801,us,
+CPU,         warmup,    1,               frame(s),0.058565,s,    58.56460,ms,   58564.600,us, FPS,   17.0751616
+CPU,times averaging,  601,     Frame Calculations,0.000620,s,     0.62050,ms,     620.495,us,
+CPU,times averaging,  601,                  Remap,0.001664,s,     1.66424,ms,    1664.243,us,
+CPU,times averaging,  601,       Image extraction,0.001825,s,     1.82457,ms,    1824.573,us,
+CPU,times averaging,  601,               frame(s),0.002445,s,     2.44541,ms,    2445.407,us, FPS,  408.9299498
+CPU,  lap averaging,  602,     Frame Calculations,0.000628,s,     0.62819,ms,     628.188,us,
+CPU,  lap averaging,  602,                  Remap,0.001750,s,     1.75004,ms,    1750.037,us,
+CPU,  lap averaging,  602,       Image extraction,0.001910,s,     1.91010,ms,    1910.102,us,
+CPU,  lap averaging,  602,               frame(s),0.002539,s,     2.53863,ms,    2538.628,us, FPS,  393.9135382
+GPU,         warmup,    1,     Frame Calculations,0.000544,s,     0.54410,ms,     544.100,us,
+GPU,         warmup,    1,                  Remap,0.056236,s,    56.23610,ms,   56236.099,us,
+GPU,         warmup,    1,       Image extraction,0.056237,s,    56.23680,ms,   56236.800,us,
+GPU,         warmup,    1,               frame(s),0.056782,s,    56.78160,ms,   56781.601,us, FPS,   17.6113385
+GPU,times averaging,  398,     Frame Calculations,0.000555,s,     0.55450,ms,     554.503,us,
+GPU,times averaging,  398,                  Remap,0.002781,s,     2.78051,ms,    2780.514,us,
+GPU,times averaging,  398,       Image extraction,0.002956,s,     2.95605,ms,    2956.055,us,
+GPU,times averaging,  398,               frame(s),0.003512,s,     3.51166,ms,    3511.663,us, FPS,  284.7653614
+GPU,  lap averaging,  399,     Frame Calculations,0.000554,s,     0.55448,ms,     554.477,us,
+GPU,  lap averaging,  399,                  Remap,0.002914,s,     2.91449,ms,    2914.488,us,
+GPU,  lap averaging,  399,       Image extraction,0.003090,s,     3.08959,ms,    3089.591,us,
+GPU,  lap averaging,  399,               frame(s),0.003645,s,     3.64517,ms,    3645.171,us, FPS,  274.3355150
+All,         warmup,    1,   Class initialization,0.000104,s,     0.10390,ms,     103.900,us,
+All,         warmup,    1, Variant initialization,0.010352,s,    10.35210,ms,   10352.100,us,
+All,         warmup,    2,                  Total,0.029286,s,    29.28555,ms,   29285.550,us, FPS,   34.1465329
+All,times averaging,  999,                  Total,0.001478,s,     1.47794,ms,    1477.936,us, FPS,  676.6190628
+All,total averaging, 1001,                  Total,0.001536,s,     1.53634,ms,    1536.343,us, FPS,  650.8961129
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.430212,s,   430.21160,ms,  430211.604,us, FPS,    2.3244375
+CPU,times averaging,  505,               frame(s),0.001994,s,     1.99355,ms,    1993.550,us, FPS,  501.6177342
+CPU,  lap averaging,  506,               frame(s),0.002840,s,     2.83983,ms,    2839.827,us, FPS,  352.1340657
+GPU,         warmup,    1,               frame(s),0.178606,s,   178.60641,ms,  178606.406,us, FPS,    5.5989033
+GPU,times averaging,  494,               frame(s),0.001988,s,     1.98813,ms,    1988.134,us, FPS,  502.9842864
+GPU,  lap averaging,  495,               frame(s),0.002345,s,     2.34494,ms,    2344.939,us, FPS,  426.4503325
+All,         warmup,    2,                  Total,0.215111,s,   215.11130,ms,  215111.300,us, FPS,    4.6487562
+All,times averaging,  999,                  Total,0.001011,s,     1.01071,ms,    1010.708,us, FPS,  989.4058882
+All,total averaging, 1001,                  Total,0.001440,s,     1.43994,ms,    1439.941,us, FPS,  694.4729958
+
+DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.058565,s,    58.56460,ms,   58564.600,us, FPS,   17.0751616
+CPU,times averaging,  601,               frame(s),0.002445,s,     2.44541,ms,    2445.407,us, FPS,  408.9299498
+CPU,  lap averaging,  602,               frame(s),0.002539,s,     2.53863,ms,    2538.628,us, FPS,  393.9135382
+GPU,         warmup,    1,               frame(s),0.056782,s,    56.78160,ms,   56781.601,us, FPS,   17.6113385
+GPU,times averaging,  398,               frame(s),0.003512,s,     3.51166,ms,    3511.663,us, FPS,  284.7653614
+GPU,  lap averaging,  399,               frame(s),0.003645,s,     3.64517,ms,    3645.171,us, FPS,  274.3355150
+All,         warmup,    2,                  Total,0.029286,s,    29.28555,ms,   29285.550,us, FPS,   34.1465329
+All,times averaging,  999,                  Total,0.001478,s,     1.47794,ms,    1477.936,us, FPS,  676.6190628
+All,total averaging, 1001,                  Total,0.001536,s,     1.53634,ms,    1536.343,us, FPS,  650.8961129
+
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-OneDevice\x64\Release\OneDevice.exe" --algorithm=17 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00000510,s,     0.00510,ms,       5.100,us,
+         warmup,    1, Variant initialization,  0.15486020,s,   154.86020,ms,  154860.198,us,
+         warmup,    1,     Frame Calculations,  0.38278809,s,   382.78809,ms,  382788.092,us,
+         warmup,    1,                  Remap,  0.03454350,s,    34.54350,ms,   34543.499,us,
+         warmup,    1,       Image extraction,  0.03454410,s,    34.54410,ms,   34544.099,us,
+         warmup,    1,               frame(s),  0.41733500,s,   417.33500,ms,  417335.004,us, FPS,    2.3961565
+times averaging, 1000,     Frame Calculations,  0.00000014,s,     0.00014,ms,       0.145,us,
+times averaging, 1000,                  Remap,  0.01619199,s,    16.19199,ms,   16191.988,us,
+times averaging, 1000,       Image extraction,  0.01619226,s,    16.19226,ms,   16192.255,us,
+times averaging, 1000,               frame(s),  0.01619320,s,    16.19320,ms,   16193.199,us, FPS,   61.7543198
+  lap averaging, 1001,     Frame Calculations,  0.00038255,s,     0.38255,ms,     382.546,us,
+  lap averaging, 1001,                  Remap,  0.01621032,s,    16.21032,ms,   16210.320,us,
+  lap averaging, 1001,       Image extraction,  0.01621059,s,    16.21059,ms,   16210.587,us,
+  lap averaging, 1001,               frame(s),  0.01659394,s,    16.59394,ms,   16593.941,us, FPS,   60.2629608
+total averaging, 1001,                  Total,  0.01659416,s,    16.59416,ms,   16594.156,us, FPS,   60.2621789
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00000510,s,     0.00510,ms,       5.100,us,
+         warmup,    1, Variant initialization,  0.00016090,s,     0.16090,ms,     160.900,us,
+         warmup,    1,     Frame Calculations,  0.00431190,s,     4.31190,ms,    4311.900,us,
+         warmup,    1,                  Remap,  0.03126640,s,    31.26640,ms,   31266.399,us,
+         warmup,    1,       Image extraction,  0.03126740,s,    31.26740,ms,   31267.401,us,
+         warmup,    1,               frame(s),  0.03558140,s,    35.58140,ms,   35581.399,us, FPS,   28.1045725
+times averaging, 1000,     Frame Calculations,  0.00000031,s,     0.00031,ms,       0.311,us,
+times averaging, 1000,                  Remap,  0.02422819,s,    24.22819,ms,   24228.191,us,
+times averaging, 1000,       Image extraction,  0.02438977,s,    24.38977,ms,   24389.774,us,
+times averaging, 1000,               frame(s),  0.02439129,s,    24.39129,ms,   24391.289,us, FPS,   40.9982437
+  lap averaging, 1001,     Frame Calculations,  0.00000462,s,     0.00462,ms,       4.618,us,
+  lap averaging, 1001,                  Remap,  0.02423522,s,    24.23522,ms,   24235.221,us,
+  lap averaging, 1001,       Image extraction,  0.02439664,s,    24.39664,ms,   24396.645,us,
+  lap averaging, 1001,               frame(s),  0.02440247,s,    24.40247,ms,   24402.466,us, FPS,   40.9794650
+total averaging, 1001,                  Total,  0.02440282,s,    24.40282,ms,   24402.824,us, FPS,   40.9788634
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.41733500,s,   417.33500,ms,  417335.004,us, FPS,    2.3961565
+times averaging, 1000,               frame(s),  0.01619320,s,    16.19320,ms,   16193.199,us, FPS,   61.7543198
+total averaging, 1001,                  Total,  0.01659416,s,    16.59416,ms,   16594.156,us, FPS,   60.2621789
+
+DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.03558140,s,    35.58140,ms,   35581.399,us, FPS,   28.1045725
+times averaging, 1000,               frame(s),  0.02439129,s,    24.39129,ms,   24391.289,us, FPS,   40.9982437
+total averaging, 1001,                  Total,  0.02440282,s,    24.40282,ms,   24402.824,us, FPS,   40.9788634
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-OneDevice\x64\Release\OneDevice.exe" --algorithm=17 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=GPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform =  device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.0
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,    1,   Class initialization,  0.00002850,s,     0.02850,ms,      28.500,us,
+         warmup,    1, Variant initialization,  0.13685820,s,   136.85820,ms,  136858.195,us,
+         warmup,    1,     Frame Calculations,  0.14659590,s,   146.59590,ms,  146595.895,us,
+         warmup,    1,                  Remap,  0.01700400,s,    17.00400,ms,   17004.000,us,
+         warmup,    1,       Image extraction,  0.01700430,s,    17.00430,ms,   17004.300,us,
+         warmup,    1,               frame(s),  0.16360261,s,   163.60261,ms,  163602.605,us, FPS,    6.1123721
+times averaging, 1000,     Frame Calculations,  0.00000011,s,     0.00011,ms,       0.112,us,
+times averaging, 1000,                  Remap,  0.01684792,s,    16.84792,ms,   16847.916,us,
+times averaging, 1000,       Image extraction,  0.01684830,s,    16.84830,ms,   16848.303,us,
+times averaging, 1000,               frame(s),  0.01684969,s,    16.84969,ms,   16849.689,us, FPS,   59.3482747
+  lap averaging, 1001,     Frame Calculations,  0.00014656,s,     0.14656,ms,     146.562,us,
+  lap averaging, 1001,                  Remap,  0.01684807,s,    16.84807,ms,   16848.070,us,
+  lap averaging, 1001,       Image extraction,  0.01684846,s,    16.84846,ms,   16848.458,us,
+  lap averaging, 1001,               frame(s),  0.01699629,s,    16.99629,ms,   16996.294,us, FPS,   58.8363554
+total averaging, 1001,                  Total,  0.01699666,s,    16.99666,ms,   16996.664,us, FPS,   58.8350757
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,    1,   Class initialization,  0.00002850,s,     0.02850,ms,      28.500,us,
+         warmup,    1, Variant initialization,  0.00879790,s,     8.79790,ms,    8797.900,us,
+         warmup,    1,     Frame Calculations,  0.00051270,s,     0.51270,ms,     512.700,us,
+         warmup,    1,                  Remap,  0.03014780,s,    30.14780,ms,   30147.800,us,
+         warmup,    1,       Image extraction,  0.03014850,s,    30.14850,ms,   30148.501,us,
+         warmup,    1,               frame(s),  0.03066220,s,    30.66220,ms,   30662.199,us, FPS,   32.6134464
+times averaging, 1000,     Frame Calculations,  0.00000035,s,     0.00035,ms,       0.351,us,
+times averaging, 1000,                  Remap,  0.02590224,s,    25.90224,ms,   25902.239,us,
+times averaging, 1000,       Image extraction,  0.02601641,s,    26.01641,ms,   26016.413,us,
+times averaging, 1000,               frame(s),  0.02601800,s,    26.01800,ms,   26018.002,us, FPS,   38.4349274
+  lap averaging, 1001,     Frame Calculations,  0.00000086,s,     0.00086,ms,       0.862,us,
+  lap averaging, 1001,                  Remap,  0.02590648,s,    25.90648,ms,   25906.480,us,
+  lap averaging, 1001,       Image extraction,  0.02602054,s,    26.02054,ms,   26020.540,us,
+  lap averaging, 1001,               frame(s),  0.02602264,s,    26.02264,ms,   26022.638,us, FPS,   38.4280800
+total averaging, 1001,                  Total,  0.02602293,s,    26.02293,ms,   26022.931,us, FPS,   38.4276466
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,    1,               frame(s),  0.16360261,s,   163.60261,ms,  163602.605,us, FPS,    6.1123721
+times averaging, 1000,               frame(s),  0.01684969,s,    16.84969,ms,   16849.689,us, FPS,   59.3482747
+total averaging, 1001,                  Total,  0.01699666,s,    16.99666,ms,   16996.664,us, FPS,   58.8350757
+
+DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+         warmup,    1,               frame(s),  0.03066220,s,    30.66220,ms,   30662.199,us, FPS,   32.6134464
+times averaging, 1000,               frame(s),  0.02601800,s,    26.01800,ms,   26018.002,us, FPS,   38.4349274
+total averaging, 1001,                  Total,  0.02602293,s,    26.02293,ms,   26022.931,us, FPS,   38.4276466
+
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-TwoDevices\x64\Release\TwoDevices.exe" --algorithm=17 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform = Level-Zero device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.0
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV13::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.386086,s,   386.08590,ms,  386085.898,us,
+CPU,         warmup,    1,                  Remap,0.039017,s,    39.01710,ms,   39017.100,us,
+CPU,         warmup,    1,       Image extraction,0.039018,s,    39.01810,ms,   39018.098,us,
+CPU,         warmup,    1,               frame(s),0.425105,s,   425.10480,ms,  425104.797,us, FPS,    2.3523611
+CPU,times averaging,  615,     Frame Calculations,0.000000,s,     0.00025,ms,       0.249,us,
+CPU,times averaging,  615,                  Remap,0.013946,s,    13.94613,ms,   13946.132,us,
+CPU,times averaging,  615,       Image extraction,0.013947,s,    13.94693,ms,   13946.933,us,
+CPU,times averaging,  615,               frame(s),0.013947,s,    13.94737,ms,   13947.372,us, FPS,   71.6980942
+CPU,  lap averaging,  616,     Frame Calculations,0.000627,s,     0.62701,ms,     627.009,us,
+CPU,  lap averaging,  616,                  Remap,0.013987,s,    13.98683,ms,   13986.832,us,
+CPU,  lap averaging,  616,       Image extraction,0.013988,s,    13.98763,ms,   13987.631,us,
+CPU,  lap averaging,  616,               frame(s),0.014615,s,    14.61484,ms,   14614.842,us, FPS,   68.4235922
+GPU,         warmup,    1,     Frame Calculations,0.156815,s,   156.81539,ms,  156815.395,us,
+GPU,         warmup,    1,                  Remap,0.018221,s,    18.22150,ms,   18221.499,us,
+GPU,         warmup,    1,       Image extraction,0.018222,s,    18.22240,ms,   18222.401,us,
+GPU,         warmup,    1,               frame(s),0.175038,s,   175.03840,ms,  175038.397,us, FPS,    5.7130322
+GPU,times averaging,  384,     Frame Calculations,0.000000,s,     0.00039,ms,       0.390,us,
+GPU,times averaging,  384,                  Remap,0.022260,s,    22.26027,ms,   22260.273,us,
+GPU,times averaging,  384,       Image extraction,0.022261,s,    22.26124,ms,   22261.242,us,
+GPU,times averaging,  384,               frame(s),0.022262,s,    22.26187,ms,   22261.868,us, FPS,   44.9198604
+GPU,  lap averaging,  385,     Frame Calculations,0.000408,s,     0.40770,ms,     407.702,us,
+GPU,  lap averaging,  385,                  Remap,0.022250,s,    22.24978,ms,   22249.782,us,
+GPU,  lap averaging,  385,       Image extraction,0.022251,s,    22.25075,ms,   22250.753,us,
+GPU,  lap averaging,  385,               frame(s),0.022659,s,    22.65868,ms,   22658.685,us, FPS,   44.1331878
+All,         warmup,    1,   Class initialization,0.000112,s,     0.11240,ms,     112.400,us,
+All,         warmup,    1, Variant initialization,0.135337,s,   135.33720,ms,  135337.204,us,
+All,         warmup,    2,                  Total,0.212560,s,   212.56036,ms,  212560.356,us, FPS,    4.7045461
+All,times averaging,  999,                  Total,0.008592,s,     8.59181,ms,    8591.814,us, FPS,  116.3898539
+All,total averaging, 1001,                  Total,0.009000,s,     8.99995,ms,    8999.951,us, FPS,  111.1117131
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+DpcppRemappingV13::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.005275,s,     5.27450,ms,    5274.500,us,
+CPU,         warmup,    1,                  Remap,0.050209,s,    50.20930,ms,   50209.299,us,
+CPU,         warmup,    1,       Image extraction,0.050211,s,    50.21080,ms,   50210.800,us,
+CPU,         warmup,    1,               frame(s),0.055486,s,    55.48580,ms,   55485.800,us, FPS,   18.0226292
+CPU,times averaging,  766,     Frame Calculations,0.000001,s,     0.00070,ms,       0.702,us,
+CPU,times averaging,  766,                  Remap,0.023690,s,    23.68998,ms,   23689.982,us,
+CPU,times averaging,  766,       Image extraction,0.023897,s,    23.89654,ms,   23896.544,us,
+CPU,times averaging,  766,               frame(s),0.023898,s,    23.89753,ms,   23897.535,us, FPS,   41.8453208
+CPU,  lap averaging,  767,     Frame Calculations,0.000008,s,     0.00758,ms,       7.578,us,
+CPU,  lap averaging,  767,                  Remap,0.023725,s,    23.72456,ms,   23724.560,us,
+CPU,  lap averaging,  767,       Image extraction,0.023931,s,    23.93085,ms,   23930.852,us,
+CPU,  lap averaging,  767,               frame(s),0.023939,s,    23.93872,ms,   23938.717,us, FPS,   41.7733324
+GPU,         warmup,    1,     Frame Calculations,0.002675,s,     2.67550,ms,    2675.500,us,
+GPU,         warmup,    1,                  Remap,0.054903,s,    54.90350,ms,   54903.500,us,
+GPU,         warmup,    1,       Image extraction,0.054904,s,    54.90420,ms,   54904.200,us,
+GPU,         warmup,    1,               frame(s),0.057580,s,    57.58010,ms,   57580.099,us, FPS,   17.3671117
+GPU,times averaging,  233,     Frame Calculations,0.000001,s,     0.00105,ms,       1.054,us,
+GPU,times averaging,  233,                  Remap,0.076043,s,    76.04277,ms,   76042.773,us,
+GPU,times averaging,  233,       Image extraction,0.076530,s,    76.53019,ms,   76530.195,us,
+GPU,times averaging,  233,               frame(s),0.076532,s,    76.53189,ms,   76531.889,us, FPS,   13.0664487
+GPU,  lap averaging,  234,     Frame Calculations,0.000012,s,     0.01248,ms,      12.483,us,
+GPU,  lap averaging,  234,                  Remap,0.075952,s,    75.95243,ms,   75952.432,us,
+GPU,  lap averaging,  234,       Image extraction,0.076438,s,    76.43777,ms,   76437.771,us,
+GPU,  lap averaging,  234,               frame(s),0.076451,s,    76.45089,ms,   76450.894,us, FPS,   13.0802918
+All,         warmup,    1,   Class initialization,0.000112,s,     0.11240,ms,     112.400,us,
+All,         warmup,    1, Variant initialization,0.009365,s,     9.36490,ms,    9364.900,us,
+All,         warmup,    2,                  Total,0.028812,s,    28.81250,ms,   28812.500,us, FPS,   34.7071587
+All,times averaging,  999,                  Total,0.018338,s,    18.33757,ms,   18337.572,us, FPS,   54.5328453
+All,total averaging, 1001,                  Total,0.018361,s,    18.36073,ms,   18360.729,us, FPS,   54.4640695
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on USM Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.425105,s,   425.10480,ms,  425104.797,us, FPS,    2.3523611
+CPU,times averaging,  615,               frame(s),0.013947,s,    13.94737,ms,   13947.372,us, FPS,   71.6980942
+CPU,  lap averaging,  616,               frame(s),0.014615,s,    14.61484,ms,   14614.842,us, FPS,   68.4235922
+GPU,         warmup,    1,               frame(s),0.175038,s,   175.03840,ms,  175038.397,us, FPS,    5.7130322
+GPU,times averaging,  384,               frame(s),0.022262,s,    22.26187,ms,   22261.868,us, FPS,   44.9198604
+GPU,  lap averaging,  385,               frame(s),0.022659,s,    22.65868,ms,   22658.685,us, FPS,   44.1331878
+All,         warmup,    2,                  Total,0.212560,s,   212.56036,ms,  212560.356,us, FPS,    4.7045461
+All,times averaging,  999,                  Total,0.008592,s,     8.59181,ms,    8591.814,us, FPS,  116.3898539
+All,total averaging, 1001,                  Total,0.009000,s,     8.99995,ms,    8999.951,us, FPS,  111.1117131
+
+DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV13: V6 except uses fp32 instead of fp64 on device memory Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.055486,s,    55.48580,ms,   55485.800,us, FPS,   18.0226292
+CPU,times averaging,  766,               frame(s),0.023898,s,    23.89753,ms,   23897.535,us, FPS,   41.8453208
+CPU,  lap averaging,  767,               frame(s),0.023939,s,    23.93872,ms,   23938.717,us, FPS,   41.7733324
+GPU,         warmup,    1,               frame(s),0.057580,s,    57.58010,ms,   57580.099,us, FPS,   17.3671117
+GPU,times averaging,  233,               frame(s),0.076532,s,    76.53189,ms,   76531.889,us, FPS,   13.0664487
+GPU,  lap averaging,  234,               frame(s),0.076451,s,    76.45089,ms,   76450.894,us, FPS,   13.0802918
+All,         warmup,    2,                  Total,0.028812,s,    28.81250,ms,   28812.500,us, FPS,   34.7071587
+All,times averaging,  999,                  Total,0.018338,s,    18.33757,ms,   18337.572,us, FPS,   54.5328453
+All,total averaging, 1001,                  Total,0.018361,s,    18.36073,ms,   18360.729,us, FPS,   54.4640695
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-OneDevice\x64\Release\OneDevice.exe" --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00000550,s,     0.00550,ms,       5.500,us,
+         warmup,    1, Variant initialization,  0.13192780,s,   131.92780,ms,  131927.803,us,
+         warmup,    1,     Frame Calculations,  0.36855221,s,   368.55221,ms,  368552.208,us,
+         warmup,    1,                  Remap,  0.03598660,s,    35.98660,ms,   35986.599,us,
+         warmup,    1,       Image extraction,  0.03598990,s,    35.98990,ms,   35989.899,us,
+         warmup,    1,               frame(s),  0.40454441,s,   404.54441,ms,  404544.413,us, FPS,    2.4719165
+times averaging, 1000,     Frame Calculations,  0.00000017,s,     0.00017,ms,       0.172,us,
+times averaging, 1000,                  Remap,  0.01632943,s,    16.32943,ms,   16329.433,us,
+times averaging, 1000,       Image extraction,  0.01632979,s,    16.32979,ms,   16329.788,us,
+times averaging, 1000,               frame(s),  0.01633079,s,    16.33079,ms,   16330.786,us, FPS,   61.2340407
+  lap averaging, 1001,     Frame Calculations,  0.00036835,s,     0.36835,ms,     368.353,us,
+  lap averaging, 1001,                  Remap,  0.01634907,s,    16.34907,ms,   16349.072,us,
+  lap averaging, 1001,       Image extraction,  0.01634943,s,    16.34943,ms,   16349.429,us,
+  lap averaging, 1001,               frame(s),  0.01671862,s,    16.71862,ms,   16718.616,us, FPS,   59.8135643
+total averaging, 1001,                  Total,  0.01671883,s,    16.71883,ms,   16718.829,us, FPS,   59.8128008
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,   Class initialization,  0.00000550,s,     0.00550,ms,       5.500,us,
+         warmup,    1, Variant initialization,  0.00017310,s,     0.17310,ms,     173.100,us,
+         warmup,    1,     Frame Calculations,  0.00425300,s,     4.25300,ms,    4253.000,us,
+         warmup,    1,                  Remap,  0.03069570,s,    30.69570,ms,   30695.699,us,
+         warmup,    1,       Image extraction,  0.03069650,s,    30.69650,ms,   30696.500,us,
+         warmup,    1,               frame(s),  0.03495090,s,    34.95090,ms,   34950.901,us, FPS,   28.6115658
+times averaging, 1000,     Frame Calculations,  0.00000027,s,     0.00027,ms,       0.268,us,
+times averaging, 1000,                  Remap,  0.02413080,s,    24.13080,ms,   24130.798,us,
+times averaging, 1000,       Image extraction,  0.02426776,s,    24.26776,ms,   24267.763,us,
+times averaging, 1000,               frame(s),  0.02426915,s,    24.26915,ms,   24269.150,us, FPS,   41.2045749
+  lap averaging, 1001,     Frame Calculations,  0.00000452,s,     0.00452,ms,       4.516,us,
+  lap averaging, 1001,                  Remap,  0.02413735,s,    24.13735,ms,   24137.352,us,
+  lap averaging, 1001,       Image extraction,  0.02427419,s,    24.27419,ms,   24274.186,us,
+  lap averaging, 1001,               frame(s),  0.02427982,s,    24.27982,ms,   24279.820,us, FPS,   41.1864664
+total averaging, 1001,                  Total,  0.02428015,s,    24.28015,ms,   24280.146,us, FPS,   41.1859137
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.40454441,s,   404.54441,ms,  404544.413,us, FPS,    2.4719165
+times averaging, 1000,               frame(s),  0.01633079,s,    16.33079,ms,   16330.786,us, FPS,   61.2340407
+total averaging, 1001,                  Total,  0.01671883,s,    16.71883,ms,   16718.829,us, FPS,   59.8128008
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959
+         warmup,    1,               frame(s),  0.03495090,s,    34.95090,ms,   34950.901,us, FPS,   28.6115658
+times averaging, 1000,               frame(s),  0.02426915,s,    24.26915,ms,   24269.150,us, FPS,   41.2045749
+total averaging, 1001,                  Total,  0.02428015,s,    24.28015,ms,   24280.146,us, FPS,   41.1859137
+
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>src\DPC++-TwoDevices\x64\Release\TwoDevices.exe --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>"src\DPC++-TwoDevices\x64\Release\TwoDevices.exe" --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz
+    type:                     CPU
+    version:                  3.0
+    driver_version:           2023.16.6.0.28_042959
+    max_compute_units:        16
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform = Level-Zero device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 630
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.0
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.382594,s,   382.59351,ms,  382593.513,us,
+CPU,         warmup,    1,                  Remap,0.040366,s,    40.36570,ms,   40365.700,us,
+CPU,         warmup,    1,       Image extraction,0.040367,s,    40.36660,ms,   40366.601,us,
+CPU,         warmup,    1,               frame(s),0.422961,s,   422.96121,ms,  422961.205,us, FPS,    2.3642830
+CPU,times averaging,  511,     Frame Calculations,0.000000,s,     0.00021,ms,       0.208,us,
+CPU,times averaging,  511,                  Remap,0.030847,s,    30.84718,ms,   30847.182,us,
+CPU,times averaging,  511,       Image extraction,0.030848,s,    30.84790,ms,   30847.900,us,
+CPU,times averaging,  511,               frame(s),0.030848,s,    30.84832,ms,   30848.322,us, FPS,   32.4166740
+CPU,  lap averaging,  512,     Frame Calculations,0.000747,s,     0.74746,ms,     747.459,us,
+CPU,  lap averaging,  512,                  Remap,0.030866,s,    30.86577,ms,   30865.772,us,
+CPU,  lap averaging,  512,       Image extraction,0.030866,s,    30.86649,ms,   30866.491,us,
+CPU,  lap averaging,  512,               frame(s),0.031614,s,    31.61417,ms,   31614.169,us, FPS,   31.6313861
+GPU,         warmup,    1,     Frame Calculations,0.157233,s,   157.23290,ms,  157232.895,us,
+GPU,         warmup,    1,                  Remap,0.019962,s,    19.96200,ms,   19962.000,us,
+GPU,         warmup,    1,       Image extraction,0.019963,s,    19.96290,ms,   19962.899,us,
+GPU,         warmup,    1,               frame(s),0.177196,s,   177.19640,ms,  177196.398,us, FPS,    5.6434556
+GPU,times averaging,  488,     Frame Calculations,0.000000,s,     0.00041,ms,       0.415,us,
+GPU,times averaging,  488,                  Remap,0.032253,s,    32.25278,ms,   32252.781,us,
+GPU,times averaging,  488,       Image extraction,0.032254,s,    32.25359,ms,   32253.588,us,
+GPU,times averaging,  488,               frame(s),0.032254,s,    32.25441,ms,   32254.407,us, FPS,   31.0035156
+GPU,  lap averaging,  489,     Frame Calculations,0.000322,s,     0.32195,ms,     321.953,us,
+GPU,  lap averaging,  489,                  Remap,0.032228,s,    32.22765,ms,   32227.649,us,
+GPU,  lap averaging,  489,       Image extraction,0.032228,s,    32.22845,ms,   32228.452,us,
+GPU,  lap averaging,  489,               frame(s),0.032551,s,    32.55081,ms,   32550.812,us, FPS,   30.7212000
+All,         warmup,    1,   Class initialization,0.000079,s,     0.07910,ms,      79.100,us,
+All,         warmup,    1, Variant initialization,0.150402,s,   150.40229,ms,  150402.293,us,
+All,         warmup,    2,                  Total,0.211486,s,   211.48606,ms,  211486.056,us, FPS,    4.7284441
+All,times averaging,  999,                  Total,0.015753,s,    15.75349,ms,   15753.494,us, FPS,   63.4779814
+All,total averaging, 1001,                  Total,0.016175,s,    16.17494,ms,   16174.939,us, FPS,   61.8240335
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,     Frame Calculations,0.005349,s,     5.34930,ms,    5349.300,us,
+CPU,         warmup,    1,                  Remap,0.055582,s,    55.58170,ms,   55581.700,us,
+CPU,         warmup,    1,       Image extraction,0.055583,s,    55.58280,ms,   55582.799,us,
+CPU,         warmup,    1,               frame(s),0.060933,s,    60.93280,ms,   60932.800,us, FPS,   16.4115222
+CPU,times averaging,  816,     Frame Calculations,0.000001,s,     0.00054,ms,       0.536,us,
+CPU,times averaging,  816,                  Remap,0.030966,s,    30.96610,ms,   30966.100,us,
+CPU,times averaging,  816,       Image extraction,0.031205,s,    31.20487,ms,   31204.869,us,
+CPU,times averaging,  816,               frame(s),0.031206,s,    31.20564,ms,   31205.645,us, FPS,   32.0454843
+CPU,  lap averaging,  817,     Frame Calculations,0.000007,s,     0.00708,ms,       7.083,us,
+CPU,  lap averaging,  817,                  Remap,0.030996,s,    30.99623,ms,   30996.227,us,
+CPU,  lap averaging,  817,       Image extraction,0.031235,s,    31.23470,ms,   31234.704,us,
+CPU,  lap averaging,  817,               frame(s),0.031242,s,    31.24203,ms,   31242.034,us, FPS,   32.0081588
+GPU,         warmup,    1,     Frame Calculations,0.000786,s,     0.78590,ms,     785.900,us,
+GPU,         warmup,    1,                  Remap,0.063021,s,    63.02080,ms,   63020.803,us,
+GPU,         warmup,    1,       Image extraction,0.063022,s,    63.02190,ms,   63021.898,us,
+GPU,         warmup,    1,               frame(s),0.063808,s,    63.80800,ms,   63808.002,us, FPS,   15.6720157
+GPU,times averaging,  183,     Frame Calculations,0.000001,s,     0.00113,ms,       1.132,us,
+GPU,times averaging,  183,                  Remap,0.136679,s,   136.67913,ms,  136679.133,us,
+GPU,times averaging,  183,       Image extraction,0.137500,s,   137.49950,ms,  137499.502,us,
+GPU,times averaging,  183,               frame(s),0.137501,s,   137.50140,ms,  137501.399,us, FPS,    7.2726533
+GPU,  lap averaging,  184,     Frame Calculations,0.000005,s,     0.00540,ms,       5.397,us,
+GPU,  lap averaging,  184,                  Remap,0.136279,s,   136.27881,ms,  136278.806,us,
+GPU,  lap averaging,  184,       Image extraction,0.137095,s,   137.09474,ms,  137094.736,us,
+GPU,  lap averaging,  184,               frame(s),0.137101,s,   137.10089,ms,  137100.894,us, FPS,    7.2938985
+All,         warmup,    1,   Class initialization,0.000079,s,     0.07910,ms,      79.100,us,
+All,         warmup,    1, Variant initialization,0.009278,s,     9.27840,ms,    9278.400,us,
+All,         warmup,    2,                  Total,0.031909,s,    31.90880,ms,   31908.799,us, FPS,   31.3393181
+All,times averaging,  999,                  Total,0.025477,s,    25.47744,ms,   25477.443,us, FPS,   39.2504071
+All,total averaging, 1001,                  Total,0.025517,s,    25.51725,ms,   25517.247,us, FPS,   39.1891799
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+[32mAll done!  Summary of all runs:
+[0mDpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.422961,s,   422.96121,ms,  422961.205,us, FPS,    2.3642830
+CPU,times averaging,  511,               frame(s),0.030848,s,    30.84832,ms,   30848.322,us, FPS,   32.4166740
+CPU,  lap averaging,  512,               frame(s),0.031614,s,    31.61417,ms,   31614.169,us, FPS,   31.6313861
+GPU,         warmup,    1,               frame(s),0.177196,s,   177.19640,ms,  177196.398,us, FPS,    5.6434556
+GPU,times averaging,  488,               frame(s),0.032254,s,    32.25441,ms,   32254.407,us, FPS,   31.0035156
+GPU,  lap averaging,  489,               frame(s),0.032551,s,    32.55081,ms,   32550.812,us, FPS,   30.7212000
+All,         warmup,    2,                  Total,0.211486,s,   211.48606,ms,  211486.056,us, FPS,    4.7284441
+All,times averaging,  999,                  Total,0.015753,s,    15.75349,ms,   15753.494,us, FPS,   63.4779814
+All,total averaging, 1001,                  Total,0.016175,s,    16.17494,ms,   16174.939,us, FPS,   61.8240335
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL Intel(R) Core(TM) i9-9900K CPU @ 3.60GHz 2023.16.6.0.28_042959 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 630 1.3.0
+CPU,         warmup,    1,               frame(s),0.060933,s,    60.93280,ms,   60932.800,us, FPS,   16.4115222
+CPU,times averaging,  816,               frame(s),0.031206,s,    31.20564,ms,   31205.645,us, FPS,   32.0454843
+CPU,  lap averaging,  817,               frame(s),0.031242,s,    31.24203,ms,   31242.034,us, FPS,   32.0081588
+GPU,         warmup,    1,               frame(s),0.063808,s,    63.80800,ms,   63808.002,us, FPS,   15.6720157
+GPU,times averaging,  183,               frame(s),0.137501,s,   137.50140,ms,  137501.399,us, FPS,    7.2726533
+GPU,  lap averaging,  184,               frame(s),0.137101,s,   137.10089,ms,  137100.894,us, FPS,    7.2938985
+All,         warmup,    2,                  Total,0.031909,s,    31.90880,ms,   31908.799,us, FPS,   31.3393181
+All,times averaging,  999,                  Total,0.025477,s,    25.47744,ms,   25477.443,us, FPS,   39.2504071
+All,total averaging, 1001,                  Total,0.025517,s,    25.51725,ms,   25517.247,us, FPS,   39.1891799
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform = OpenCL device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     12th Gen Intel(R) Core(TM) i9-12900
+    type:                     CPU
+    version:                  OpenCL 3.0 (Build 0)
+    driver_version:           2023.16.10.0.17_160000
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,   Class initialization,  0.00000650,s,     0.00650,ms,       6.500,us,
+         warmup,    1, Variant initialization,  0.14960210,s,   149.60210,ms,  149602.100,us,
+         warmup,    1,     Frame Calculations,  0.32195559,s,   321.95559,ms,  321955.591,us,
+         warmup,    1,                  Remap,  0.03361500,s,    33.61500,ms,   33615.001,us,
+         warmup,    1,       Image extraction,  0.03361580,s,    33.61580,ms,   33615.801,us,
+         warmup,    1,               frame(s),  0.35557589,s,   355.57589,ms,  355575.889,us, FPS,    2.8123392
+times averaging, 1000,     Frame Calculations,  0.00038003,s,     0.38003,ms,     380.029,us,
+times averaging, 1000,                  Remap,  0.00033793,s,     0.33793,ms,     337.929,us,
+times averaging, 1000,       Image extraction,  0.00033810,s,     0.33810,ms,     338.097,us,
+times averaging, 1000,               frame(s),  0.00071855,s,     0.71855,ms,     718.549,us, FPS, 1391.6927044
+  lap averaging, 1001,     Frame Calculations,  0.00070128,s,     0.70128,ms,     701.283,us,
+  lap averaging, 1001,                  Remap,  0.00037117,s,     0.37117,ms,     371.173,us,
+  lap averaging, 1001,       Image extraction,  0.00037134,s,     0.37134,ms,     371.342,us,
+  lap averaging, 1001,               frame(s),  0.00107305,s,     1.07305,ms,    1073.052,us, FPS,  931.9212866
+total averaging, 1001,                  Total,  0.00107317,s,     1.07317,ms,    1073.174,us, FPS,  931.8152859
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,   Class initialization,  0.00000650,s,     0.00650,ms,       6.500,us,
+         warmup,    1, Variant initialization,  0.00006950,s,     0.06950,ms,      69.500,us,
+         warmup,    1,     Frame Calculations,  0.00337270,s,     3.37270,ms,    3372.700,us,
+         warmup,    1,                  Remap,  0.01483860,s,    14.83860,ms,   14838.600,us,
+         warmup,    1,       Image extraction,  0.01483980,s,    14.83980,ms,   14839.800,us,
+         warmup,    1,               frame(s),  0.01821400,s,    18.21400,ms,   18214.000,us, FPS,   54.9028208
+times averaging, 1000,     Frame Calculations,  0.00041365,s,     0.41365,ms,     413.646,us,
+times averaging, 1000,                  Remap,  0.00080816,s,     0.80816,ms,     808.159,us,
+times averaging, 1000,       Image extraction,  0.00096157,s,     0.96157,ms,     961.568,us,
+times averaging, 1000,               frame(s),  0.00137594,s,     1.37594,ms,    1375.942,us, FPS,  726.7746988
+  lap averaging, 1001,     Frame Calculations,  0.00041660,s,     0.41660,ms,     416.602,us,
+  lap averaging, 1001,                  Remap,  0.00082218,s,     0.82218,ms,     822.176,us,
+  lap averaging, 1001,       Image extraction,  0.00097543,s,     0.97543,ms,     975.433,us,
+  lap averaging, 1001,               frame(s),  0.00139276,s,     1.39276,ms,    1392.764,us, FPS,  717.9968289
+total averaging, 1001,                  Total,  0.00139288,s,     1.39288,ms,    1392.884,us, FPS,  717.9346429
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+All done!  Summary of all runs:
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,               frame(s),  0.35557589,s,   355.57589,ms,  355575.889,us, FPS,    2.8123392
+times averaging, 1000,               frame(s),  0.00071855,s,     0.71855,ms,     718.549,us, FPS, 1391.6927044
+total averaging, 1001,                  Total,  0.00107317,s,     1.07317,ms,    1073.174,us, FPS,  931.8152859
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,               frame(s),  0.01821400,s,    18.21400,ms,   18214.000,us, FPS,   54.9028208
+times averaging, 1000,               frame(s),  0.00137594,s,     1.37594,ms,    1375.942,us, FPS,  726.7746988
+total averaging, 1001,                  Total,  0.00139288,s,     1.39288,ms,    1392.884,us, FPS,  717.9346429
+
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>src\DPC++-TwoDevices\x64\Release\TwoDevices.exe --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 ---deltaYaw=10 --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     12th Gen Intel(R) Core(TM) i9-12900
+    type:                     CPU
+    version:                  OpenCL 3.0 (Build 0)
+    driver_version:           2023.16.10.0.17_160000
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform = Level-Zero device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 770
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.27359
+    max_compute_units:        32
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,     Frame Calculations,0.319853,s,   319.85310,ms,  319853.097,us,
+CPU,         warmup,    1,                  Remap,0.033596,s,    33.59640,ms,   33596.400,us,
+CPU,         warmup,    1,       Image extraction,0.033597,s,    33.59740,ms,   33597.399,us,
+CPU,         warmup,    1,               frame(s),0.353451,s,   353.45110,ms,  353451.103,us, FPS,    2.8292457
+CPU,times averaging,  579,     Frame Calculations,0.000416,s,     0.41603,ms,     416.026,us,
+CPU,times averaging,  579,                  Remap,0.000398,s,     0.39771,ms,     397.714,us,
+CPU,times averaging,  579,       Image extraction,0.000398,s,     0.39806,ms,     398.061,us,
+CPU,times averaging,  579,               frame(s),0.000814,s,     0.81421,ms,     814.214,us, FPS, 1228.1776211
+CPU,  lap averaging,  580,     Frame Calculations,0.000967,s,     0.96678,ms,     966.780,us,
+CPU,  lap averaging,  580,                  Remap,0.000455,s,     0.45495,ms,     454.953,us,
+CPU,  lap averaging,  580,       Image extraction,0.000455,s,     0.45530,ms,     455.301,us,
+CPU,  lap averaging,  580,               frame(s),0.001422,s,     1.42221,ms,    1422.210,us, FPS,  703.1312525
+GPU,         warmup,    1,     Frame Calculations,0.151964,s,   151.96431,ms,  151964.307,us,
+GPU,         warmup,    1,                  Remap,0.013110,s,    13.11030,ms,   13110.300,us,
+GPU,         warmup,    1,       Image extraction,0.013111,s,    13.11130,ms,   13111.300,us,
+GPU,         warmup,    1,               frame(s),0.165076,s,   165.07600,ms,  165076.002,us, FPS,    6.0578157
+GPU,times averaging,  420,     Frame Calculations,0.000320,s,     0.32038,ms,     320.381,us,
+GPU,times averaging,  420,                  Remap,0.000804,s,     0.80354,ms,     803.544,us,
+GPU,times averaging,  420,       Image extraction,0.000804,s,     0.80396,ms,     803.963,us,
+GPU,times averaging,  420,               frame(s),0.001125,s,     1.12452,ms,    1124.518,us, FPS,  889.2698558
+GPU,  lap averaging,  421,     Frame Calculations,0.000681,s,     0.68058,ms,     680.580,us,
+GPU,  lap averaging,  421,                  Remap,0.000833,s,     0.83278,ms,     832.777,us,
+GPU,  lap averaging,  421,       Image extraction,0.000833,s,     0.83320,ms,     833.196,us,
+GPU,  lap averaging,  421,               frame(s),0.001514,s,     1.51395,ms,    1513.951,us, FPS,  660.5234652
+All,         warmup,    1,   Class initialization,0.000052,s,     0.05180,ms,      51.800,us,
+All,         warmup,    1, Variant initialization,0.155529,s,   155.52950,ms,  155529.499,us,
+All,         warmup,    2,                  Total,0.176732,s,   176.73215,ms,  176732.153,us, FPS,    5.6582800
+All,times averaging,  999,                  Total,0.000476,s,     0.47569,ms,     475.685,us, FPS, 2102.2293626
+All,total averaging, 1001,                  Total,0.000829,s,     0.82933,ms,     829.327,us, FPS, 1205.7975967
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,     Frame Calculations,0.003615,s,     3.61460,ms,    3614.600,us,
+CPU,         warmup,    1,                  Remap,0.018912,s,    18.91240,ms,   18912.399,us,
+CPU,         warmup,    1,       Image extraction,0.018918,s,    18.91850,ms,   18918.499,us,
+CPU,         warmup,    1,               frame(s),0.022533,s,    22.53330,ms,   22533.299,us, FPS,   44.3787651
+CPU,times averaging,  617,     Frame Calculations,0.000444,s,     0.44438,ms,     444.376,us,
+CPU,times averaging,  617,                  Remap,0.001031,s,     1.03122,ms,    1031.217,us,
+CPU,times averaging,  617,       Image extraction,0.001208,s,     1.20842,ms,    1208.416,us,
+CPU,times averaging,  617,               frame(s),0.001653,s,     1.65295,ms,    1652.947,us, FPS,  604.9800306
+CPU,  lap averaging,  618,     Frame Calculations,0.000450,s,     0.44951,ms,     449.506,us,
+CPU,  lap averaging,  618,                  Remap,0.001060,s,     1.06015,ms,    1060.151,us,
+CPU,  lap averaging,  618,       Image extraction,0.001237,s,     1.23707,ms,    1237.073,us,
+CPU,  lap averaging,  618,               frame(s),0.001687,s,     1.68673,ms,    1686.734,us, FPS,  592.8616741
+GPU,         warmup,    1,     Frame Calculations,0.000456,s,     0.45640,ms,     456.400,us,
+GPU,         warmup,    1,                  Remap,0.026457,s,    26.45670,ms,   26456.701,us,
+GPU,         warmup,    1,       Image extraction,0.026458,s,    26.45770,ms,   26457.701,us,
+GPU,         warmup,    1,               frame(s),0.026914,s,    26.91430,ms,   26914.300,us, FPS,   37.1549691
+GPU,times averaging,  382,     Frame Calculations,0.000352,s,     0.35238,ms,     352.381,us,
+GPU,times averaging,  382,                  Remap,0.002143,s,     2.14295,ms,    2142.946,us,
+GPU,times averaging,  382,       Image extraction,0.002303,s,     2.30329,ms,    2303.291,us,
+GPU,times averaging,  382,               frame(s),0.002656,s,     2.65587,ms,    2655.866,us, FPS,  376.5250723
+GPU,  lap averaging,  383,     Frame Calculations,0.000353,s,     0.35265,ms,     352.652,us,
+GPU,  lap averaging,  383,                  Remap,0.002206,s,     2.20643,ms,    2206.429,us,
+GPU,  lap averaging,  383,       Image extraction,0.002366,s,     2.36636,ms,    2366.357,us,
+GPU,  lap averaging,  383,               frame(s),0.002719,s,     2.71920,ms,    2719.204,us, FPS,  367.7547170
+All,         warmup,    1,   Class initialization,0.000052,s,     0.05180,ms,      51.800,us,
+All,         warmup,    1, Variant initialization,0.009043,s,     9.04310,ms,    9043.100,us,
+All,         warmup,    2,                  Total,0.013463,s,    13.46300,ms,   13463.000,us, FPS,   74.2776508
+All,times averaging,  999,                  Total,0.001028,s,     1.02800,ms,    1027.996,us, FPS,  972.7662068
+All,total averaging, 1001,                  Total,0.001055,s,     1.05506,ms,    1055.058,us, FPS,  947.8153460
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+All done!  Summary of all runs:
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,               frame(s),0.353451,s,   353.45110,ms,  353451.103,us, FPS,    2.8292457
+CPU,times averaging,  579,               frame(s),0.000814,s,     0.81421,ms,     814.214,us, FPS, 1228.1776211
+CPU,  lap averaging,  580,               frame(s),0.001422,s,     1.42221,ms,    1422.210,us, FPS,  703.1312525
+GPU,         warmup,    1,               frame(s),0.165076,s,   165.07600,ms,  165076.002,us, FPS,    6.0578157
+GPU,times averaging,  420,               frame(s),0.001125,s,     1.12452,ms,    1124.518,us, FPS,  889.2698558
+GPU,  lap averaging,  421,               frame(s),0.001514,s,     1.51395,ms,    1513.951,us, FPS,  660.5234652
+All,         warmup,    2,                  Total,0.176732,s,   176.73215,ms,  176732.153,us, FPS,    5.6582800
+All,times averaging,  999,                  Total,0.000476,s,     0.47569,ms,     475.685,us, FPS, 2102.2293626
+All,total averaging, 1001,                  Total,0.000829,s,     0.82933,ms,     829.327,us, FPS, 1205.7975967
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,               frame(s),0.022533,s,    22.53330,ms,   22533.299,us, FPS,   44.3787651
+CPU,times averaging,  617,               frame(s),0.001653,s,     1.65295,ms,    1652.947,us, FPS,  604.9800306
+CPU,  lap averaging,  618,               frame(s),0.001687,s,     1.68673,ms,    1686.734,us, FPS,  592.8616741
+GPU,         warmup,    1,               frame(s),0.026914,s,    26.91430,ms,   26914.300,us, FPS,   37.1549691
+GPU,times averaging,  382,               frame(s),0.002656,s,     2.65587,ms,    2655.866,us, FPS,  376.5250723
+GPU,  lap averaging,  383,               frame(s),0.002719,s,     2.71920,ms,    2719.204,us, FPS,  367.7547170
+All,         warmup,    2,                  Total,0.013463,s,    13.46300,ms,   13463.000,us, FPS,   74.2776508
+All,times averaging,  999,                  Total,0.001028,s,     1.02800,ms,    1027.996,us, FPS,  972.7662068
+All,total averaging, 1001,                  Total,0.001055,s,     1.05506,ms,    1055.058,us, FPS,  947.8153460
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>src\DPC++-OneDevice\x64\Release\OneDevice.exe --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform = OpenCL device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     12th Gen Intel(R) Core(TM) i9-12900
+    type:                     CPU
+    version:                  OpenCL 3.0 (Build 0)
+    driver_version:           2023.16.10.0.17_160000
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,   Class initialization,  0.00000720,s,     0.00720,ms,       7.200,us,
+         warmup,    1, Variant initialization,  0.16180630,s,   161.80630,ms,  161806.300,us,
+         warmup,    1,     Frame Calculations,  0.30727839,s,   307.27839,ms,  307278.395,us,
+         warmup,    1,                  Remap,  0.03266830,s,    32.66830,ms,   32668.300,us,
+         warmup,    1,       Image extraction,  0.03266890,s,    32.66890,ms,   32668.900,us,
+         warmup,    1,               frame(s),  0.33995190,s,   339.95190,ms,  339951.903,us, FPS,    2.9415926
+times averaging, 1000,     Frame Calculations,  0.00000028,s,     0.00028,ms,       0.276,us,
+times averaging, 1000,                  Remap,  0.01269090,s,    12.69090,ms,   12690.901,us,
+times averaging, 1000,       Image extraction,  0.01269133,s,    12.69133,ms,   12691.325,us,
+times averaging, 1000,               frame(s),  0.01269274,s,    12.69274,ms,   12692.736,us, FPS,   78.7852222
+  lap averaging, 1001,     Frame Calculations,  0.00030725,s,     0.30725,ms,     307.246,us,
+  lap averaging, 1001,                  Remap,  0.01271086,s,    12.71086,ms,   12710.859,us,
+  lap averaging, 1001,       Image extraction,  0.01271128,s,    12.71128,ms,   12711.282,us,
+  lap averaging, 1001,               frame(s),  0.01301967,s,    13.01967,ms,   13019.669,us, FPS,   76.8068656
+total averaging, 1001,                  Total,  0.01302002,s,    13.02002,ms,   13020.015,us, FPS,   76.8048255
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,   Class initialization,  0.00000720,s,     0.00720,ms,       7.200,us,
+         warmup,    1, Variant initialization,  0.00008900,s,     0.08900,ms,      89.000,us,
+         warmup,    1,     Frame Calculations,  0.00410210,s,     4.10210,ms,    4102.100,us,
+         warmup,    1,                  Remap,  0.01562510,s,    15.62510,ms,   15625.101,us,
+         warmup,    1,       Image extraction,  0.01562670,s,    15.62670,ms,   15626.701,us,
+         warmup,    1,               frame(s),  0.01973250,s,    19.73250,ms,   19732.499,us, FPS,   50.6778171
+times averaging, 1000,     Frame Calculations,  0.00000055,s,     0.00055,ms,       0.548,us,
+times averaging, 1000,                  Remap,  0.01039671,s,    10.39671,ms,   10396.708,us,
+times averaging, 1000,       Image extraction,  0.01057644,s,    10.57644,ms,   10576.436,us,
+times averaging, 1000,               frame(s),  0.01057853,s,    10.57853,ms,   10578.530,us, FPS,   94.5310899
+  lap averaging, 1001,     Frame Calculations,  0.00000465,s,     0.00465,ms,       4.645,us,
+  lap averaging, 1001,                  Remap,  0.01040193,s,    10.40193,ms,   10401.930,us,
+  lap averaging, 1001,       Image extraction,  0.01058148,s,    10.58148,ms,   10581.480,us,
+  lap averaging, 1001,               frame(s),  0.01058768,s,    10.58768,ms,   10587.676,us, FPS,   94.4494329
+total averaging, 1001,                  Total,  0.01058810,s,    10.58810,ms,   10588.100,us, FPS,   94.4456510
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+All done!  Summary of all runs:
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,               frame(s),  0.33995190,s,   339.95190,ms,  339951.903,us, FPS,    2.9415926
+times averaging, 1000,               frame(s),  0.01269274,s,    12.69274,ms,   12692.736,us, FPS,   78.7852222
+total averaging, 1001,                  Total,  0.01302002,s,    13.02002,ms,   13020.015,us, FPS,   76.8048255
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000
+         warmup,    1,               frame(s),  0.01973250,s,    19.73250,ms,   19732.499,us, FPS,   50.6778171
+times averaging, 1000,               frame(s),  0.01057853,s,    10.57853,ms,   10578.530,us, FPS,   94.5310899
+total averaging, 1001,                  Total,  0.01058810,s,    10.58810,ms,   10588.100,us, FPS,   94.4456510
+
+
+C:\Users\dpbogia\source\repos\optimizing-equirectangular-conversion\EquiRectangular>src\DPC++-TwoDevices\x64\Release\TwoDevices.exe --algorithm=19 --iterations=1001 --yaw=10 --pitch=20 --roll=30 ---deltaImage --typePreference=CPU --img0=images\IMG_20230629_082736_00_095.jpg --img1=images\ImageAndOverlay-equirectangular.jpg
+Loading Image0
+Loading Image1
+Loading Image0
+Loading Image1
+Images loaded.
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = CPU platform =  device name =  driver_version =
+Platform:                     Intel(R) OpenCL
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     12th Gen Intel(R) Core(TM) i9-12900
+    type:                     CPU
+    version:                  OpenCL 3.0 (Build 0)
+    driver_version:           2023.16.10.0.17_160000
+    max_compute_units:        24
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+DpcppBaseAlgorithm::StartVariant start
+Device search set to type = GPU platform = Level-Zero device name =  driver_version =
+Platform:                     Intel(R) Level-Zero
+  Device information:
+    vendor:                   Intel(R) Corporation
+    name:                     Intel(R) UHD Graphics 770
+    type:                     GPU
+    version:                  1.3
+    driver_version:           1.3.27359
+    max_compute_units:        32
+    address_bits:             64
+    error_correction_support: 0
+DpcppBaseAlgorithm::StartVariant end
+DpcppRemappingV15::StartVariant STORAGE_TYPE_USM
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,     Frame Calculations,0.305874,s,   305.87450,ms,  305874.497,us,
+CPU,         warmup,    1,                  Remap,0.033870,s,    33.87030,ms,   33870.298,us,
+CPU,         warmup,    1,       Image extraction,0.033871,s,    33.87110,ms,   33871.099,us,
+CPU,         warmup,    1,               frame(s),0.339746,s,   339.74609,ms,  339746.088,us, FPS,    2.9433746
+CPU,times averaging,  508,     Frame Calculations,0.000000,s,     0.00041,ms,       0.405,us,
+CPU,times averaging,  508,                  Remap,0.018706,s,    18.70586,ms,   18705.858,us,
+CPU,times averaging,  508,       Image extraction,0.018707,s,    18.70664,ms,   18706.645,us,
+CPU,times averaging,  508,               frame(s),0.018707,s,    18.70725,ms,   18707.255,us, FPS,   53.4551977
+CPU,  lap averaging,  509,     Frame Calculations,0.000601,s,     0.60133,ms,     601.334,us,
+CPU,  lap averaging,  509,                  Remap,0.018736,s,    18.73565,ms,   18735.650,us,
+CPU,  lap averaging,  509,       Image extraction,0.018736,s,    18.73644,ms,   18736.438,us,
+CPU,  lap averaging,  509,               frame(s),0.019338,s,    19.33798,ms,   19337.976,us, FPS,   51.7117190
+GPU,         warmup,    1,     Frame Calculations,0.151041,s,   151.04081,ms,  151040.807,us,
+GPU,         warmup,    1,                  Remap,0.013628,s,    13.62850,ms,   13628.500,us,
+GPU,         warmup,    1,       Image extraction,0.013629,s,    13.62940,ms,   13629.400,us,
+GPU,         warmup,    1,               frame(s),0.164671,s,   164.67090,ms,  164670.900,us, FPS,    6.0727184
+GPU,times averaging,  491,     Frame Calculations,0.000000,s,     0.00037,ms,       0.368,us,
+GPU,times averaging,  491,                  Remap,0.019339,s,    19.33908,ms,   19339.080,us,
+GPU,times averaging,  491,       Image extraction,0.019340,s,    19.33971,ms,   19339.705,us,
+GPU,times averaging,  491,               frame(s),0.019340,s,    19.34027,ms,   19340.267,us, FPS,   51.7055956
+GPU,  lap averaging,  492,     Frame Calculations,0.000307,s,     0.30736,ms,     307.361,us,
+GPU,  lap averaging,  492,                  Remap,0.019327,s,    19.32747,ms,   19327.472,us,
+GPU,  lap averaging,  492,       Image extraction,0.019328,s,    19.32810,ms,   19328.102,us,
+GPU,  lap averaging,  492,               frame(s),0.019636,s,    19.63566,ms,   19635.656,us, FPS,   50.9277612
+All,         warmup,    1,   Class initialization,0.000421,s,     0.42130,ms,     421.300,us,
+All,         warmup,    1, Variant initialization,0.180555,s,   180.55511,ms,  180555.105,us,
+All,         warmup,    2,                  Total,0.169880,s,   169.88000,ms,  169880.003,us, FPS,    5.8865080
+All,times averaging,  999,                  Total,0.009517,s,     9.51680,ms,    9516.795,us, FPS,  105.0773895
+All,total averaging, 1001,                  Total,0.009856,s,     9.85606,ms,    9856.062,us, FPS,  101.4603997
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+DpcppRemappingV15::StartVariant STORAGE_TYPE_DEVICE
+Algorithm description: DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,     Frame Calculations,0.003851,s,     3.85070,ms,    3850.700,us,
+CPU,         warmup,    1,                  Remap,0.020442,s,    20.44180,ms,   20441.800,us,
+CPU,         warmup,    1,       Image extraction,0.020443,s,    20.44330,ms,   20443.300,us,
+CPU,         warmup,    1,               frame(s),0.024294,s,    24.29420,ms,   24294.199,us, FPS,   41.1620890
+CPU,times averaging,  835,     Frame Calculations,0.000001,s,     0.00082,ms,       0.819,us,
+CPU,times averaging,  835,                  Remap,0.012176,s,    12.17573,ms,   12175.735,us,
+CPU,times averaging,  835,       Image extraction,0.012436,s,    12.43639,ms,   12436.387,us,
+CPU,times averaging,  835,               frame(s),0.012438,s,    12.43752,ms,   12437.517,us, FPS,   80.4019026
+CPU,  lap averaging,  836,     Frame Calculations,0.000005,s,     0.00542,ms,       5.424,us,
+CPU,  lap averaging,  836,                  Remap,0.012186,s,    12.18562,ms,   12185.623,us,
+CPU,  lap averaging,  836,       Image extraction,0.012446,s,    12.44597,ms,   12445.965,us,
+CPU,  lap averaging,  836,               frame(s),0.012452,s,    12.45170,ms,   12451.700,us, FPS,   80.3103188
+GPU,         warmup,    1,     Frame Calculations,0.000467,s,     0.46740,ms,     467.400,us,
+GPU,         warmup,    1,                  Remap,0.027270,s,    27.26960,ms,   27269.600,us,
+GPU,         warmup,    1,       Image extraction,0.027271,s,    27.27070,ms,   27270.701,us,
+GPU,         warmup,    1,               frame(s),0.027738,s,    27.73830,ms,   27738.299,us, FPS,   36.0512370
+GPU,times averaging,  164,     Frame Calculations,0.000001,s,     0.00067,ms,       0.666,us,
+GPU,times averaging,  164,                  Remap,0.062984,s,    62.98390,ms,   62983.902,us,
+GPU,times averaging,  164,       Image extraction,0.063296,s,    63.29610,ms,   63296.103,us,
+GPU,times averaging,  164,               frame(s),0.063297,s,    63.29704,ms,   63297.039,us, FPS,   15.7985273
+GPU,  lap averaging,  165,     Frame Calculations,0.000003,s,     0.00349,ms,       3.495,us,
+GPU,  lap averaging,  165,                  Remap,0.062767,s,    62.76745,ms,   62767.451,us,
+GPU,  lap averaging,  165,       Image extraction,0.063078,s,    63.07777,ms,   63077.771,us,
+GPU,  lap averaging,  165,               frame(s),0.063082,s,    63.08153,ms,   63081.533,us, FPS,   15.8524999
+All,         warmup,    1,   Class initialization,0.000421,s,     0.42130,ms,     421.300,us,
+All,         warmup,    1, Variant initialization,0.008750,s,     8.75020,ms,    8750.200,us,
+All,         warmup,    2,                  Total,0.013876,s,    13.87575,ms,   13875.750,us, FPS,   72.0681770
+All,times averaging,  999,                  Total,0.010408,s,    10.40818,ms,   10408.179,us, FPS,   96.0782856
+All,total averaging, 1001,                  Total,0.010426,s,    10.42623,ms,   10426.230,us, FPS,   95.9119473
+DpcppBaseAlgorithm::StartVariant start
+DpcppBaseAlgorithm::StartVariant end
+All done!  Summary of all runs:
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to USM on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,               frame(s),0.339746,s,   339.74609,ms,  339746.088,us, FPS,    2.9433746
+CPU,times averaging,  508,               frame(s),0.018707,s,    18.70725,ms,   18707.255,us, FPS,   53.4551977
+CPU,  lap averaging,  509,               frame(s),0.019338,s,    19.33798,ms,   19337.976,us, FPS,   51.7117190
+GPU,         warmup,    1,               frame(s),0.164671,s,   164.67090,ms,  164670.900,us, FPS,    6.0727184
+GPU,times averaging,  491,               frame(s),0.019340,s,    19.34027,ms,   19340.267,us, FPS,   51.7055956
+GPU,  lap averaging,  492,               frame(s),0.019636,s,    19.63566,ms,   19635.656,us, FPS,   50.9277612
+All,         warmup,    2,                  Total,0.169880,s,   169.88000,ms,  169880.003,us, FPS,    5.8865080
+All,times averaging,  999,                  Total,0.009517,s,     9.51680,ms,    9516.795,us, FPS,  105.0773895
+All,total averaging, 1001,                  Total,0.009856,s,     9.85606,ms,    9856.062,us, FPS,  101.4603997
+
+DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) OpenCL 12th Gen Intel(R) Core(TM) i9-12900 2023.16.10.0.17_160000 DpcppRemappingV15: V6 except using fp32 and always copying delta image to device memory on Intel(R) Level-Zero Intel(R) UHD Graphics 770 1.3.27359
+CPU,         warmup,    1,               frame(s),0.024294,s,    24.29420,ms,   24294.199,us, FPS,   41.1620890
+CPU,times averaging,  835,               frame(s),0.012438,s,    12.43752,ms,   12437.517,us, FPS,   80.4019026
+CPU,  lap averaging,  836,               frame(s),0.012452,s,    12.45170,ms,   12451.700,us, FPS,   80.3103188
+GPU,         warmup,    1,               frame(s),0.027738,s,    27.73830,ms,   27738.299,us, FPS,   36.0512370
+GPU,times averaging,  164,               frame(s),0.063297,s,    63.29704,ms,   63297.039,us, FPS,   15.7985273
+GPU,  lap averaging,  165,               frame(s),0.063082,s,    63.08153,ms,   63081.533,us, FPS,   15.8524999
+All,         warmup,    2,                  Total,0.013876,s,    13.87575,ms,   13875.750,us, FPS,   72.0681770
+All,times averaging,  999,                  Total,0.010408,s,    10.40818,ms,   10408.179,us, FPS,   96.0782856
+All,total averaging, 1001,                  Total,0.010426,s,    10.42623,ms,   10426.230,us, FPS,   95.9119473

@@ -66,7 +66,7 @@ void Equi2Rect::FrameCalculations(bool bParametersChanged)
         focal_length = 0.5 * m_parameters->m_widthOutput * 1 / tan(0.5 * m_parameters->m_fov / 180.0 * M_PI);
 
         // create camera matrix K
-        K = (cv::Mat_<double>(3, 3) << focal_length, 0, m_parameters->m_widthOutput / 2,
+        K = (cv::Mat_<float>(3, 3) << focal_length, 0, m_parameters->m_widthOutput / 2,
             0, focal_length, m_parameters->m_heightOutput / 2,
             0, 0, 1);
 
@@ -74,18 +74,18 @@ void Equi2Rect::FrameCalculations(bool bParametersChanged)
     }
 }
 
-auto Equi2Rect::eul2rotm(double rotx, double roty, double rotz) -> cv::Mat
+auto Equi2Rect::eul2rotm(float rotx, float roty, float rotz) -> cv::Mat
 {
 
-    cv::Mat R_x = (cv::Mat_<double>(3, 3) << 1, 0, 0,
+    cv::Mat R_x = (cv::Mat_<float>(3, 3) << 1, 0, 0,
         0, cos(rotx), -sin(rotx),
         0, sin(rotx), cos(rotx));
 
-    cv::Mat R_y = (cv::Mat_<double>(3, 3) << cos(roty), 0, sin(roty),
+    cv::Mat R_y = (cv::Mat_<float>(3, 3) << cos(roty), 0, sin(roty),
         0, 1, 0,
         -sin(roty), 0, cos(roty));
 
-    cv::Mat R_z = (cv::Mat_<double>(3, 3) << cos(rotz), -sin(rotz), 0,
+    cv::Mat R_z = (cv::Mat_<float>(3, 3) << cos(rotz), -sin(rotz), 0,
         sin(rotz), cos(rotz), 0,
         0, 0, 1);
 
@@ -96,20 +96,20 @@ auto Equi2Rect::eul2rotm(double rotx, double roty, double rotz) -> cv::Mat
 
 auto Equi2Rect::reprojection(int x_img, int y_img) -> cv::Vec2d
 {
-    cv::Mat xyz = (cv::Mat_<double>(3, 1) << (double)x_img, (double)y_img, 1);
+    cv::Mat xyz = (cv::Mat_<float>(3, 1) << (float)x_img, (float)y_img, 1);
     cv::Mat ray3d = Rot * K.inv() * xyz / norm(xyz);
 
     // get 3d spherical coordinates
-    double xp = ray3d.at<double>(0);
-    double yp = ray3d.at<double>(1);
-    double zp = ray3d.at<double>(2);
+    float xp = ray3d.at<float>(0);
+    float yp = ray3d.at<float>(1);
+    float zp = ray3d.at<float>(2);
     // inverse formula for spherical projection, reference Szeliski book "Computer Vision: Algorithms and Applications" p439.
-    double theta = atan2(yp, sqrt(xp * xp + zp * zp));
-    double phi = atan2(xp, zp);
+    float theta = atan2(yp, sqrt(xp * xp + zp * zp));
+    float phi = atan2(xp, zp);
 
     // get 2D point on equirectangular map
-    double x_sphere = (((phi * m_parameters->m_image[m_parameters->m_imageIndex].cols) / M_PI + m_parameters->m_image[m_parameters->m_imageIndex].cols) / 2);
-    double y_sphere = (theta + M_PI / 2) * m_parameters->m_image[m_parameters->m_imageIndex].rows / M_PI;
+    float x_sphere = (((phi * m_parameters->m_image[m_parameters->m_imageIndex].cols) / M_PI + m_parameters->m_image[m_parameters->m_imageIndex].cols) / 2);
+    float y_sphere = (theta + M_PI / 2) * m_parameters->m_image[m_parameters->m_imageIndex].rows / M_PI;
 
     return cv::Vec2d(x_sphere, y_sphere);
 }
@@ -119,7 +119,7 @@ auto Equi2Rect::bilinear_interpolation() -> void
     cv::Vec2d current_pos;
     // variables for bilinear interpolation
     int top_left_x, top_left_y;
-    double dx, dy, wtl, wtr, wbl, wbr;
+    float dx, dy, wtl, wtr, wbl, wbr;
     cv::Vec3b value, bgr;
 
     // loop over every pixel in output rectlinear image
