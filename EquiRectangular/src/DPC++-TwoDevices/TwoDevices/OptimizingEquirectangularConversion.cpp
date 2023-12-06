@@ -268,6 +268,7 @@ int main(int argc, char** argv) {
         devParameters[uiDevIndex].m_pWorkCompletedMutex = &workCompletedMutex;
         devParameters[uiDevIndex].m_pWorkCompletedCondVar = &workCompletedCondVar;
         devParameters[uiDevIndex].m_pWorkCompleted = &workCompleted;
+        devParameters[uiDevIndex].m_deltaImage = parameters.m_deltaImage;
         uiDevIndex++;
     }
     devParameters[0].m_typePreference = "CPU";
