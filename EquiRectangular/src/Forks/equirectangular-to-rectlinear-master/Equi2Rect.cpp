@@ -29,7 +29,7 @@ Equi2Rect::Equi2Rect()
     RotKinv = Rot * K.inv();
 #endif
     // read src image
-    img_src = cv::imread("C:\\Users\\dpbogia\\source\\repos\\flatten360image\\EquiRectangular\\images\\IMG_20230629_082736_00_095.jpg", cv::IMREAD_COLOR);
+    img_src = cv::imread("..\\..\\..\\images\\IMG_20230629_082736_00_095.jpg", cv::IMREAD_COLOR);
     if (img_src.empty())
     {
         throw std::invalid_argument("Error: Could not load image!");
@@ -37,7 +37,6 @@ Equi2Rect::Equi2Rect()
 
     // initialize result image
     img_dst = cv::Mat(viewport.height, viewport.width, CV_8UC3, cv::Scalar(0, 0, 0));
-    //img_dst_path = "c:\\tmp\\pano_rect.jpg";
 }
 
 auto Equi2Rect::save_rectlinear_image() -> void
@@ -54,7 +53,7 @@ auto Equi2Rect::save_rectlinear_image() -> void
     std::chrono::duration<double> aveDuration = std::chrono::duration<double>(stopTime - startTime) / iterations;
     printf("Average for %d frames %12.8fs %12.5fms %12.3fus %12.8f FPS\n", iterations, aveDuration, aveDuration * 1000.0, aveDuration * 1000000.0, 1.0 / (aveDuration.count() * std::chrono::duration<double>::period::num / std::chrono::duration<double>::period::den));
 
-    cv::imwrite("c:\\tmp\\pano_rect.jpg", img_dst);
+    cv::imwrite("..\\..\\..\\images\\pano_rect.jpg", img_dst);
 }
 
 auto Equi2Rect::show_rectlinear_image() -> void

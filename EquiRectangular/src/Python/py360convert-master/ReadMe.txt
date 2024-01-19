@@ -1,1 +1,0 @@
-This code came from https://github.com/sunset1995/py360convert/tree/master
