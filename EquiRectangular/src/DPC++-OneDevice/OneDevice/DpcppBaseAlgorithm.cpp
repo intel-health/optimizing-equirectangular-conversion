@@ -24,8 +24,7 @@ DpcppBaseAlgorithm::DpcppBaseAlgorithm(SParameters& parameters) : BaseAlgorithm(
 
 DpcppBaseAlgorithm::~DpcppBaseAlgorithm()
 {
-    delete m_pQ;
-    m_pQ = NULL;
+    StopVariant();
 }
 
 sycl::queue* DpcppBaseAlgorithm::GetDeviceQ()

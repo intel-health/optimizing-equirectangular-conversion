@@ -41,12 +41,7 @@ SerialRemappingV2::SerialRemappingV2(SParameters& parameters) : BaseAlgorithm(pa
 
 SerialRemappingV2::~SerialRemappingV2()
 {
-	delete[] m_pXYPoints;
-	m_pXYPoints = NULL;
-	delete[] m_pXPoints;
-	m_pXPoints = NULL;
-	delete[] m_pYPoints;
-	m_pYPoints = NULL;
+	StopVariant();
 }
 
 std::string SerialRemappingV2::GetDescription()

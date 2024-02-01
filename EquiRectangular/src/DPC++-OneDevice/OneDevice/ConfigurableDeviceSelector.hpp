@@ -42,7 +42,7 @@ private:
 public:
 	// type_preference is a list of preferences in priority order.  The type values can be:
 	//   CPU, GPU, ACC (accelerator e.g., FPGA). For instance, to give highest priorty to GPU, 
-	//   then CPU, then Accelerator use "GPU,CPU,ACC".  If this is blank, then all device types
+	//   then CPU, then Accelerator use "GPU;CPU;ACC".  If this is blank, then all device types
 	//   are accepted with no prioritization.
 	// platform allows specifying what platform to select.  If the provided string is
 	//   found anywhere in the platform name, then that platform will be given higher

@@ -41,12 +41,7 @@ SerialRemappingV1c::SerialRemappingV1c(SParameters& parameters) : BaseAlgorithm(
 
 SerialRemappingV1c::~SerialRemappingV1c()
 {
-	delete m_pXYZPoints;
-	m_pXYZPoints = NULL;
-	delete m_pXYPoints;
-	m_pXYPoints = NULL;
-	delete m_pLonLatPoints;
-	m_pLonLatPoints = NULL;
+	StopVariant();
 }
 
 std::string SerialRemappingV1c::GetDescription()
@@ -508,11 +503,11 @@ bool SerialRemappingV1c::StartVariant()
 
 void SerialRemappingV1c::StopVariant()
 {
-	delete m_pXYZPoints;
+	delete[] m_pXYZPoints;
 	m_pXYZPoints = NULL;
-	delete m_pXYPoints;
+	delete[] m_pXYPoints;
 	m_pXYPoints = NULL;
-	delete m_pLonLatPoints;
+	delete[] m_pLonLatPoints;
 	m_pLonLatPoints = NULL;
 }
 

@@ -331,4 +331,6 @@ void DpcppRemapping::StopVariant()
 	m_pXYPoints = NULL;
 	free(m_pLonLatPoints, ctxt);
 	m_pLonLatPoints = NULL;
+
+	DpcppBaseAlgorithm::StopVariant();
 }

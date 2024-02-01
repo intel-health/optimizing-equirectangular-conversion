@@ -426,4 +426,5 @@ void DpcppRemappingV15::StopVariant()
 		DpcppBaseAlgorithm::StopVariant();
 		m_storageType = STORAGE_TYPE_INIT;
 	}
+	DpcppBaseAlgorithm::StopVariant();
 }

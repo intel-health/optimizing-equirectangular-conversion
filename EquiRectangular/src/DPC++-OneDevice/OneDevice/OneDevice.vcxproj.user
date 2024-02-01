@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--StartAlgorithm=5 --EndAlgorithm=11 --iterations=1001 --yaw=0 --pitch=0 --roll=0 --deltaYaw=10  --typePreference=GPU;CPU --platform=all</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--iterations=2 --typePreference=GPU;CPU --platform=all</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
@@ -10,6 +10,6 @@
     <LocalDebuggerEnvironment>
     </LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments> --Algorithm=18 --iterations=1001 --yaw=10 --pitch=20 --roll=30 --deltaYaw=10 --typePreference=CPU --platform=OpenCL</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments> --iterations=10</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
