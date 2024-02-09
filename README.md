@@ -1,6 +1,6 @@
 # README
 
-This repository contains information about equirectangular images (360 degree panoramic images), conversion to rectilinear views (selecting a particular viewing direction and "flattening" the image,
+This repository contains information about equirectangular images (360 degree panoramic images), conversion to rectilinear views (selecting a particular viewing direction and "flattening" the image),
 a code framework to test out optimization ideas for efficiently extracting images, and web pages that explain all the work.
 
 # Dependencies
