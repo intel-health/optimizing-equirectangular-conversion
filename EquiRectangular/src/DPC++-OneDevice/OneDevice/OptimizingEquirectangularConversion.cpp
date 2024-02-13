@@ -65,126 +65,127 @@ __itt_string_handle *handle_print_parameters = __itt_string_handle_create(pPrint
 #endif
 
 int main(int argc, char** argv) {
-    SParameters parameters;
-    char errorMessage[MAX_ERROR_MESSAGE];
+    try {
 
-    if (!ParseArgs(argc, argv, &parameters, errorMessage))
-    {
-        PrintUsage(argv[0], errorMessage);
-        exit(1);
-    }
+        SParameters parameters;
+        char errorMessage[MAX_ERROR_MESSAGE];
 
-    std::string description;
-    BaseAlgorithm* pAlg = NULL;
-    std::chrono::high_resolution_clock::time_point initStartTime;
-    std::chrono::high_resolution_clock::time_point initEndTime;
-    std::chrono::high_resolution_clock::time_point variantInitStartTime;
-    std::chrono::high_resolution_clock::time_point variantInitStopTime;
-    std::chrono::high_resolution_clock::time_point frameStartTime;
-    std::chrono::high_resolution_clock::time_point frameEndTime;
-    std::chrono::high_resolution_clock::time_point totalTimeStart;
-    std::chrono::high_resolution_clock::time_point totalTimeEnd;
-    std::chrono::high_resolution_clock::time_point extractionStartTime;
-    TimingStats *pTimingStats = TimingStats::GetTimingStats();
-    bool bInteractive = parameters.m_iterations < 1;
-    int iteration = 0;
-    SParameters prevParameters;
-    int startAlgorithm;
-    int endAlgorithm;
-    int key;
-    bool bDebug = false;
-    bool bEnteringData = false;
-    bool bDoIterations = true;
-    int sign = 1;
-    cv::Mat debugImg;
-    cv::Mat flatImg;
-    int delta = 10;
-    int prevDelta = 10;
-    bool bRunningVariant;
-    bool bVariantValid;
-    std::vector<std::string> summaryStats;
-    int origYaw = parameters.m_yaw;
-    int origPitch = parameters.m_pitch;
-    int origRoll = parameters.m_roll;
-
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
-    cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_WARNING);
-    if (parameters.m_algorithm > -1)
-    {
-        startAlgorithm = parameters.m_algorithm;
-        endAlgorithm = parameters.m_algorithm;
-    }
-    else
-    {
-        startAlgorithm = parameters.m_startAlgorithm;
-        if (parameters.m_endAlgorithm == -1)
+        if (!ParseArgs(argc, argv, &parameters, errorMessage))
         {
-            endAlgorithm = MAX_ALGORITHM;
+            PrintUsage(argv[0], errorMessage);
+            exit(1);
+        }
+
+        std::string description;
+        BaseAlgorithm* pAlg = NULL;
+        std::chrono::high_resolution_clock::time_point initStartTime;
+        std::chrono::high_resolution_clock::time_point initEndTime;
+        std::chrono::high_resolution_clock::time_point variantInitStartTime;
+        std::chrono::high_resolution_clock::time_point variantInitStopTime;
+        std::chrono::high_resolution_clock::time_point frameStartTime;
+        std::chrono::high_resolution_clock::time_point frameEndTime;
+        std::chrono::high_resolution_clock::time_point totalTimeStart;
+        std::chrono::high_resolution_clock::time_point totalTimeEnd;
+        std::chrono::high_resolution_clock::time_point extractionStartTime;
+        TimingStats* pTimingStats = TimingStats::GetTimingStats();
+        bool bInteractive = parameters.m_iterations < 1;
+        int iteration = 0;
+        SParameters prevParameters;
+        int startAlgorithm;
+        int endAlgorithm;
+        int key;
+        bool bDebug = false;
+        bool bEnteringData = false;
+        bool bDoIterations = true;
+        int sign = 1;
+        cv::Mat debugImg;
+        cv::Mat flatImg;
+        int delta = 10;
+        int prevDelta = 10;
+        bool bRunningVariant;
+        bool bVariantValid;
+        std::vector<std::string> summaryStats;
+        int origYaw = parameters.m_yaw;
+        int origPitch = parameters.m_pitch;
+        int origRoll = parameters.m_roll;
+
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
+        cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_WARNING);
+        if (parameters.m_algorithm > -1)
+        {
+            startAlgorithm = parameters.m_algorithm;
+            endAlgorithm = parameters.m_algorithm;
         }
         else
         {
-            endAlgorithm = parameters.m_endAlgorithm;
-        }
-    }
-
-    // See if we just need to list the platforms / devices
-    if (parameters.m_platformName == "list" || parameters.m_deviceName == "list")
-    {
-        try {
-            for (auto platform : sycl::platform::get_platforms())
+            startAlgorithm = parameters.m_startAlgorithm;
+            if (parameters.m_endAlgorithm == -1)
             {
-                ConfigurableDeviceSelector::print_platform_info(platform);
-
-                for (auto device : platform.get_devices())
-                {
-                    ConfigurableDeviceSelector::print_device_info(device);
-                }
-                std::cout << std::endl;
+                endAlgorithm = MAX_ALGORITHM;
+            }
+            else
+            {
+                endAlgorithm = parameters.m_endAlgorithm;
             }
         }
-        catch (std::exception const& e) {
-            // catch the exception from devices that are not supported.
-            std::cout << "An exception is caught when enumerating platforms and devices."
-                << std::endl;
-            std::cout << e.what() << std::endl;
+
+        // See if we just need to list the platforms / devices
+        if (parameters.m_platformName == "list" || parameters.m_deviceName == "list")
+        {
+            try {
+                for (auto platform : sycl::platform::get_platforms())
+                {
+                    ConfigurableDeviceSelector::print_platform_info(platform);
+
+                    for (auto device : platform.get_devices())
+                    {
+                        ConfigurableDeviceSelector::print_device_info(device);
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            catch (std::exception const& e) {
+                // catch the exception from devices that are not supported.
+                std::cout << "An exception is caught when enumerating platforms and devices."
+                    << std::endl;
+                std::cout << e.what() << std::endl;
+            }
+
+            exit(0);
         }
 
-        exit(0);
-    }
-
-    // Adjust the width to be a factor of 16 and the height to be a factor of 8 to make the
-    // parallel algorithms not need to worry about odd sized images.  Later this could be relaxed
-    // by making an internal space that meets these criteria and then pulling the user requested
-    // size from within that space.
-    if (parameters.m_widthOutput % 16 != 0)
-    {
-        parameters.m_widthOutput = ((parameters.m_widthOutput / 16) + 1) * 16;
-    }
-    if (parameters.m_heightOutput % 8 != 0)
-    {
-        parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
-    }
-    // read src image0
-    printf("Loading Image0\n");
-    parameters.m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
-    if (parameters.m_image[0].empty())
-    {
-        printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
-        throw std::invalid_argument("Error: Could not load image 0.");
-    }
-    // read src image1
-    printf("Loading Image1\n");
-    parameters.m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
-    if (parameters.m_image[1].empty())
-    {
-        printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
-        throw std::invalid_argument("Error: Could not load image 1.");
-    }
-    printf("Images loaded.\n");
-    int algorithm = startAlgorithm;
-    try {
+        // Adjust the width to be a factor of 16 and the height to be a factor of 8 to make the
+        // parallel algorithms not need to worry about odd sized images.  Later this could be relaxed
+        // by making an internal space that meets these criteria and then pulling the user requested
+        // size from within that space.
+        if (parameters.m_widthOutput % 16 != 0)
+        {
+            parameters.m_widthOutput = ((parameters.m_widthOutput / 16) + 1) * 16;
+        }
+        if (parameters.m_heightOutput % 8 != 0)
+        {
+            parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
+        }
+        // read src image0
+        printf("Loading Image0\n");
+        parameters.m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
+        if (parameters.m_image[0].empty())
+        {
+            printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
+            throw std::invalid_argument("Error: Could not load image 0.");
+        }
+        // read src image1
+        printf("Loading Image1\n");
+        parameters.m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
+        if (parameters.m_image[1].empty())
+        {
+            printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
+            throw std::invalid_argument("Error: Could not load image 1.");
+        }
+        printf("Images loaded.\n");
+        int algorithm = startAlgorithm;
 
         while (algorithm <= endAlgorithm)
         {
@@ -386,11 +387,11 @@ int main(int argc, char** argv) {
 
                                 }
                             }
-                            catch (cl::sycl::exception const &e) {
+                            catch (cl::sycl::exception const& e) {
                                 std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
 
                             }
-                            catch (std::exception const &e) {
+                            catch (std::exception const& e) {
                                 // catch the exception from devices that are not supported.
                                 std::cout << "Exception caught during main loop." << std::endl;
                                 std::cout << e.what() << std::endl;
@@ -560,29 +561,30 @@ int main(int argc, char** argv) {
             }
             algorithm++;
         }
+
+        // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
+        printf("\033[32m");
+        printf("All done!  Summary of all runs:\n");
+        printf("\033[0m");
+        for (auto& element : summaryStats)
+        {
+            printf("%s\n", element.c_str());
+        }
+        if (!bInteractive)
+        {
+            key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
+        }
+
     }
-    catch (cl::sycl::exception const &e) {
+    catch (cl::sycl::exception const& e) {
         std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
     }
-    catch (std::exception const &e) {
+    catch (std::exception const& e) {
         // catch the exception from devices that are not supported.
         std::cout << "Exception caught during main loop." << std::endl;
         std::cout << e.what() << std::endl;
     }
 
-
-    // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
-    printf("\033[32m");
-    printf("All done!  Summary of all runs:\n");
-    printf("\033[0m");
-    for (auto &element : summaryStats)
-    {
-        printf("%s\n", element.c_str());
-    }
-    if (!bInteractive)
-    {
-        key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
-    }
 
     return 0;
 }

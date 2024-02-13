@@ -142,11 +142,14 @@ bool DpcppBaseAlgorithm::StartVariant()
             {
                 m_devices = m_curPlatform->get_devices();
                 m_curDevice = m_devices.begin();
+                m_platformName = m_curPlatform->get_info<sycl::info::platform::name>();
+                if (m_curDevice != m_devices.end())
+                {
+                    m_deviceName = m_curDevice->get_info<sycl::info::device::name>();
+                    m_driverVersion = m_curDevice->get_info<sycl::info::device::driver_version>();
+                }
             }
             m_typePreference = m_parameters->m_typePreference;
-            m_platformName = m_curPlatform->get_info<sycl::info::platform::name>();
-            m_deviceName = m_curDevice->get_info<sycl::info::device::name>();
-            m_driverVersion = m_curDevice->get_info<sycl::info::device::driver_version>();
             m_bAll = true;
         }
         else

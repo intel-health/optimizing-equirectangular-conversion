@@ -112,175 +112,175 @@ void UpdateParameters(SParameters &parameters)
 }
 
 int main(int argc, char** argv) {
-    SParameters parameters;
-    // For this demo, just support 2 devices (CPU and GPU)
-    SParameters devParameters[MAX_DEVICES];
-    DpcppBaseAlgorithm *pDevAlg[MAX_DEVICES];
-    // The following variables are for interactions between the main thread and the worker thread(s)
-    std::mutex requestWorkMutex;
-    std::condition_variable requestWorkCondVar;
-    // availableDevices is a mask indicating which devices can be assigned work
-    unsigned int availableDevices = ALL_DEVICES_MASK;
-    // requestWork is used with the above mutex and condition variable
-    // to indicate which devices are being requested to start working
-    unsigned int requestWork = 0;
-    // m_workCompletedMutex is the mutex that controls access to the m_workCompleted
-    // variable
-    std::mutex workCompletedMutex;
-    // m_workCompletedCondVar
-    std::condition_variable workCompletedCondVar;
-    // m_workCompleted is used with the above mutex and condition variable
-    // so devices can report when they have completed the requested work and are now
-    // available.
-    unsigned int workCompleted = 0;
+    try {
+        SParameters parameters;
+        // For this demo, just support 2 devices (CPU and GPU)
+        SParameters devParameters[MAX_DEVICES];
+        DpcppBaseAlgorithm* pDevAlg[MAX_DEVICES];
+        // The following variables are for interactions between the main thread and the worker thread(s)
+        std::mutex requestWorkMutex;
+        std::condition_variable requestWorkCondVar;
+        // availableDevices is a mask indicating which devices can be assigned work
+        unsigned int availableDevices = ALL_DEVICES_MASK;
+        // requestWork is used with the above mutex and condition variable
+        // to indicate which devices are being requested to start working
+        unsigned int requestWork = 0;
+        // m_workCompletedMutex is the mutex that controls access to the m_workCompleted
+        // variable
+        std::mutex workCompletedMutex;
+        // m_workCompletedCondVar
+        std::condition_variable workCompletedCondVar;
+        // m_workCompleted is used with the above mutex and condition variable
+        // so devices can report when they have completed the requested work and are now
+        // available.
+        unsigned int workCompleted = 0;
 
-    char errorMessage[MAX_ERROR_MESSAGE];
+        char errorMessage[MAX_ERROR_MESSAGE];
 
-    if (!ParseArgs(argc, argv, &parameters, errorMessage))
-    {
-        PrintUsage(argv[0], errorMessage);
-        exit(1);
-    }
+        if (!ParseArgs(argc, argv, &parameters, errorMessage))
+        {
+            PrintUsage(argv[0], errorMessage);
+            exit(1);
+        }
 
 #ifdef VTUNE_API
-    wchar_t const *pThreadName = _T("Main thread");
+        wchar_t const* pThreadName = _T("Main thread");
 
-    __itt_thread_set_name(pThreadName);
+        __itt_thread_set_name(pThreadName);
 #endif
 
-    std::string description;
-    std::chrono::high_resolution_clock::time_point initStartTime;
-    std::chrono::high_resolution_clock::time_point initEndTime;
-    std::chrono::high_resolution_clock::time_point variantInitStartTime;
-    std::chrono::high_resolution_clock::time_point variantInitStopTime;
-    std::chrono::high_resolution_clock::time_point totalTimeStart;
-    std::chrono::high_resolution_clock::time_point totalTimeEnd;
-    TimingStats *pTimingStats = TimingStats::GetTimingStats();
-    bool bInteractive = parameters.m_iterations < 1;
-    int iteration = 0;
-    int finishedIterations = 0;
-    int startAlgorithm;
-    int endAlgorithm;
-    int key;
-    bool bDoIterations = true;
-    cv::Mat debugImg;
-    cv::Mat flatImg;
-    bool bRunningVariant;
-    bool bVariantValid;
-    std::vector<std::string> summaryStats;
-    int origYaw = parameters.m_yaw;
-    int origPitch = parameters.m_pitch;
-    int origRoll = parameters.m_roll;
+        std::string description;
+        std::chrono::high_resolution_clock::time_point initStartTime;
+        std::chrono::high_resolution_clock::time_point initEndTime;
+        std::chrono::high_resolution_clock::time_point variantInitStartTime;
+        std::chrono::high_resolution_clock::time_point variantInitStopTime;
+        std::chrono::high_resolution_clock::time_point totalTimeStart;
+        std::chrono::high_resolution_clock::time_point totalTimeEnd;
+        TimingStats* pTimingStats = TimingStats::GetTimingStats();
+        bool bInteractive = parameters.m_iterations < 1;
+        int iteration = 0;
+        int finishedIterations = 0;
+        int startAlgorithm;
+        int endAlgorithm;
+        int key;
+        bool bDoIterations = true;
+        cv::Mat debugImg;
+        cv::Mat flatImg;
+        bool bRunningVariant;
+        bool bVariantValid;
+        std::vector<std::string> summaryStats;
+        int origYaw = parameters.m_yaw;
+        int origPitch = parameters.m_pitch;
+        int origRoll = parameters.m_roll;
 
-    pDevAlg[0] = NULL;
-    pDevAlg[1] = NULL;
+        pDevAlg[0] = NULL;
+        pDevAlg[1] = NULL;
 
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
-    cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
-    //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_WARNING);
-    if (parameters.m_algorithm > -1)
-    {
-        startAlgorithm = parameters.m_algorithm;
-        endAlgorithm = parameters.m_algorithm;
-    }
-    else
-    {
-        startAlgorithm = parameters.m_startAlgorithm;
-        if (parameters.m_endAlgorithm == -1)
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_FATAL);
+        cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_ERROR);
+        //cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_WARNING);
+        if (parameters.m_algorithm > -1)
         {
-            endAlgorithm = MAX_ALGORITHM;
+            startAlgorithm = parameters.m_algorithm;
+            endAlgorithm = parameters.m_algorithm;
         }
         else
         {
-            endAlgorithm = parameters.m_endAlgorithm;
-        }
-    }
-
-    // See if we just need to list the platforms / devices
-    if (parameters.m_platformName == "list" || parameters.m_deviceName == "list")
-    {
-        try {
-            for (auto platform : sycl::platform::get_platforms())
+            startAlgorithm = parameters.m_startAlgorithm;
+            if (parameters.m_endAlgorithm == -1)
             {
-                ConfigurableDeviceSelector::print_platform_info(platform);
-
-                for (auto device : platform.get_devices())
-                {
-                    ConfigurableDeviceSelector::print_device_info(device);
-                }
-                std::cout << std::endl;
+                endAlgorithm = MAX_ALGORITHM;
+            }
+            else
+            {
+                endAlgorithm = parameters.m_endAlgorithm;
             }
         }
-        catch (std::exception const& e) {
-            // catch the exception from devices that are not supported.
-            std::cout << "An exception is caught when enumerating platforms and devices."
-                << std::endl;
-            std::cout << e.what() << std::endl;
-        }
 
-        exit(0);
-    }
-
-    // Adjust the width to be a factor of 16 and the height to be a factor of 8 to make the
-    // parallel algorithms not need to worry about odd sized images.  Later this could be relaxed
-    // by making an internal space that meets these criteria and then pulling the user requested
-    // size from within that space.
-    if (parameters.m_widthOutput % 16 != 0)
-    {
-        parameters.m_widthOutput = ((parameters.m_widthOutput / 16) + 1) * 16;
-    }
-    if (parameters.m_heightOutput % 8 != 0)
-    {
-        parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
-    }
-    for (unsigned int i = 0; i < MAX_DEVICES; i++)
-    {
-        // read src image0
-        printf("Loading Image0\n");
-        devParameters[i].m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
-        if (devParameters[i].m_image[0].empty())
+        // See if we just need to list the platforms / devices
+        if (parameters.m_platformName == "list" || parameters.m_deviceName == "list")
         {
-            printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
-            throw std::invalid_argument("Error: Could not load image 0.");
+            try {
+                for (auto platform : sycl::platform::get_platforms())
+                {
+                    ConfigurableDeviceSelector::print_platform_info(platform);
+
+                    for (auto device : platform.get_devices())
+                    {
+                        ConfigurableDeviceSelector::print_device_info(device);
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            catch (std::exception const& e) {
+                // catch the exception from devices that are not supported.
+                std::cout << "An exception is caught when enumerating platforms and devices."
+                    << std::endl;
+                std::cout << e.what() << std::endl;
+            }
+
+            exit(0);
         }
-        // read src image1
-        printf("Loading Image1\n");
-        devParameters[i].m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
-        if (devParameters[i].m_image[1].empty())
+
+        // Adjust the width to be a factor of 16 and the height to be a factor of 8 to make the
+        // parallel algorithms not need to worry about odd sized images.  Later this could be relaxed
+        // by making an internal space that meets these criteria and then pulling the user requested
+        // size from within that space.
+        if (parameters.m_widthOutput % 16 != 0)
         {
-            printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
-            throw std::invalid_argument("Error: Could not load image 1.");
+            parameters.m_widthOutput = ((parameters.m_widthOutput / 16) + 1) * 16;
         }
-    }
-    printf("Images loaded.\n");
-    int algorithm = startAlgorithm;
-    unsigned int uiDevIndex = 0;
+        if (parameters.m_heightOutput % 8 != 0)
+        {
+            parameters.m_heightOutput = ((parameters.m_heightOutput / 8) + 1) * 8;
+        }
+        for (unsigned int i = 0; i < MAX_DEVICES; i++)
+        {
+            // read src image0
+            printf("Loading Image0\n");
+            devParameters[i].m_image[0] = cv::imread(parameters.m_imgFilename[0], cv::IMREAD_COLOR);
+            if (devParameters[i].m_image[0].empty())
+            {
+                printf("Error: Could not load image 0 from %s\n", parameters.m_imgFilename[0]);
+                throw std::invalid_argument("Error: Could not load image 0.");
+            }
+            // read src image1
+            printf("Loading Image1\n");
+            devParameters[i].m_image[1] = cv::imread(parameters.m_imgFilename[1], cv::IMREAD_COLOR);
+            if (devParameters[i].m_image[1].empty())
+            {
+                printf("Error: Could not load image 1 from %s\n", parameters.m_imgFilename[1]);
+                throw std::invalid_argument("Error: Could not load image 1.");
+            }
+        }
+        printf("Images loaded.\n");
+        int algorithm = startAlgorithm;
+        unsigned int uiDevIndex = 0;
 
-    for (unsigned int uiMask = 1; uiMask < ALL_DEVICES_MASK; uiMask <<= 1)
-    {
-        devParameters[uiDevIndex] = parameters;
-        devParameters[uiDevIndex].m_uiMyMask = uiMask;
-        devParameters[uiDevIndex].m_uiDevIndex = uiDevIndex;
-        devParameters[uiDevIndex].m_pRequestWorkMutex = &requestWorkMutex;
-        devParameters[uiDevIndex].m_pRequestWorkCondVar = &requestWorkCondVar;
-        devParameters[uiDevIndex].m_pRequestWork = &requestWork;
-        devParameters[uiDevIndex].m_pWorkCompletedMutex = &workCompletedMutex;
-        devParameters[uiDevIndex].m_pWorkCompletedCondVar = &workCompletedCondVar;
-        devParameters[uiDevIndex].m_pWorkCompleted = &workCompleted;
-        devParameters[uiDevIndex].m_deltaImage = parameters.m_deltaImage;
-        uiDevIndex++;
-    }
-    devParameters[0].m_typePreference = "CPU";
-    devParameters[1].m_typePreference = "GPU";
-    // Uncomment enable / disable the code lines below to select a specific iGPU.  If
-    // neither line is enabled, then oneAPI will select the best GPU.
-    // Specifically select the OpenCL driver for the GPU versus Level Zero
-    //devParameters[1].m_platformName = "OpenCL";
-    // Specifically select the Level-Zero driver for the GPU versus Level Zero
-    devParameters[1].m_platformName = "Level-Zero";
+        for (unsigned int uiMask = 1; uiMask < ALL_DEVICES_MASK; uiMask <<= 1)
+        {
+            devParameters[uiDevIndex] = parameters;
+            devParameters[uiDevIndex].m_uiMyMask = uiMask;
+            devParameters[uiDevIndex].m_uiDevIndex = uiDevIndex;
+            devParameters[uiDevIndex].m_pRequestWorkMutex = &requestWorkMutex;
+            devParameters[uiDevIndex].m_pRequestWorkCondVar = &requestWorkCondVar;
+            devParameters[uiDevIndex].m_pRequestWork = &requestWork;
+            devParameters[uiDevIndex].m_pWorkCompletedMutex = &workCompletedMutex;
+            devParameters[uiDevIndex].m_pWorkCompletedCondVar = &workCompletedCondVar;
+            devParameters[uiDevIndex].m_pWorkCompleted = &workCompleted;
+            devParameters[uiDevIndex].m_deltaImage = parameters.m_deltaImage;
+            uiDevIndex++;
+        }
+        devParameters[0].m_typePreference = "CPU";
+        devParameters[1].m_typePreference = "GPU";
+        // Uncomment enable / disable the code lines below to select a specific iGPU.  If
+        // neither line is enabled, then oneAPI will select the best GPU.
+        // Specifically select the OpenCL driver for the GPU versus Level Zero
+        //devParameters[1].m_platformName = "OpenCL";
+        // Specifically select the Level-Zero driver for the GPU versus OpenCL
+        devParameters[1].m_platformName = "Level-Zero";
 
-    try {
         while (algorithm <= endAlgorithm)
         {
             initStartTime = std::chrono::high_resolution_clock::now();
@@ -543,11 +543,11 @@ int main(int argc, char** argv) {
 
                                 }
                             }
-                            catch (cl::sycl::exception const &e) {
+                            catch (cl::sycl::exception const& e) {
                                 std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
 
                             }
-                            catch (std::exception const &e) {
+                            catch (std::exception const& e) {
                                 // catch the exception from devices that are not supported.
                                 std::cout << "Exception caught during main loop." << std::endl;
                                 std::cout << e.what() << std::endl;
@@ -603,28 +603,28 @@ int main(int argc, char** argv) {
             }
             algorithm++;
         }
+
+        // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
+        printf("\033[32m");
+        printf("All done!  Summary of all runs:\n");
+        printf("\033[0m");
+        for (auto& element : summaryStats)
+        {
+            printf("%s\n", element.c_str());
+        }
+        if (!bInteractive)
+        {
+            key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
+        }
+
     }
-    catch (cl::sycl::exception const &e) {
+    catch (cl::sycl::exception const& e) {
         std::cout << "SYCL exception caught during main loop " << e.what() << std::endl;
     }
-    catch (std::exception const &e) {
+    catch (std::exception const& e) {
         // catch the exception from devices that are not supported.
         std::cout << "Exception caught during main loop." << std::endl;
         std::cout << e.what() << std::endl;
-    }
-
-
-    // Make the text be in green (see codeproject.com/Tips/5255355/How-to-Put-Color-on-Windows-Console for colors)
-    printf("\033[32m");
-    printf("All done!  Summary of all runs:\n");
-    printf("\033[0m");
-    for (auto &element : summaryStats)
-    {
-        printf("%s\n", element.c_str());
-    }
-    if (!bInteractive)
-    {
-        key = cv::waitKeyEx(0);             // Show windows and wait for any key close down
     }
 
     return 0;

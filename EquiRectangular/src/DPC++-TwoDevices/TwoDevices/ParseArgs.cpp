@@ -206,7 +206,7 @@ bool ParseArgs(int argc, char** argv, SParameters *parameters, char *errorMessag
                     else if (_strnicmp("fov", flagStart, flagLength) == 0)
                     {
                         parameters->m_fov = atoi(valueStart);
-                        if (parameters->m_fov < 10 || parameters->m_roll > 120)
+                        if (parameters->m_fov < 10 || parameters->m_fov > 120)
                         {
                             sprintf(errorMessage, "Error: Illegal value for fov (%s).  Must be 10 to 120.", valueStart);
                             bRetVal = false;
