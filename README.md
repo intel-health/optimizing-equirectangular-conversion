@@ -3,6 +3,9 @@
 This repository contains information about equirectangular images (360 degree panoramic images), conversion to rectilinear views (selecting a particular viewing direction and "flattening" the image),
 a code framework to test out optimization ideas for efficiently extracting images, and web pages that explain all the work.
 
+The blog series starting with [https://intel-health.github.io/optimizing-equirectangular-conversion/1-Introduction%20to%20360%20Degree%20Representation/index.html![image](https://github.com/intel-health/optimizing-equirectangular-conversion/assets/35115885/d3af1599-13d2-4cdd-9e4b-cdc4597b6e14)
+describes equirectangular projection data format, walks through a number of available open-source solutions, and then discusses optimizations that make the conversion to rectilinear images significantly faster.
+
 # Dependencies
 
 The code depends on the following:
